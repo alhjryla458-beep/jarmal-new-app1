@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Tajawal', system-ui, sans-serif;
+  color: #fff;
+  background: #000;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: #000; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+::selection { background: #e3fe00; color: #000; }
+
+@keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes pulse-ring { 0% { transform: scale(.9); opacity: .7; } 70%, 100% { transform: scale(1.5); opacity: 0; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+.animate-drift { animation: drift 4s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up .5s ease-out both; }
+
+.map-grid { background-color: #101010; background-image: linear-gradient(rgba(227,254,0,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(227,254,0,.06) 1px, transparent 1px); background-size: 42px 42px; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
