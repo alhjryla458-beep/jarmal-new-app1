@@ -575,7 +575,7 @@ function Auth({
       const profilePayload = {
         id: userId,
         full_name: form.name.trim(),
-        phone: `+967${form.phone}`,
+        phone_number: `+967${form.phone}`,
         role,
         is_active: true
       };
@@ -681,8 +681,8 @@ function Auth({
        */
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, full_name, phone')
-        .eq('phone', `+967${form.phone}`)
+        .select('role, full_name, phone_number')
+        .eq('phone_number', `+967${form.phone}`)
         .maybeSingle();
 
       const savedRole = profile?.role as Role | undefined;
@@ -714,7 +714,7 @@ function Auth({
       );
       localStorage.setItem(
         'jarmal_test_phone',
-        profile?.phone || `+967${form.phone}`
+        profile?.phone_number || `+967${form.phone}`
       );
 
       onSuccess(session, savedRole);
