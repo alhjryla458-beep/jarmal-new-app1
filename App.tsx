@@ -37,88 +37,88 @@ type StoreItem = {
   isOpen: boolean;
 };
 
-const CURRENCY = 'ر.ي';
+const CURRENCY = 'ط±.ظٹ';
 
 /*
  * ============================================================
- * جَرْمَل - وضع تسجيل تجريبي
+ * ط¬ظژط±ظ’ظ…ظژظ„ - ظˆط¶ط¹ طھط³ط¬ظٹظ„ طھط¬ط±ظٹط¨ظٹ
  * ============================================================
  *
- * رمز التحقق التجريبي:
+ * ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط§ظ„طھط¬ط±ظٹط¨ظٹ:
  * 123456
  *
- * هذا مؤقت للاختبار فقط.
- * لاحقاً سيتم استبداله بتوثيق SMS الحقيقي.
+ * ظ‡ط°ط§ ظ…ط¤ظ‚طھ ظ„ظ„ط§ط®طھط¨ط§ط± ظپظ‚ط·.
+ * ظ„ط§ط­ظ‚ط§ظ‹ ط³ظٹطھظ… ط§ط³طھط¨ط¯ط§ظ„ظ‡ ط¨طھظˆط«ظٹظ‚ SMS ط§ظ„ط­ظ‚ظٹظ‚ظٹ.
  */
 const TEST_OTP = '123456';
 
 const paymentChannels = [
-  'جيب',
-  'ون كاش',
-  'الكريمي',
-  'البنك اليمني الكويتي',
-  'حوالة محلية'
+  'ط¬ظٹط¨',
+  'ظˆظ† ظƒط§ط´',
+  'ط§ظ„ظƒط±ظٹظ…ظٹ',
+  'ط§ظ„ط¨ظ†ظƒ ط§ظ„ظٹظ…ظ†ظٹ ط§ظ„ظƒظˆظٹطھظٹ',
+  'ط­ظˆط§ظ„ط© ظ…ط­ظ„ظٹط©'
 ];
 
 const businessCategories = [
-  'بقالة',
-  'مطعم',
-  'بوفيه',
-  'سوبرماركت',
-  'صيدلية',
-  'خضار وفواكه',
-  'حلويات',
-  'ملابس',
-  'إلكترونيات'
+  'ط¨ظ‚ط§ظ„ط©',
+  'ظ…ط·ط¹ظ…',
+  'ط¨ظˆظپظٹظ‡',
+  'ط³ظˆط¨ط±ظ…ط§ط±ظƒطھ',
+  'طµظٹط¯ظ„ظٹط©',
+  'ط®ط¶ط§ط± ظˆظپظˆط§ظƒظ‡',
+  'ط­ظ„ظˆظٹط§طھ',
+  'ظ…ظ„ط§ط¨ط³',
+  'ط¥ظ„ظƒطھط±ظˆظ†ظٹط§طھ'
 ];
 
 const categories = [
-  { name: 'الكل', icon: ListChecks },
-  { name: 'بقالة', icon: Store },
-  { name: 'مطاعم', icon: Store },
-  { name: 'قهوة', icon: Store },
-  { name: 'صيدلية', icon: ShieldCheck },
-  { name: 'حلويات', icon: Sparkles }
+  { name: 'ط§ظ„ظƒظ„', icon: ListChecks },
+  { name: 'ط¨ظ‚ط§ظ„ط©', icon: Store },
+  { name: 'ظ…ط·ط§ط¹ظ…', icon: Store },
+  { name: 'ظ‚ظ‡ظˆط©', icon: Store },
+  { name: 'طµظٹط¯ظ„ظٹط©', icon: ShieldCheck },
+  { name: 'ط­ظ„ظˆظٹط§طھ', icon: Sparkles }
 ];
 
 const stores: StoreItem[] = [
   {
     id: 's1',
-    name: 'تموينات النخبة',
-    category: 'بقالة',
-    description: 'كل احتياجات البيت في مكان واحد',
+    name: 'طھظ…ظˆظٹظ†ط§طھ ط§ظ„ظ†ط®ط¨ط©',
+    category: 'ط¨ظ‚ط§ظ„ط©',
+    description: 'ظƒظ„ ط§ط­طھظٹط§ط¬ط§طھ ط§ظ„ط¨ظٹطھ ظپظٹ ظ…ظƒط§ظ† ظˆط§ط­ط¯',
     rating: 4.9,
-    time: '15 - 25 د',
+    time: '15 - 25 ط¯',
     color: '#263700',
     isOpen: true
   },
   {
     id: 's2',
-    name: 'مذاق المدينة',
-    category: 'مطاعم',
-    description: 'وجبات ساخنة بطعم لا يُنسى',
+    name: 'ظ…ط°ط§ظ‚ ط§ظ„ظ…ط¯ظٹظ†ط©',
+    category: 'ظ…ط·ط§ط¹ظ…',
+    description: 'ظˆط¬ط¨ط§طھ ط³ط§ط®ظ†ط© ط¨ط·ط¹ظ… ظ„ط§ ظٹظڈظ†ط³ظ‰',
     rating: 4.8,
-    time: '25 - 35 د',
+    time: '25 - 35 ط¯',
     color: '#3e2900',
     isOpen: true
   },
   {
     id: 's3',
-    name: 'بُنّ ومزاج',
-    category: 'قهوة',
-    description: 'قهوة مختصة وحلويات يومية',
+    name: 'ط¨ظڈظ†ظ‘ ظˆظ…ط²ط§ط¬',
+    category: 'ظ‚ظ‡ظˆط©',
+    description: 'ظ‚ظ‡ظˆط© ظ…ط®طھطµط© ظˆط­ظ„ظˆظٹط§طھ ظٹظˆظ…ظٹط©',
     rating: 4.7,
-    time: '10 - 20 د',
+    time: '10 - 20 ط¯',
     color: '#30251c',
     isOpen: false
   },
   {
     id: 's4',
-    name: 'صيدلية الحياة',
-    category: 'صيدلية',
-    description: 'احتياجاتك الصحية تصلك بسرعة',
+    name: 'طµظٹط¯ظ„ظٹط© ط§ظ„ط­ظٹط§ط©',
+    category: 'طµظٹط¯ظ„ظٹط©',
+    description: 'ط§ط­طھظٹط§ط¬ط§طھظƒ ط§ظ„طµط­ظٹط© طھطµظ„ظƒ ط¨ط³ط±ط¹ط©',
     rating: 4.9,
-    time: '20 - 30 د',
+    time: '20 - 30 ط¯',
     color: '#172e32',
     isOpen: true
   }
@@ -127,50 +127,50 @@ const stores: StoreItem[] = [
 const products: Product[] = [
   {
     id: 'p1',
-    name: 'سلة الفطور اليومية',
-    description: 'خبز طازج، بيض، حليب، جبنة ومربى',
+    name: 'ط³ظ„ط© ط§ظ„ظپط·ظˆط± ط§ظ„ظٹظˆظ…ظٹط©',
+    description: 'ط®ط¨ط² ط·ط§ط²ط¬طŒ ط¨ظٹط¶طŒ ط­ظ„ظٹط¨طŒ ط¬ط¨ظ†ط© ظˆظ…ط±ط¨ظ‰',
     price: 3400,
-    category: 'الأكثر طلباً',
+    category: 'ط§ظ„ط£ظƒط«ط± ط·ظ„ط¨ط§ظ‹',
     storeId: 's1'
   },
   {
     id: 'p2',
-    name: 'مياه معدنية 6 حبات',
-    description: 'مياه نقية بحجم 1.5 لتر',
+    name: 'ظ…ظٹط§ظ‡ ظ…ط¹ط¯ظ†ظٹط© 6 ط­ط¨ط§طھ',
+    description: 'ظ…ظٹط§ظ‡ ظ†ظ‚ظٹط© ط¨ط­ط¬ظ… 1.5 ظ„طھط±',
     price: 1200,
-    category: 'مشروبات',
+    category: 'ظ…ط´ط±ظˆط¨ط§طھ',
     storeId: 's1'
   },
   {
     id: 'p3',
-    name: 'برجر جَرْمَل',
-    description: 'لحم مشوي، جبنة شيدر، صوص خاص',
+    name: 'ط¨ط±ط¬ط± ط¬ظژط±ظ’ظ…ظژظ„',
+    description: 'ظ„ط­ظ… ظ…ط´ظˆظٹطŒ ط¬ط¨ظ†ط© ط´ظٹط¯ط±طŒ طµظˆطµ ط®ط§طµ',
     price: 2900,
-    category: 'الأكثر طلباً',
+    category: 'ط§ظ„ط£ظƒط«ط± ط·ظ„ط¨ط§ظ‹',
     storeId: 's2'
   },
   {
     id: 'p4',
-    name: 'بطاطس بالجبنة',
-    description: 'بطاطس مقرمشة مع صوص الجبنة',
+    name: 'ط¨ط·ط§ط·ط³ ط¨ط§ظ„ط¬ط¨ظ†ط©',
+    description: 'ط¨ط·ط§ط·ط³ ظ…ظ‚ط±ظ…ط´ط© ظ…ط¹ طµظˆطµ ط§ظ„ط¬ط¨ظ†ط©',
     price: 1500,
-    category: 'مقبلات',
+    category: 'ظ…ظ‚ط¨ظ„ط§طھ',
     storeId: 's2'
   },
   {
     id: 'p5',
-    name: 'لاتيه كراميل',
-    description: 'إسبريسو، حليب مبخر، كراميل',
+    name: 'ظ„ط§طھظٹظ‡ ظƒط±ط§ظ…ظٹظ„',
+    description: 'ط¥ط³ط¨ط±ظٹط³ظˆطŒ ط­ظ„ظٹط¨ ظ…ط¨ط®ط±طŒ ظƒط±ط§ظ…ظٹظ„',
     price: 1800,
-    category: 'مشروبات',
+    category: 'ظ…ط´ط±ظˆط¨ط§طھ',
     storeId: 's3'
   },
   {
     id: 'p6',
-    name: 'كوكيز الشوكولاتة',
-    description: 'كوكيز مخبوزة طازجة يومياً',
+    name: 'ظƒظˆظƒظٹط² ط§ظ„ط´ظˆظƒظˆظ„ط§طھط©',
+    description: 'ظƒظˆظƒظٹط² ظ…ط®ط¨ظˆط²ط© ط·ط§ط²ط¬ط© ظٹظˆظ…ظٹط§ظ‹',
     price: 1400,
-    category: 'حلويات',
+    category: 'ط­ظ„ظˆظٹط§طھ',
     storeId: 's3'
   }
 ];
@@ -179,12 +179,12 @@ function Logo({ dark = false }: { dark?: boolean }) {
   return (
     <div className={`flex items-center gap-2 ${dark ? 'text-black' : 'text-white'}`}>
       <div className="relative flex h-11 w-11 items-center justify-center rounded-[50%_50%_50%_12px] border-2 border-black bg-[#e3fe00] text-2xl font-black text-black shadow-[0_0_22px_rgba(227,254,0,.22)]">
-        <span className="relative -top-0.5">ج</span>
+        <span className="relative -top-0.5">ط¬</span>
         <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-black" />
       </div>
 
       <div className="text-2xl font-black tracking-[-.08em]">
-        جَرْمَل<span className="text-[#e3fe00]">.</span>
+        ط¬ظژط±ظ’ظ…ظژظ„<span className="text-[#e3fe00]">.</span>
       </div>
     </div>
   );
@@ -256,7 +256,7 @@ function PhoneField({
   return (
     <div>
       <label className="mb-2 block text-sm font-bold">
-        رقم الهاتف اليمني
+        ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ ط§ظ„ظٹظ…ظ†ظٹ
       </label>
 
       <div className="flex gap-2" dir="ltr">
@@ -276,7 +276,7 @@ function PhoneField({
       </div>
 
       <p className="mt-1 text-[11px] text-white/30">
-        مثال: 711 234 567
+        ظ…ط«ط§ظ„: 711 234 567
       </p>
     </div>
   );
@@ -291,20 +291,20 @@ function Welcome({
     {
       role: 'customer' as const,
       icon: ShoppingBag,
-      title: 'عميل',
-      desc: 'اطلب احتياجاتك من متاجر حيك'
+      title: 'ط¹ظ…ظٹظ„',
+      desc: 'ط§ط·ظ„ط¨ ط§ط­طھظٹط§ط¬ط§طھظƒ ظ…ظ† ظ…طھط§ط¬ط± ط­ظٹظƒ'
     },
     {
       role: 'driver' as const,
       icon: Bike,
-      title: 'مندوب توصيل',
-      desc: 'كن جزءاً من فريق جَرْمَل'
+      title: 'ظ…ظ†ط¯ظˆط¨ طھظˆطµظٹظ„',
+      desc: 'ظƒظ† ط¬ط²ط،ط§ظ‹ ظ…ظ† ظپط±ظٹظ‚ ط¬ظژط±ظ’ظ…ظژظ„'
     },
     {
       role: 'merchant' as const,
       icon: Store,
-      title: 'تاجر / صاحب متجر',
-      desc: 'وصّل منتجاتك لعملائك'
+      title: 'طھط§ط¬ط± / طµط§ط­ط¨ ظ…طھط¬ط±',
+      desc: 'ظˆطµظ‘ظ„ ظ…ظ†طھط¬ط§طھظƒ ظ„ط¹ظ…ظ„ط§ط¦ظƒ'
     }
   ];
 
@@ -317,22 +317,22 @@ function Welcome({
 
         <div className="flex items-center gap-2 text-xs text-white/50">
           <ShieldCheck size={15} className="text-[#e3fe00]" />
-          توصيل موثوق داخل اليمن
+          طھظˆطµظٹظ„ ظ…ظˆط«ظˆظ‚ ط¯ط§ط®ظ„ ط§ظ„ظٹظ…ظ†
         </div>
       </header>
 
       <section className="relative mx-auto flex min-h-[calc(100vh-92px)] max-w-6xl flex-col justify-center py-10">
         <div className="max-w-3xl animate-slide-up">
-          <Pill>أسرع من توقعك</Pill>
+          <Pill>ط£ط³ط±ط¹ ظ…ظ† طھظˆظ‚ط¹ظƒ</Pill>
 
           <h1 className="mt-6 text-5xl font-black leading-[1.12] tracking-[-.05em] sm:text-7xl">
-            طلبك عند بابك،
+            ط·ظ„ط¨ظƒ ط¹ظ†ط¯ ط¨ط§ط¨ظƒطŒ
             <br />
-            <span className="text-[#e3fe00]">بسرعة جَرْمَل.</span>
+            <span className="text-[#e3fe00]">ط¨ط³ط±ط¹ط© ط¬ظژط±ظ’ظ…ظژظ„.</span>
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-8 text-white/55">
-            كل ما تحتاجه من متاجر حيك، في مكان واحد. اختر حسابك وابدأ رحلتك معنا.
+            ظƒظ„ ظ…ط§ طھط­طھط§ط¬ظ‡ ظ…ظ† ظ…طھط§ط¬ط± ط­ظٹظƒطŒ ظپظٹ ظ…ظƒط§ظ† ظˆط§ط­ط¯. ط§ط®طھط± ط­ط³ط§ط¨ظƒ ظˆط§ط¨ط¯ط£ ط±ط­ظ„طھظƒ ظ…ط¹ظ†ط§.
           </p>
         </div>
 
@@ -362,7 +362,7 @@ function Welcome({
               </p>
 
               <p className="mt-5 text-xs font-bold text-[#e3fe00] group-hover:text-black">
-                ابدأ الآن
+                ط§ط¨ط¯ط£ ط§ظ„ط¢ظ†
               </p>
             </button>
           ))}
@@ -371,17 +371,17 @@ function Welcome({
         <div className="mt-12 flex flex-wrap items-center gap-6 text-xs text-white/35">
           <span className="flex items-center gap-2">
             <Zap size={15} className="text-[#e3fe00]" />
-            توصيل سريع
+            طھظˆطµظٹظ„ ط³ط±ظٹط¹
           </span>
 
           <span className="flex items-center gap-2">
             <CheckCircle2 size={15} className="text-[#e3fe00]" />
-            متاجر موثوقة
+            ظ…طھط§ط¬ط± ظ…ظˆط«ظˆظ‚ط©
           </span>
 
           <span className="flex items-center gap-2">
             <Navigation size={15} className="text-[#e3fe00]" />
-            تتبع مباشر
+            طھطھط¨ط¹ ظ…ط¨ط§ط´ط±
           </span>
 
           <button
@@ -389,7 +389,7 @@ function Welcome({
             className="flex items-center gap-2 text-white/20 transition hover:text-[#e3fe00]"
           >
             <ShieldCheck size={15} />
-            دخول الإدارة
+            ط¯ط®ظˆظ„ ط§ظ„ط¥ط¯ط§ط±ط©
           </button>
         </div>
       </section>
@@ -419,7 +419,7 @@ function Auth({
     otp: '',
     accessCode: '',
     storeName: '',
-    category: 'بقالة'
+    category: 'ط¨ظ‚ط§ظ„ط©'
   });
 
   const update = (key: string, value: string) => {
@@ -438,10 +438,10 @@ function Auth({
 
   const stepLabels =
     role === 'merchant'
-      ? ['البيانات الأساسية', 'تأكيد الهاتف', 'بيانات المتجر']
+      ? ['ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©', 'طھط£ظƒظٹط¯ ط§ظ„ظ‡ط§طھظپ', 'ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±']
       : role === 'driver'
-        ? ['البيانات الأساسية', 'تأكيد الهاتف', 'كود المندوب']
-        : ['البيانات الأساسية', 'تأكيد الهاتف'];
+        ? ['ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©', 'طھط£ظƒظٹط¯ ط§ظ„ظ‡ط§طھظپ', 'ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨']
+        : ['ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©', 'طھط£ظƒظٹط¯ ط§ظ„ظ‡ط§طھظپ'];
 
   const prev = () => {
     setError('');
@@ -449,20 +449,20 @@ function Auth({
   };
 
   /*
-   * الوضع التجريبي:
-   * لا يتم إرسال SMS حقيقي.
-   * الرمز الصحيح للاختبار هو 123456.
+   * ط§ظ„ظˆط¶ط¹ ط§ظ„طھط¬ط±ظٹط¨ظٹ:
+   * ظ„ط§ ظٹطھظ… ط¥ط±ط³ط§ظ„ SMS ط­ظ‚ظٹظ‚ظٹ.
+   * ط§ظ„ط±ظ…ط² ط§ظ„طµط­ظٹط­ ظ„ظ„ط§ط®طھط¨ط§ط± ظ‡ظˆ 123456.
    */
   const sendOtp = () => {
     setError('');
 
     if (!form.name.trim()) {
-      setError('اكتب اسمك أولاً');
+      setError('ط§ظƒطھط¨ ط§ط³ظ…ظƒ ط£ظˆظ„ط§ظ‹');
       return;
     }
 
     if (form.phone.length !== 9) {
-      setError('أدخل رقم هاتف يمني صحيح مكون من 9 أرقام');
+      setError('ط£ط¯ط®ظ„ ط±ظ‚ظ… ظ‡ط§طھظپ ظٹظ…ظ†ظٹ طµط­ظٹط­ ظ…ظƒظˆظ† ظ…ظ† 9 ط£ط±ظ‚ط§ظ…');
       return;
     }
 
@@ -475,7 +475,7 @@ function Auth({
     setError('');
 
     if (form.otp !== TEST_OTP) {
-      setError('رمز التحقق غير صحيح. استخدم الرمز التجريبي: 123456');
+      setError('ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط؛ظٹط± طµط­ظٹط­. ط§ط³طھط®ط¯ظ… ط§ظ„ط±ظ…ط² ط§ظ„طھط¬ط±ظٹط¨ظٹ: 123456');
       return;
     }
 
@@ -490,14 +490,14 @@ function Auth({
   };
 
   /*
-   * إنشاء جلسة Supabase تجريبية حقيقية.
+   * ط¥ظ†ط´ط§ط، ط¬ظ„ط³ط© Supabase طھط¬ط±ظٹط¨ظٹط© ط­ظ‚ظٹظ‚ظٹط©.
    *
-   * نستخدم Anonymous Auth في وضع الاختبار حتى نستطيع
-   * اختبار التطبيق بدون SMS مدفوع.
+   * ظ†ط³طھط®ط¯ظ… Anonymous Auth ظپظٹ ظˆط¶ط¹ ط§ظ„ط§ط®طھط¨ط§ط± ط­طھظ‰ ظ†ط³طھط·ظٹط¹
+   * ط§ط®طھط¨ط§ط± ط§ظ„طھط·ط¨ظٹظ‚ ط¨ط¯ظˆظ† SMS ظ…ط¯ظپظˆط¹.
    *
-   * لاحقاً سيتم استبدال هذا الجزء بـ:
+   * ظ„ط§ط­ظ‚ط§ظ‹ ط³ظٹطھظ… ط§ط³طھط¨ط¯ط§ظ„ ظ‡ط°ط§ ط§ظ„ط¬ط²ط، ط¨ظ€:
    * signInWithOtp + verifyOtp
-   * عند ربط رسائل اللوتس.
+   * ط¹ظ†ط¯ ط±ط¨ط· ط±ط³ط§ط¦ظ„ ط§ظ„ظ„ظˆطھط³.
    */
   const createTestSession = async () => {
     const result = await supabase.auth.signInAnonymously();
@@ -508,7 +508,7 @@ function Auth({
 
     if (!result.data.session) {
       throw new Error(
-        'تعذر إنشاء جلسة الاختبار. يجب تفعيل Anonymous Sign-Ins في Supabase.'
+        'طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط¬ظ„ط³ط© ط§ظ„ط§ط®طھط¨ط§ط±. ظٹط¬ط¨ طھظپط¹ظٹظ„ Anonymous Sign-Ins ظپظٹ Supabase.'
       );
     }
 
@@ -521,21 +521,21 @@ function Auth({
 
     try {
       if (!otpVerified && role !== 'admin') {
-        throw new Error('يجب تأكيد رقم الهاتف أولاً');
+        throw new Error('ظٹط¬ط¨ طھط£ظƒظٹط¯ ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ ط£ظˆظ„ط§ظ‹');
       }
 
       if (role === 'driver') {
         if (!form.accessCode.trim()) {
-          throw new Error('أدخل كود المندوب');
+          throw new Error('ط£ط¯ط®ظ„ ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨');
         }
 
         const normalizedCode = form.accessCode.trim().toUpperCase();
 
         /*
-         * التحقق من بنية جدول driver_access_codes الحالية.
+         * ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ط¨ظ†ظٹط© ط¬ط¯ظˆظ„ driver_access_codes ط§ظ„ط­ط§ظ„ظٹط©.
          *
-         * الجدول الحالي يحتوي على is_used و assigned_to_phone،
-         * لذلك لا نستخدم is_active / used_by القديمة.
+         * ط§ظ„ط¬ط¯ظˆظ„ ط§ظ„ط­ط§ظ„ظٹ ظٹط­طھظˆظٹ ط¹ظ„ظ‰ is_used ظˆ assigned_to_phoneطŒ
+         * ظ„ط°ظ„ظƒ ظ„ط§ ظ†ط³طھط®ط¯ظ… is_active / used_by ط§ظ„ظ‚ط¯ظٹظ…ط©.
          */
         const { data: code, error: codeError } = await supabase
           .from('driver_access_codes')
@@ -549,17 +549,17 @@ function Auth({
         }
 
         if (!code) {
-          throw new Error('كود المندوب غير صحيح أو تم استخدامه من قبل');
+          throw new Error('ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨ ط؛ظٹط± طµط­ظٹط­ ط£ظˆ طھظ… ط§ط³طھط®ط¯ط§ظ…ظ‡ ظ…ظ† ظ‚ط¨ظ„');
         }
       }
 
       if (role === 'merchant') {
         if (!form.storeName.trim()) {
-          throw new Error('أدخل اسم المتجر');
+          throw new Error('ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ظ…طھط¬ط±');
         }
 
         if (!form.category.trim()) {
-          throw new Error('اختر نوع النشاط التجاري');
+          throw new Error('ط§ط®طھط± ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط· ط§ظ„طھط¬ط§ط±ظٹ');
         }
       }
 
@@ -567,15 +567,15 @@ function Auth({
       const userId = session.user.id;
 
       /*
-       * حفظ بيانات الحساب في profiles.
+       * ط­ظپط¸ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط­ط³ط§ط¨ ظپظٹ profiles.
        *
-       * لا نرسل email أو password أو national_id
-       * لأن التسجيل الجديد يعتمد على الهاتف.
+       * ظ„ط§ ظ†ط±ط³ظ„ email ط£ظˆ password ط£ظˆ national_id
+       * ظ„ط£ظ† ط§ظ„طھط³ط¬ظٹظ„ ط§ظ„ط¬ط¯ظٹط¯ ظٹط¹طھظ…ط¯ ط¹ظ„ظ‰ ط§ظ„ظ‡ط§طھظپ.
        */
       const profilePayload = {
         id: userId,
         full_name: form.name.trim(),
-        phone_number: `+967${form.phone}`,
+        phone: `+967${form.phone}`,
         role,
         is_active: true
       };
@@ -585,15 +585,15 @@ function Auth({
         .upsert(profilePayload);
 
       /*
-       * في حالة عدم وجود RLS مناسب حالياً لا نمنع تجربة
-       * الدخول للتطبيق، لكن نحاول دائماً حفظ البيانات.
+       * ظپظٹ ط­ط§ظ„ط© ط¹ط¯ظ… ظˆط¬ظˆط¯ RLS ظ…ظ†ط§ط³ط¨ ط­ط§ظ„ظٹط§ظ‹ ظ„ط§ ظ†ظ…ظ†ط¹ طھط¬ط±ط¨ط©
+       * ط§ظ„ط¯ط®ظˆظ„ ظ„ظ„طھط·ط¨ظٹظ‚طŒ ظ„ظƒظ† ظ†ط­ط§ظˆظ„ ط¯ط§ط¦ظ…ط§ظ‹ ط­ظپط¸ ط§ظ„ط¨ظٹط§ظ†ط§طھ.
        */
       if (profileError) {
-        console.warn('تعذر حفظ profile:', profileError);
+        console.warn('طھط¹ط°ط± ط­ظپط¸ profile:', profileError);
       }
 
       /*
-       * إذا كان المستخدم مندوباً، نعلّم كود المندوب بأنه مستخدم.
+       * ط¥ط°ط§ ظƒط§ظ† ط§ظ„ظ…ط³طھط®ط¯ظ… ظ…ظ†ط¯ظˆط¨ط§ظ‹طŒ ظ†ط¹ظ„ظ‘ظ… ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨ ط¨ط£ظ†ظ‡ ظ…ط³طھط®ط¯ظ….
        */
       if (role === 'driver') {
         const normalizedCode = form.accessCode.trim().toUpperCase();
@@ -608,15 +608,15 @@ function Auth({
           .eq('is_used', false);
 
         if (codeUpdateError) {
-          console.warn('تعذر تحديث كود المندوب:', codeUpdateError);
+          console.warn('طھط¹ط°ط± طھط­ط¯ظٹط« ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨:', codeUpdateError);
         }
       }
 
       /*
-       * إنشاء المتجر لصاحب المتجر.
+       * ط¥ظ†ط´ط§ط، ط§ظ„ظ…طھط¬ط± ظ„طµط§ط­ط¨ ط§ظ„ظ…طھط¬ط±.
        *
-       * نستخدم store_type لأنه اسم الحقل الموجود
-       * في بنية جدول stores التي تم العمل عليها.
+       * ظ†ط³طھط®ط¯ظ… store_type ظ„ط£ظ†ظ‡ ط§ط³ظ… ط§ظ„ط­ظ‚ظ„ ط§ظ„ظ…ظˆط¬ظˆط¯
+       * ظپظٹ ط¨ظ†ظٹط© ط¬ط¯ظˆظ„ stores ط§ظ„طھظٹ طھظ… ط§ظ„ط¹ظ…ظ„ ط¹ظ„ظٹظ‡ط§.
        */
       if (role === 'merchant') {
         const { error: storeError } = await supabase
@@ -625,18 +625,18 @@ function Auth({
             merchant_id: userId,
             name: form.storeName.trim(),
             store_type: form.category,
-            description: 'متجر جديد على جَرْمَل',
+            description: 'ظ…طھط¬ط± ط¬ط¯ظٹط¯ ط¹ظ„ظ‰ ط¬ظژط±ظ’ظ…ظژظ„',
             is_open: true
           });
 
         if (storeError) {
-          console.warn('تعذر إنشاء المتجر:', storeError);
+          console.warn('طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط§ظ„ظ…طھط¬ط±:', storeError);
         }
       }
 
       /*
-       * حفظ الدور محلياً أيضاً حتى لا تضيع تجربة الاختبار
-       * إذا كانت RLS في profiles تحتاج ضبطاً لاحقاً.
+       * ط­ظپط¸ ط§ظ„ط¯ظˆط± ظ…ط­ظ„ظٹط§ظ‹ ط£ظٹط¶ط§ظ‹ ط­طھظ‰ ظ„ط§ طھط¶ظٹط¹ طھط¬ط±ط¨ط© ط§ظ„ط§ط®طھط¨ط§ط±
+       * ط¥ط°ط§ ظƒط§ظ†طھ RLS ظپظٹ profiles طھط­طھط§ط¬ ط¶ط¨ط·ط§ظ‹ ظ„ط§ط­ظ‚ط§ظ‹.
        */
       localStorage.setItem('jarmal_test_role', role);
       localStorage.setItem('jarmal_test_name', form.name.trim());
@@ -647,7 +647,7 @@ function Auth({
       setError(
         caught instanceof Error
           ? caught.message
-          : 'حدث خطأ، حاول مرة أخرى'
+          : 'ط­ط¯ط« ط®ط·ط£طŒ ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰'
       );
     } finally {
       setBusy(false);
@@ -662,27 +662,27 @@ function Auth({
 
     try {
       /*
-       * في النسخة التجريبية لا نطلب بريد أو كلمة مرور.
+       * ظپظٹ ط§ظ„ظ†ط³ط®ط© ط§ظ„طھط¬ط±ظٹط¨ظٹط© ظ„ط§ ظ†ط·ظ„ط¨ ط¨ط±ظٹط¯ ط£ظˆ ظƒظ„ظ…ط© ظ…ط±ظˆط±.
        *
-       * المستخدم يدخل رقم هاتفه ثم 123456.
+       * ط§ظ„ظ…ط³طھط®ط¯ظ… ظٹط¯ط®ظ„ ط±ظ‚ظ… ظ‡ط§طھظپظ‡ ط«ظ… 123456.
        */
       if (form.phone.length !== 9) {
-        throw new Error('أدخل رقم الهاتف المكون من 9 أرقام');
+        throw new Error('ط£ط¯ط®ظ„ ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ ط§ظ„ظ…ظƒظˆظ† ظ…ظ† 9 ط£ط±ظ‚ط§ظ…');
       }
 
       if (form.otp !== TEST_OTP) {
-        throw new Error('رمز التحقق غير صحيح. استخدم: 123456');
+        throw new Error('ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط؛ظٹط± طµط­ظٹط­. ط§ط³طھط®ط¯ظ…: 123456');
       }
 
       const session = await createTestSession();
 
       /*
-       * نحاول استرجاع الدور من profiles.
+       * ظ†ط­ط§ظˆظ„ ط§ط³طھط±ط¬ط§ط¹ ط§ظ„ط¯ظˆط± ظ…ظ† profiles.
        */
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, full_name, phone_number')
-        .eq('phone_number', `+967${form.phone}`)
+        .select('role, full_name, phone')
+        .eq('phone', `+967${form.phone}`)
         .maybeSingle();
 
       const savedRole = profile?.role as Role | undefined;
@@ -694,7 +694,7 @@ function Auth({
 
         if (!localRole) {
           throw new Error(
-            'لم يتم العثور على حساب بهذا الرقم. اختر "حساب جديد" أولاً.'
+            'ظ„ظ… ظٹطھظ… ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ط­ط³ط§ط¨ ط¨ظ‡ط°ط§ ط§ظ„ط±ظ‚ظ…. ط§ط®طھط± "ط­ط³ط§ط¨ ط¬ط¯ظٹط¯" ط£ظˆظ„ط§ظ‹.'
           );
         }
 
@@ -714,7 +714,7 @@ function Auth({
       );
       localStorage.setItem(
         'jarmal_test_phone',
-        profile?.phone_number || `+967${form.phone}`
+        profile?.phone || `+967${form.phone}`
       );
 
       onSuccess(session, savedRole);
@@ -722,7 +722,7 @@ function Auth({
       setError(
         caught instanceof Error
           ? caught.message
-          : 'حدث خطأ أثناء تسجيل الدخول'
+          : 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„'
       );
     } finally {
       setBusy(false);
@@ -731,12 +731,12 @@ function Auth({
 
   const roleTitle =
     role === 'customer'
-      ? 'حساب العميل'
+      ? 'ط­ط³ط§ط¨ ط§ظ„ط¹ظ…ظٹظ„'
       : role === 'driver'
-        ? 'حساب المندوب'
+        ? 'ط­ط³ط§ط¨ ط§ظ„ظ…ظ†ط¯ظˆط¨'
         : role === 'merchant'
-          ? 'حساب التاجر'
-          : 'لوحة الإدارة';
+          ? 'ط­ط³ط§ط¨ ط§ظ„طھط§ط¬ط±'
+          : 'ظ„ظˆط­ط© ط§ظ„ط¥ط¯ط§ط±ط©';
 
   const isAdmin = role === 'admin';
 
@@ -748,7 +748,7 @@ function Auth({
           className="flex items-center gap-2 text-sm text-white/50 hover:text-white"
         >
           <ArrowRight size={18} />
-          العودة
+          ط§ظ„ط¹ظˆط¯ط©
         </button>
 
         <Logo />
@@ -760,13 +760,13 @@ function Auth({
 
           <h1 className="mt-4 text-4xl font-black">
             {mode === 'signup'
-              ? 'أنشئ حسابك'
-              : 'سجّل دخولك'}
+              ? 'ط£ظ†ط´ط¦ ط­ط³ط§ط¨ظƒ'
+              : 'ط³ط¬ظ‘ظ„ ط¯ط®ظˆظ„ظƒ'}
           </h1>
 
           {mode === 'signup' && (
             <p className="mt-3 text-sm text-white/40">
-              تسجيل سريع وسهل باستخدام رقم الهاتف
+              طھط³ط¬ظٹظ„ ط³ط±ظٹط¹ ظˆط³ظ‡ظ„ ط¨ط§ط³طھط®ط¯ط§ظ… ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ
             </p>
           )}
         </div>
@@ -826,7 +826,7 @@ function Auth({
                     : 'text-white/40'
                 }`}
               >
-                حساب جديد
+                ط­ط³ط§ط¨ ط¬ط¯ظٹط¯
               </button>
 
               <button
@@ -844,14 +844,14 @@ function Auth({
                     : 'text-white/40'
                 }`}
               >
-                لدي حساب
+                ظ„ط¯ظٹ ط­ط³ط§ط¨
               </button>
             </div>
           )}
 
           {isAdmin && (
             <div className="mb-7 rounded-xl border border-[#e3fe00]/20 bg-[#e3fe00]/5 px-4 py-3 text-center text-sm text-white/60">
-              دخول مدير النظام — الصلاحية مطلوبة
+              ط¯ط®ظˆظ„ ظ…ط¯ظٹط± ط§ظ„ظ†ط¸ط§ظ… â€” ط§ظ„طµظ„ط§ط­ظٹط© ظ…ط·ظ„ظˆط¨ط©
             </div>
           )}
 
@@ -859,11 +859,11 @@ function Auth({
             <form onSubmit={submitLogin} className="space-y-4">
               <div className="mb-3 text-center">
                 <h2 className="text-xl font-black">
-                  تسجيل الدخول
+                  طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„
                 </h2>
 
                 <p className="mt-1 text-sm text-white/40">
-                  أدخل رقم هاتفك ورمز التحقق
+                  ط£ط¯ط®ظ„ ط±ظ‚ظ… ظ‡ط§طھظپظƒ ظˆط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚
                 </p>
               </div>
 
@@ -873,7 +873,7 @@ function Auth({
               />
 
               <Field
-                label="رمز التحقق"
+                label="ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚"
                 value={form.otp}
                 onChange={(value) =>
                   update(
@@ -886,7 +886,7 @@ function Auth({
               />
 
               <div className="rounded-xl border border-[#e3fe00]/20 bg-[#e3fe00]/5 px-4 py-3 text-center text-xs text-[#e3fe00]">
-                رمز الاختبار: <strong>123456</strong>
+                ط±ظ…ط² ط§ظ„ط§ط®طھط¨ط§ط±: <strong>123456</strong>
               </div>
 
               {error && (
@@ -899,7 +899,7 @@ function Auth({
                 disabled={busy || form.phone.length !== 9 || form.otp.length !== 6}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
               >
-                {busy ? 'جارٍ الدخول...' : 'دخول إلى حسابي'}
+                {busy ? 'ط¬ط§ط±ظچ ط§ظ„ط¯ط®ظˆظ„...' : 'ط¯ط®ظˆظ„ ط¥ظ„ظ‰ ط­ط³ط§ط¨ظٹ'}
                 <ArrowLeft size={18} />
               </button>
             </form>
@@ -913,7 +913,7 @@ function Auth({
               />
 
               <Field
-                label="رمز التحقق"
+                label="ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚"
                 value={form.otp}
                 onChange={(value) =>
                   update(
@@ -935,7 +935,7 @@ function Auth({
                 disabled={busy}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-50"
               >
-                {busy ? 'جارٍ الدخول...' : 'دخول الإدارة'}
+                {busy ? 'ط¬ط§ط±ظچ ط§ظ„ط¯ط®ظˆظ„...' : 'ط¯ط®ظˆظ„ ط§ظ„ط¥ط¯ط§ط±ط©'}
                 <ArrowLeft size={18} />
               </button>
             </form>
@@ -951,19 +951,19 @@ function Auth({
             >
               <div className="mb-2 text-center">
                 <h2 className="text-xl font-black">
-                  البيانات الأساسية
+                  ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©
                 </h2>
 
                 <p className="mt-1 text-sm text-white/40">
-                  أدخل اسمك ورقم هاتفك للبدء
+                  ط£ط¯ط®ظ„ ط§ط³ظ…ظƒ ظˆط±ظ‚ظ… ظ‡ط§طھظپظƒ ظ„ظ„ط¨ط¯ط،
                 </p>
               </div>
 
               <Field
-                label="الاسم"
+                label="ط§ظ„ط§ط³ظ…"
                 value={form.name}
                 onChange={(value) => update('name', value)}
-                placeholder="اكتب اسمك"
+                placeholder="ط§ظƒطھط¨ ط§ط³ظ…ظƒ"
                 icon={<UserRound size={17} />}
               />
 
@@ -983,7 +983,7 @@ function Auth({
                 disabled={!form.name.trim() || form.phone.length !== 9}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
               >
-                تأكيد رقم الهاتف
+                طھط£ظƒظٹط¯ ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ
                 <ArrowLeft size={18} />
               </button>
             </form>
@@ -998,19 +998,19 @@ function Auth({
                 />
 
                 <h2 className="mt-4 text-xl font-black">
-                  تأكيد رقم الهاتف
+                  طھط£ظƒظٹط¯ ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-white/45">
                   {otpSent
-                    ? `تم إرسال رمز التحقق تجريبياً إلى +967 ${form.phone}`
-                    : `أدخل رمز التحقق إلى +967 ${form.phone}`}
+                    ? `طھظ… ط¥ط±ط³ط§ظ„ ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ طھط¬ط±ظٹط¨ظٹط§ظ‹ ط¥ظ„ظ‰ +967 ${form.phone}`
+                    : `ط£ط¯ط®ظ„ ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط¥ظ„ظ‰ +967 ${form.phone}`}
                 </p>
               </div>
 
               <div className="rounded-xl border border-[#e3fe00]/30 bg-[#e3fe00]/10 px-4 py-4 text-center">
                 <p className="text-xs text-white/50">
-                  رمز SMS التجريبي
+                  ط±ظ…ط² SMS ط§ظ„طھط¬ط±ظٹط¨ظٹ
                 </p>
 
                 <p className="mt-1 text-2xl font-black tracking-[.3em] text-[#e3fe00]">
@@ -1019,7 +1019,7 @@ function Auth({
               </div>
 
               <Field
-                label="رمز التحقق OTP"
+                label="ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ OTP"
                 value={form.otp}
                 onChange={(value) =>
                   update(
@@ -1039,7 +1039,7 @@ function Auth({
                 }}
                 className="mx-auto block text-xs text-[#e3fe00] hover:underline"
               >
-                إعادة إرسال الرمز
+                ط¥ط¹ط§ط¯ط© ط¥ط±ط³ط§ظ„ ط§ظ„ط±ظ…ط²
               </button>
 
               {error && (
@@ -1055,7 +1055,7 @@ function Auth({
                   className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-4 text-sm font-bold text-white/60 hover:border-white/30"
                 >
                   <ArrowRight size={18} />
-                  السابق
+                  ط§ظ„ط³ط§ط¨ظ‚
                 </button>
 
                 <button
@@ -1064,7 +1064,7 @@ function Auth({
                   disabled={form.otp.length !== 6}
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
                 >
-                  تأكيد واستمرار
+                  طھط£ظƒظٹط¯ ظˆط§ط³طھظ…ط±ط§ط±
                   <ArrowLeft size={18} />
                 </button>
               </div>
@@ -1077,17 +1077,17 @@ function Auth({
               <div className="space-y-4">
                 <div className="mb-2 text-center">
                   <h2 className="text-xl font-black">
-                    كود المندوب
+                    ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨
                   </h2>
 
                   <p className="mt-1 text-sm text-white/40">
-                    أدخل الكود الذي أصدره لك مدير جَرْمَل
+                    ط£ط¯ط®ظ„ ط§ظ„ظƒظˆط¯ ط§ظ„ط°ظٹ ط£طµط¯ط±ظ‡ ظ„ظƒ ظ…ط¯ظٹط± ط¬ظژط±ظ’ظ…ظژظ„
                   </p>
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-bold">
-                    كود المندوب
+                    ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨
                   </label>
 
                   <input
@@ -1099,12 +1099,12 @@ function Auth({
                         e.target.value.toUpperCase()
                       )
                     }
-                    placeholder="مثال: JARMAL-101"
+                    placeholder="ظ…ط«ط§ظ„: JARMAL-101"
                     className="w-full rounded-xl border border-[#e3fe00]/40 bg-black px-4 py-3.5 text-left font-bold tracking-widest text-[#e3fe00] outline-none placeholder:text-white/20 focus:border-[#e3fe00]"
                   />
 
                   <p className="mt-2 text-xs text-white/35">
-                    الكود يجب أن يكون صادرًا من الإدارة.
+                    ط§ظ„ظƒظˆط¯ ظٹط¬ط¨ ط£ظ† ظٹظƒظˆظ† طµط§ط¯ط±ظ‹ط§ ظ…ظ† ط§ظ„ط¥ط¯ط§ط±ط©.
                   </p>
                 </div>
 
@@ -1121,7 +1121,7 @@ function Auth({
                     className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-4 text-sm font-bold text-white/60 hover:border-white/30"
                   >
                     <ArrowRight size={18} />
-                    السابق
+                    ط§ظ„ط³ط§ط¨ظ‚
                   </button>
 
                   <button
@@ -1131,8 +1131,8 @@ function Auth({
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
                   >
                     {busy
-                      ? 'جارٍ إنشاء الحساب...'
-                      : 'إنشاء الحساب'}
+                      ? 'ط¬ط§ط±ظچ ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨...'
+                      : 'ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨'}
                     <ArrowLeft size={18} />
                   </button>
                 </div>
@@ -1145,27 +1145,27 @@ function Auth({
               <div className="space-y-4">
                 <div className="mb-2 text-center">
                   <h2 className="text-xl font-black">
-                    بيانات المتجر
+                    ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±
                   </h2>
 
                   <p className="mt-1 text-sm text-white/40">
-                    بقيت خطوة واحدة فقط
+                    ط¨ظ‚ظٹطھ ط®ط·ظˆط© ظˆط§ط­ط¯ط© ظپظ‚ط·
                   </p>
                 </div>
 
                 <Field
-                  label="اسم المتجر"
+                  label="ط§ط³ظ… ط§ظ„ظ…طھط¬ط±"
                   value={form.storeName}
                   onChange={(value) =>
                     update('storeName', value)
                   }
-                  placeholder="مثال: تموينات النخبة"
+                  placeholder="ظ…ط«ط§ظ„: طھظ…ظˆظٹظ†ط§طھ ط§ظ„ظ†ط®ط¨ط©"
                   icon={<Store size={17} />}
                 />
 
                 <div>
                   <label className="mb-2 block text-sm font-bold">
-                    نوع النشاط التجاري
+                    ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط· ط§ظ„طھط¬ط§ط±ظٹ
                   </label>
 
                   <select
@@ -1196,7 +1196,7 @@ function Auth({
                     className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-4 text-sm font-bold text-white/60 hover:border-white/30"
                   >
                     <ArrowRight size={18} />
-                    السابق
+                    ط§ظ„ط³ط§ط¨ظ‚
                   </button>
 
                   <button
@@ -1206,8 +1206,8 @@ function Auth({
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
                   >
                     {busy
-                      ? 'جارٍ إنشاء الحساب...'
-                      : 'إنشاء الحساب ودخول التطبيق'}
+                      ? 'ط¬ط§ط±ظچ ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨...'
+                      : 'ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨ ظˆط¯ط®ظˆظ„ ط§ظ„طھط·ط¨ظٹظ‚'}
                     <ArrowLeft size={18} />
                   </button>
                 </div>
@@ -1258,10 +1258,10 @@ function Topbar({
 
             <span>
               {role === 'customer'
-                ? 'أهلاً بك'
+                ? 'ط£ظ‡ظ„ط§ظ‹ ط¨ظƒ'
                 : role === 'driver'
-                  ? 'مندوب جَرْمَل'
-                  : 'متجرك'}
+                  ? 'ظ…ظ†ط¯ظˆط¨ ط¬ظژط±ظ’ظ…ظژظ„'
+                  : 'ظ…طھط¬ط±ظƒ'}
             </span>
           </div>
 
@@ -1289,30 +1289,30 @@ function SideNav({
   const items: [string, string, React.ElementType][] =
     role === 'customer'
       ? [
-          ['home', 'الرئيسية', Home],
-          ['orders', 'طلباتي', ClipboardList],
-          ['map', 'تتبع الطلب', Navigation],
-          ['profile', 'حسابي', UserRound]
+          ['home', 'ط§ظ„ط±ط¦ظٹط³ظٹط©', Home],
+          ['orders', 'ط·ظ„ط¨ط§طھظٹ', ClipboardList],
+          ['map', 'طھطھط¨ط¹ ط§ظ„ط·ظ„ط¨', Navigation],
+          ['profile', 'ط­ط³ط§ط¨ظٹ', UserRound]
         ]
       : role === 'driver'
         ? [
-            ['available', 'الطلبات القريبة', Navigation],
-            ['active', 'الطلب الحالي', Truck],
-            ['history', 'سجل التوصيلات', ClipboardList],
-            ['wallet', 'محفظتي', WalletCards]
+            ['available', 'ط§ظ„ط·ظ„ط¨ط§طھ ط§ظ„ظ‚ط±ظٹط¨ط©', Navigation],
+            ['active', 'ط§ظ„ط·ظ„ط¨ ط§ظ„ط­ط§ظ„ظٹ', Truck],
+            ['history', 'ط³ط¬ظ„ ط§ظ„طھظˆطµظٹظ„ط§طھ', ClipboardList],
+            ['wallet', 'ظ…ط­ظپط¸طھظٹ', WalletCards]
           ]
         : [
-            ['dashboard', 'نظرة عامة', BarChart3],
-            ['incoming', 'الطلبات الواردة', ClipboardList],
-            ['products', 'إدارة المنتجات', ShoppingBag],
-            ['wallet', 'محفظتي', WalletCards],
-            ['settings', 'إعدادات المتجر', Settings2]
+            ['dashboard', 'ظ†ط¸ط±ط© ط¹ط§ظ…ط©', BarChart3],
+            ['incoming', 'ط§ظ„ط·ظ„ط¨ط§طھ ط§ظ„ظˆط§ط±ط¯ط©', ClipboardList],
+            ['products', 'ط¥ط¯ط§ط±ط© ط§ظ„ظ…ظ†طھط¬ط§طھ', ShoppingBag],
+            ['wallet', 'ظ…ط­ظپط¸طھظٹ', WalletCards],
+            ['settings', 'ط¥ط¹ط¯ط§ط¯ط§طھ ط§ظ„ظ…طھط¬ط±', Settings2]
           ];
 
   return (
     <aside className="hidden w-60 shrink-0 border-l border-white/10 bg-[#080808] p-4 lg:block">
       <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">
-        القائمة الرئيسية
+        ط§ظ„ظ‚ط§ط¦ظ…ط© ط§ظ„ط±ط¦ظٹط³ظٹط©
       </p>
 
       <nav className="space-y-1">
@@ -1355,7 +1355,7 @@ function MapCard({ driver = false }: { driver?: boolean }) {
           size={14}
           className="ml-1 inline text-[#e3fe00]"
         />
-        {driver ? 'المسار الأقصر' : 'تتبع مباشر'}
+        {driver ? 'ط§ظ„ظ…ط³ط§ط± ط§ظ„ط£ظ‚طµط±' : 'طھطھط¨ط¹ ظ…ط¨ط§ط´ط±'}
       </div>
 
       <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/85 p-4 backdrop-blur">
@@ -1370,14 +1370,14 @@ function MapCard({ driver = false }: { driver?: boolean }) {
         <div>
           <p className="font-bold">
             {driver
-              ? 'المسار إلى المتجر ثم العميل'
-              : 'المندوب في طريقه إليك'}
+              ? 'ط§ظ„ظ…ط³ط§ط± ط¥ظ„ظ‰ ط§ظ„ظ…طھط¬ط± ط«ظ… ط§ظ„ط¹ظ…ظٹظ„'
+              : 'ط§ظ„ظ…ظ†ط¯ظˆط¨ ظپظٹ ط·ط±ظٹظ‚ظ‡ ط¥ظ„ظٹظƒ'}
           </p>
 
           <p className="text-xs text-white/40">
             {driver
-              ? 'افتح المسار في خرائط Google'
-              : 'متبقي تقريباً 12 دقيقة'}
+              ? 'ط§ظپطھط­ ط§ظ„ظ…ط³ط§ط± ظپظٹ ط®ط±ط§ط¦ط· Google'
+              : 'ظ…طھط¨ظ‚ظٹ طھظ‚ط±ظٹط¨ط§ظ‹ 12 ط¯ظ‚ظٹظ‚ط©'}
           </p>
         </div>
 
@@ -1391,7 +1391,7 @@ function MapCard({ driver = false }: { driver?: boolean }) {
           }
           className="mr-auto rounded-lg bg-[#e3fe00] px-3 py-2 text-xs font-black text-black"
         >
-          خرائط Google
+          ط®ط±ط§ط¦ط· Google
         </button>
       </div>
     </div>
@@ -1409,17 +1409,17 @@ function Wallet({
   return (
     <section>
       <p className="text-sm text-white/40">
-        أموالك بين يديك
+        ط£ظ…ظˆط§ظ„ظƒ ط¨ظٹظ† ظٹط¯ظٹظƒ
       </p>
 
       <h1 className="mt-1 text-3xl font-black">
-        محفظتي
+        ظ…ط­ظپط¸طھظٹ
       </h1>
 
       <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-black/60">
-            الرصيد المتاح
+            ط§ظ„ط±طµظٹط¯ ط§ظ„ظ…طھط§ط­
           </span>
 
           <WalletCards size={23} />
@@ -1434,7 +1434,7 @@ function Wallet({
           onClick={() => setShow(true)}
           className="mt-6 rounded-xl bg-black px-5 py-3 text-sm font-black text-white"
         >
-          سحب الأرباح
+          ط³ط­ط¨ ط§ظ„ط£ط±ط¨ط§ط­
           <ArrowLeft
             className="mr-2 inline"
             size={16}
@@ -1445,7 +1445,7 @@ function Wallet({
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
-            إجمالي الأرباح
+            ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ط£ط±ط¨ط§ط­
           </p>
 
           <p className="mt-3 text-xl font-black">
@@ -1458,7 +1458,7 @@ function Wallet({
 
         <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
-            عمولات هذا الشهر
+            ط¹ظ…ظˆظ„ط§طھ ظ‡ط°ط§ ط§ظ„ط´ظ‡ط±
           </p>
 
           <p className="mt-3 text-xl font-black text-[#e3fe00]">
@@ -1468,7 +1468,7 @@ function Wallet({
 
         <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
-            آخر سحب
+            ط¢ط®ط± ط³ط­ط¨
           </p>
 
           <p className="mt-3 text-xl font-black">
@@ -1482,7 +1482,7 @@ function Wallet({
           <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111] p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-black">
-                سحب الأرباح
+                ط³ط­ط¨ ط§ظ„ط£ط±ط¨ط§ط­
               </h2>
 
               <button onClick={() => setShow(false)}>
@@ -1495,16 +1495,16 @@ function Wallet({
 
             <div className="mt-6 space-y-4">
               <Field
-                label="المبلغ"
+                label="ط§ظ„ظ…ط¨ظ„ط؛"
                 value=""
                 onChange={() => undefined}
-                placeholder={`مثال: 10000 ${CURRENCY}`}
+                placeholder={`ظ…ط«ط§ظ„: 10000 ${CURRENCY}`}
                 icon={<WalletCards size={17} />}
               />
 
               <div>
                 <label className="mb-2 block text-sm font-bold">
-                  قناة السحب
+                  ظ‚ظ†ط§ط© ط§ظ„ط³ط­ط¨
                 </label>
 
                 <select
@@ -1522,13 +1522,13 @@ function Wallet({
 
               <Field
                 label={
-                  channel === 'حوالة محلية'
-                    ? 'اسم المستلم / الوكيل'
-                    : 'رقم الحساب أو الهاتف'
+                  channel === 'ط­ظˆط§ظ„ط© ظ…ط­ظ„ظٹط©'
+                    ? 'ط§ط³ظ… ط§ظ„ظ…ط³طھظ„ظ… / ط§ظ„ظˆظƒظٹظ„'
+                    : 'ط±ظ‚ظ… ط§ظ„ط­ط³ط§ط¨ ط£ظˆ ط§ظ„ظ‡ط§طھظپ'
                 }
                 value=""
                 onChange={() => undefined}
-                placeholder="أدخل البيانات"
+                placeholder="ط£ط¯ط®ظ„ ط§ظ„ط¨ظٹط§ظ†ط§طھ"
                 icon={<Phone size={17} />}
               />
 
@@ -1536,7 +1536,7 @@ function Wallet({
                 onClick={() => setShow(false)}
                 className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black"
               >
-                إرسال طلب السحب
+                ط¥ط±ط³ط§ظ„ ط·ظ„ط¨ ط§ظ„ط³ط­ط¨
               </button>
             </div>
           </div>
@@ -1552,7 +1552,7 @@ function CustomerApp({
   onLogout: () => void;
 }) {
   const [active, setActive] = useState('home');
-  const [category, setCategory] = useState('الكل');
+  const [category, setCategory] = useState('ط§ظ„ظƒظ„');
   const [selectedStore, setSelectedStore] =
     useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -1560,7 +1560,7 @@ function CustomerApp({
   const [ordered, setOrdered] = useState(false);
 
   const filtered =
-    category === 'الكل'
+    category === 'ط§ظ„ظƒظ„'
       ? stores
       : stores.filter((s) => s.category === category);
 
@@ -1597,7 +1597,7 @@ function CustomerApp({
     <div className="min-h-screen bg-black text-white">
       <Topbar
         role="customer"
-        title="مساحة العميل"
+        title="ظ…ط³ط§ط­ط© ط§ظ„ط¹ظ…ظٹظ„"
         onLogout={onLogout}
       />
 
@@ -1613,17 +1613,17 @@ function CustomerApp({
             <>
               <div className="rounded-3xl bg-[#e3fe00] p-7 text-black sm:p-10">
                 <Pill dark>
-                  مرحباً بك في جَرْمَل
+                  ظ…ط±ط­ط¨ط§ظ‹ ط¨ظƒ ظپظٹ ط¬ظژط±ظ’ظ…ظژظ„
                 </Pill>
 
                 <h1 className="mt-5 text-3xl font-black leading-tight sm:text-4xl">
-                  نقوم بتوصيل طلبكم
+                  ظ†ظ‚ظˆظ… ط¨طھظˆطµظٹظ„ ط·ظ„ط¨ظƒظ…
                   <br />
-                  بكل حماس وفاعلية.
+                  ط¨ظƒظ„ ط­ظ…ط§ط³ ظˆظپط§ط¹ظ„ظٹط©.
                 </h1>
 
                 <p className="mt-4 text-sm font-bold text-black/60">
-                  أوقات الدوام من الساعة 9:00 صباحًا حتى 9:00 مساءً
+                  ط£ظˆظ‚ط§طھ ط§ظ„ط¯ظˆط§ظ… ظ…ظ† ط§ظ„ط³ط§ط¹ط© 9:00 طµط¨ط§ط­ظ‹ط§ ط­طھظ‰ 9:00 ظ…ط³ط§ط،ظ‹
                 </p>
               </div>
 
@@ -1631,11 +1631,11 @@ function CustomerApp({
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-sm text-white/40">
-                      اكتشف ما حولك
+                      ط§ظƒطھط´ظپ ظ…ط§ ط­ظˆظ„ظƒ
                     </p>
 
                     <h2 className="mt-1 text-2xl font-black">
-                      تسوّق حسب الفئة
+                      طھط³ظˆظ‘ظ‚ ط­ط³ط¨ ط§ظ„ظپط¦ط©
                     </h2>
                   </div>
 
@@ -1644,7 +1644,7 @@ function CustomerApp({
                       size={14}
                       className="text-[#e3fe00]"
                     />
-                    صنعاء
+                    طµظ†ط¹ط§ط،
                   </span>
                 </div>
 
@@ -1672,7 +1672,7 @@ function CustomerApp({
 
               <section className="mt-10">
                 <h2 className="text-2xl font-black">
-                  متاجر مميزة
+                  ظ…طھط§ط¬ط± ظ…ظ…ظٹط²ط©
                 </h2>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -1717,20 +1717,20 @@ function CustomerApp({
                             }`}
                           >
                             {store.isOpen
-                              ? 'مفتوح'
-                              : 'مغلق'}
+                              ? 'ظ…ظپطھظˆط­'
+                              : 'ظ…ط؛ظ„ظ‚'}
                           </span>
                         </div>
 
                         <div className="mt-4 flex items-center justify-between text-xs text-white/35">
                           <span>
-                            ★ {store.rating} • {store.time}
+                            âک… {store.rating} â€¢ {store.time}
                           </span>
 
                           <span className="font-bold text-[#e3fe00]">
                             {store.isOpen
-                              ? 'اطلب الآن'
-                              : 'لا يستقبل طلبات'}
+                              ? 'ط§ط·ظ„ط¨ ط§ظ„ط¢ظ†'
+                              : 'ظ„ط§ ظٹط³طھظ‚ط¨ظ„ ط·ظ„ط¨ط§طھ'}
                           </span>
                         </div>
                       </div>
