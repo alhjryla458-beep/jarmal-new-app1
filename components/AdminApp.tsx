@@ -1,4 +1,4 @@
-
+import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeft, BarChart3, Check, ClipboardList, Landmark, Lock,
   Package, ShieldCheck, Truck, UserRound, Users, WalletCards, X, Zap,
@@ -14,22 +14,17 @@ type ProfileRow = {
   id: string;
   role: string;
   full_name: string | null;
-  phone: string | null;
-  email: string | null;
+  phone_number: string | null;
   is_active: boolean;
-  store_name: string | null;
 };
 
 type TxRow = {
   id: string;
   user_id: string;
-  wallet_type: string;
   transaction_type: string;
   amount: number;
-  channel: string | null;
-  account_reference: string | null;
-  status: string;
-  created_at: string;
+  payment_method: string | null;
+  transaction_status: string;
 };
 
 type OrderRow = {
@@ -38,9 +33,9 @@ type OrderRow = {
   store_id: string;
   driver_id: string | null;
   status: string;
-  total: number;
+  total_amount: number;
   delivery_fee: number;
-  custom_delivery_fee: number;
+  custom_delivery_fee: number | null;
   courier_distance: number | null;
   created_at: string;
 };
@@ -81,6 +76,7 @@ function StatusBadge({ status }: { status: string }) {
     delivered: 'bg-[#e3fe00]/10 text-[#e3fe00]',
     cancelled: 'bg-red-500/10 text-red-400',
   };
+
   return <span className={`rounded-full px-3 py-1 text-[10px] font-black ${map[status] || 'bg-white/10 text-white/50'}`}>{status}</span>;
 }
 
@@ -97,31 +93,34 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const loadStats = useCallback(async () => {
     const [ordersRes, txRes, profilesRes] = await Promise.all([
       supabase.from('orders').select('status'),
-      supabase.from('wallet_transactions').select('amount, status, transaction_type'),
+      supabase.from('wallet_transactions').select('amount, transaction_status, transaction_type'),
       supabase.from('profiles').select('role'),
     ]);
+
     const allOrders = ordersRes.data || [];
     const allTx = txRes.data || [];
     const allProfiles = profilesRes.data || [];
+
     setStats({
       totalOrders: allOrders.length,
       activeOrders: allOrders.filter((o: { status: string }) => !['delivered', 'cancelled'].includes(o.status)).length,
       deliveredOrders: allOrders.filter((o: { status: string }) => o.status === 'delivered').length,
       totalTransactions: allTx.length,
-      pendingTransactions: allTx.filter((t: { status: string }) => t.status === 'pending').length,
+      pendingTransactions: allTx.filter((t: { transaction_status: string }) => t.transaction_status === 'pending').length,
       totalUsers: allProfiles.filter((p: { role: string }) => p.role === 'customer').length,
       totalDrivers: allProfiles.filter((p: { role: string }) => p.role === 'driver').length,
       totalMerchants: allProfiles.filter((p: { role: string }) => p.role === 'merchant').length,
-      totalTransactionVolume: allTx.filter((t: { status: string }) => t.status === 'completed').reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0),
+      totalTransactionVolume: allTx.filter((t: { transaction_status: string }) => t.transaction_status === 'completed').reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0),
     });
   }, []);
 
   const loadTransactions = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('wallet_transactions')
-      .select('*')
-      .order('created_at', { ascending: false })
+      .select('id, user_id, transaction_type, amount, payment_method, transaction_status')
+      .order('id', { ascending: false })
       .limit(100);
+
     if (err) { setError('تعذر تحميل العمليات'); return; }
     setTransactions((data || []) as TxRow[]);
   }, []);
@@ -129,8 +128,9 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const loadProfiles = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('profiles')
-      .select('id, role, full_name, phone, email, is_active, store_name')
+      .select('id, role, full_name, phone_number, is_active')
       .order('created_at', { ascending: false });
+
     if (err) { setError('تعذر تحميل المستخدمين'); return; }
     setProfiles((data || []) as ProfileRow[]);
   }, []);
@@ -138,9 +138,10 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const loadOrders = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('orders')
-      .select('id, customer_id, store_id, driver_id, status, total, delivery_fee, custom_delivery_fee, courier_distance, created_at')
+      .select('id, customer_id, store_id, driver_id, status, total_amount, delivery_fee, custom_delivery_fee, courier_distance, created_at')
       .order('created_at', { ascending: false })
       .limit(100);
+
     if (err) { setError('تعذر تحميل الطلبات'); return; }
     setOrders((data || []) as OrderRow[]);
   }, []);
@@ -184,6 +185,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
         .from('profiles')
         .update({ is_active: !currentActive })
         .eq('id', userId);
+
       if (err) throw err;
       setProfiles((prev) => prev.map((p) => p.id === userId ? { ...p, is_active: !currentActive } : p));
     } catch {
@@ -210,7 +212,6 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
       <header className="sticky top-0 z-20 border-b border-white/10 bg-black/90 px-5 py-4 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
@@ -222,6 +223,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
               <p className="text-xs text-white/40">جَرْمَل • مساحة الإدارة</p>
             </div>
           </div>
+
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-2 text-sm font-bold sm:flex">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e3fe00] text-black">
@@ -237,7 +239,6 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       </header>
 
       <div className="mx-auto flex max-w-7xl">
-        {/* Sidebar */}
         <aside className="hidden w-60 shrink-0 border-l border-white/10 bg-[#080808] p-4 lg:block">
           <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">أقسام الإدارة</p>
           <nav className="space-y-1">
@@ -259,31 +260,32 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
           </nav>
         </aside>
 
-        {/* Main */}
         <main className="min-w-0 flex-1 p-5 sm:p-8">
           {error && (
             <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
           )}
 
-          {/* Stats Tab */}
           {tab === 'stats' && stats && (
             <>
               <div className="mb-2">
                 <p className="text-sm text-white/40">نظرة عامة على المنصة</p>
                 <h2 className="mt-1 text-3xl font-black">الإحصائيات العامة</h2>
               </div>
+
               <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard label="إجمالي الطلبات" value={stats.totalOrders.toLocaleString('ar-YE')} icon={Package} accent />
                 <StatCard label="طلبات نشطة" value={stats.activeOrders.toLocaleString('ar-YE')} icon={Truck} />
                 <StatCard label="طلبات مكتملة" value={stats.deliveredOrders.toLocaleString('ar-YE')} icon={Check} />
                 <StatCard label="إجمالي العمليات" value={stats.totalTransactions.toLocaleString('ar-YE')} icon={Landmark} accent />
               </div>
+
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard label="العملاء" value={stats.totalUsers.toLocaleString('ar-YE')} icon={Users} />
                 <StatCard label="المندوبون" value={stats.totalDrivers.toLocaleString('ar-YE')} icon={Truck} />
                 <StatCard label="التجار" value={stats.totalMerchants.toLocaleString('ar-YE')} icon={ShieldCheck} />
                 <StatCard label="حجم العمليات" value={`${stats.totalTransactionVolume.toLocaleString('ar-YE')} ${CURRENCY}`} icon={WalletCards} accent />
               </div>
+
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl border border-[#e3fe00]/20 bg-[#e3fe00]/5 p-5">
                   <div className="flex items-center gap-3">
@@ -295,6 +297,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                     مراجعة العمليات <ArrowLeft className="mr-1 inline" size={14} />
                   </button>
                 </div>
+
                 <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
                   <div className="flex items-center gap-3">
                     <ClipboardList size={20} className="text-white/40" />
@@ -309,13 +312,13 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
             </>
           )}
 
-          {/* Wallets Tab */}
           {tab === 'wallets' && (
             <>
               <div className="mb-2">
                 <p className="text-sm text-white/40">تأكيد عمليات الشحن والسحب</p>
                 <h2 className="mt-1 text-3xl font-black">عمليات المحافظ</h2>
               </div>
+
               {transactions.length === 0 ? (
                 <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
                   <WalletCards size={42} className="text-white/20" />
@@ -329,19 +332,17 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                         <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${tx.transaction_type === 'deposit' ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-blue-500/10 text-blue-400'}`}>
                           {tx.transaction_type === 'deposit' ? <ArrowLeft size={17} /> : <ArrowLeft size={17} className="rotate-180" />}
                         </div>
-                        <div>
-                          <p className="text-xs text-white/35">{tx.wallet_type}</p>
-                          <p className="text-sm font-bold">{tx.transaction_type === 'deposit' ? 'شحن' : 'سحب'}</p>
-                        </div>
+                        <p className="text-sm font-bold">{tx.transaction_type === 'deposit' ? 'شحن' : 'سحب'}</p>
                       </div>
+
                       <div className="min-w-[140px] flex-1">
                         <p className="text-sm font-bold">{Number(tx.amount).toLocaleString('ar-YE')} {CURRENCY}</p>
-                        <p className="mt-1 text-xs text-white/35">
-                          {tx.channel || '—'} {tx.account_reference ? `• ${tx.account_reference}` : ''}
-                        </p>
+                        <p className="mt-1 text-xs text-white/35">{tx.payment_method || '—'}</p>
                       </div>
-                      <StatusBadge status={tx.status} />
-                      {tx.status === 'pending' ? (
+
+                      <StatusBadge status={tx.transaction_status} />
+
+                      {tx.transaction_status === 'pending' ? (
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleTxAction(tx.id, 'confirm')}
@@ -358,9 +359,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                             <X size={14} /> رفض
                           </button>
                         </div>
-                      ) : (
-                        <span className="text-xs text-white/30">{new Date(tx.created_at).toLocaleDateString('ar-YE')}</span>
-                      )}
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -368,13 +367,13 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
             </>
           )}
 
-          {/* Users Tab */}
           {tab === 'users' && (
             <>
               <div className="mb-2">
                 <p className="text-sm text-white/40">تفعيل أو تجميد حسابات المندوبين والتجار</p>
                 <h2 className="mt-1 text-3xl font-black">إدارة الحسابات</h2>
               </div>
+
               {profiles.length === 0 ? (
                 <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
                   <Users size={42} className="text-white/20" />
@@ -393,13 +392,15 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                           <p className="text-sm font-bold">{p.full_name || 'بدون اسم'}</p>
                         </div>
                       </div>
+
                       <div className="min-w-[160px] flex-1">
-                        <p className="text-sm text-white/55">{p.phone || '—'}</p>
-                        <p className="mt-1 text-xs text-white/35">{p.email || '—'}</p>
+                        <p className="text-sm text-white/55" dir="ltr">{p.phone_number || '—'}</p>
                       </div>
+
                       <span className={`rounded-full px-3 py-1 text-[10px] font-black ${p.is_active ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-red-500/10 text-red-400'}`}>
                         {p.is_active ? 'نشط' : 'مجمّد'}
                       </span>
+
                       {p.role !== 'admin' && (
                         <button
                           onClick={() => toggleUserActive(p.id, p.is_active)}
@@ -420,13 +421,13 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
             </>
           )}
 
-          {/* Orders Tab */}
           {tab === 'orders' && (
             <>
               <div className="mb-2">
                 <p className="text-sm text-white/40">متابعة الطلبات المباشرة وحالات التوصيل</p>
                 <h2 className="mt-1 text-3xl font-black">متابعة الطلبات</h2>
               </div>
+
               {orders.length === 0 ? (
                 <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
                   <Package size={42} className="text-white/20" />
@@ -442,15 +443,17 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                         </div>
                         <p className="text-sm font-bold">#{o.id.slice(0, 8)}</p>
                       </div>
+
                       <div className="min-w-[160px] flex-1">
                         <p className="text-sm text-white/55">
-                          الإجمالي: {Number(o.total).toLocaleString('ar-YE')} {CURRENCY}
+                          الإجمالي: {Number(o.total_amount).toLocaleString('ar-YE')} {CURRENCY}
                         </p>
                         <p className="mt-1 text-xs text-white/35">
                           توصيل: {Number(o.custom_delivery_fee || o.delivery_fee).toLocaleString('ar-YE')} {CURRENCY}
                           {o.courier_distance ? ` • ${o.courier_distance} كم` : ''}
                         </p>
                       </div>
+
                       <StatusBadge status={o.status} />
                       <span className="text-xs text-white/30">{new Date(o.created_at).toLocaleDateString('ar-YE')}</span>
                     </div>
