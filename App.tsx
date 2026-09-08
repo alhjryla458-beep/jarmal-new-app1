@@ -52,6 +52,14 @@ const CURRENCY = 'ر.ي';
  */
 const TEST_OTP = '123456';
 
+/*
+ * رقم الهاتف التجريبي المحجوز للاختبار.
+ * هذا الرقم سيبقى يعمل بالرمز التجريبي 123456
+ * حتى بعد ربط خدمة SMS حقيقية لاحقاً (المرحلة 4)،
+ * حتى تبقى إمكانية الاختبار متاحة دون استهلاك أرصدة SMS حقيقية.
+ */
+const TEST_PHONE = '711234567';
+
 const paymentChannels = [
   'جيب',
   'ون كاش',
@@ -872,6 +880,14 @@ function Auth({
                 onChange={(value) => update('phone', value)}
               />
 
+              <button
+                type="button"
+                onClick={() => update('phone', TEST_PHONE)}
+                className="text-xs font-bold text-[#e3fe00] underline underline-offset-2"
+              >
+                استخدام الرقم التجريبي ({TEST_PHONE})
+              </button>
+
               <Field
                 label="رمز التحقق"
                 value={form.otp}
@@ -911,6 +927,14 @@ function Auth({
                 value={form.phone}
                 onChange={(value) => update('phone', value)}
               />
+
+              <button
+                type="button"
+                onClick={() => update('phone', TEST_PHONE)}
+                className="text-xs font-bold text-[#e3fe00] underline underline-offset-2"
+              >
+                استخدام الرقم التجريبي ({TEST_PHONE})
+              </button>
 
               <Field
                 label="رمز التحقق"
@@ -971,6 +995,14 @@ function Auth({
                 value={form.phone}
                 onChange={(value) => update('phone', value)}
               />
+
+              <button
+                type="button"
+                onClick={() => update('phone', TEST_PHONE)}
+                className="text-xs font-bold text-[#e3fe00] underline underline-offset-2"
+              >
+                استخدام الرقم التجريبي ({TEST_PHONE})
+              </button>
 
               {error && (
                 <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
