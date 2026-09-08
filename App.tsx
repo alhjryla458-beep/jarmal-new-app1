@@ -37,88 +37,88 @@ type StoreItem = {
   isOpen: boolean;
 };
 
-const CURRENCY = 'ط±.ظٹ';
+const CURRENCY = 'ر.ي';
 
 /*
  * ============================================================
- * ط¬ظژط±ظ’ظ…ظژظ„ - ظˆط¶ط¹ طھط³ط¬ظٹظ„ طھط¬ط±ظٹط¨ظٹ
+ * جَرْمَل - وضع تسجيل تجريبي
  * ============================================================
  *
- * ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط§ظ„طھط¬ط±ظٹط¨ظٹ:
+ * رمز التحقق التجريبي:
  * 123456
  *
- * ظ‡ط°ط§ ظ…ط¤ظ‚طھ ظ„ظ„ط§ط®طھط¨ط§ط± ظپظ‚ط·.
- * ظ„ط§ط­ظ‚ط§ظ‹ ط³ظٹطھظ… ط§ط³طھط¨ط¯ط§ظ„ظ‡ ط¨طھظˆط«ظٹظ‚ SMS ط§ظ„ط­ظ‚ظٹظ‚ظٹ.
+ * هذا مؤقت للاختبار فقط.
+ * لاحقاً سيتم استبداله بتوثيق SMS الحقيقي.
  */
 const TEST_OTP = '123456';
 
 const paymentChannels = [
-  'ط¬ظٹط¨',
-  'ظˆظ† ظƒط§ط´',
-  'ط§ظ„ظƒط±ظٹظ…ظٹ',
-  'ط§ظ„ط¨ظ†ظƒ ط§ظ„ظٹظ…ظ†ظٹ ط§ظ„ظƒظˆظٹطھظٹ',
-  'ط­ظˆط§ظ„ط© ظ…ط­ظ„ظٹط©'
+  'جيب',
+  'ون كاش',
+  'الكريمي',
+  'البنك اليمني الكويتي',
+  'حوالة محلية'
 ];
 
 const businessCategories = [
-  'ط¨ظ‚ط§ظ„ط©',
-  'ظ…ط·ط¹ظ…',
-  'ط¨ظˆظپظٹظ‡',
-  'ط³ظˆط¨ط±ظ…ط§ط±ظƒطھ',
-  'طµظٹط¯ظ„ظٹط©',
-  'ط®ط¶ط§ط± ظˆظپظˆط§ظƒظ‡',
-  'ط­ظ„ظˆظٹط§طھ',
-  'ظ…ظ„ط§ط¨ط³',
-  'ط¥ظ„ظƒطھط±ظˆظ†ظٹط§طھ'
+  'بقالة',
+  'مطعم',
+  'بوفيه',
+  'سوبرماركت',
+  'صيدلية',
+  'خضار وفواكه',
+  'حلويات',
+  'ملابس',
+  'إلكترونيات'
 ];
 
 const categories = [
-  { name: 'ط§ظ„ظƒظ„', icon: ListChecks },
-  { name: 'ط¨ظ‚ط§ظ„ط©', icon: Store },
-  { name: 'ظ…ط·ط§ط¹ظ…', icon: Store },
-  { name: 'ظ‚ظ‡ظˆط©', icon: Store },
-  { name: 'طµظٹط¯ظ„ظٹط©', icon: ShieldCheck },
-  { name: 'ط­ظ„ظˆظٹط§طھ', icon: Sparkles }
+  { name: 'الكل', icon: ListChecks },
+  { name: 'بقالة', icon: Store },
+  { name: 'مطاعم', icon: Store },
+  { name: 'قهوة', icon: Store },
+  { name: 'صيدلية', icon: ShieldCheck },
+  { name: 'حلويات', icon: Sparkles }
 ];
 
 const stores: StoreItem[] = [
   {
     id: 's1',
-    name: 'طھظ…ظˆظٹظ†ط§طھ ط§ظ„ظ†ط®ط¨ط©',
-    category: 'ط¨ظ‚ط§ظ„ط©',
-    description: 'ظƒظ„ ط§ط­طھظٹط§ط¬ط§طھ ط§ظ„ط¨ظٹطھ ظپظٹ ظ…ظƒط§ظ† ظˆط§ط­ط¯',
+    name: 'تموينات النخبة',
+    category: 'بقالة',
+    description: 'كل احتياجات البيت في مكان واحد',
     rating: 4.9,
-    time: '15 - 25 ط¯',
+    time: '15 - 25 د',
     color: '#263700',
     isOpen: true
   },
   {
     id: 's2',
-    name: 'ظ…ط°ط§ظ‚ ط§ظ„ظ…ط¯ظٹظ†ط©',
-    category: 'ظ…ط·ط§ط¹ظ…',
-    description: 'ظˆط¬ط¨ط§طھ ط³ط§ط®ظ†ط© ط¨ط·ط¹ظ… ظ„ط§ ظٹظڈظ†ط³ظ‰',
+    name: 'مذاق المدينة',
+    category: 'مطاعم',
+    description: 'وجبات ساخنة بطعم لا يُنسى',
     rating: 4.8,
-    time: '25 - 35 ط¯',
+    time: '25 - 35 د',
     color: '#3e2900',
     isOpen: true
   },
   {
     id: 's3',
-    name: 'ط¨ظڈظ†ظ‘ ظˆظ…ط²ط§ط¬',
-    category: 'ظ‚ظ‡ظˆط©',
-    description: 'ظ‚ظ‡ظˆط© ظ…ط®طھطµط© ظˆط­ظ„ظˆظٹط§طھ ظٹظˆظ…ظٹط©',
+    name: 'بُنّ ومزاج',
+    category: 'قهوة',
+    description: 'قهوة مختصة وحلويات يومية',
     rating: 4.7,
-    time: '10 - 20 ط¯',
+    time: '10 - 20 د',
     color: '#30251c',
     isOpen: false
   },
   {
     id: 's4',
-    name: 'طµظٹط¯ظ„ظٹط© ط§ظ„ط­ظٹط§ط©',
-    category: 'طµظٹط¯ظ„ظٹط©',
-    description: 'ط§ط­طھظٹط§ط¬ط§طھظƒ ط§ظ„طµط­ظٹط© طھطµظ„ظƒ ط¨ط³ط±ط¹ط©',
+    name: 'صيدلية الحياة',
+    category: 'صيدلية',
+    description: 'احتياجاتك الصحية تصلك بسرعة',
     rating: 4.9,
-    time: '20 - 30 ط¯',
+    time: '20 - 30 د',
     color: '#172e32',
     isOpen: true
   }
@@ -127,50 +127,50 @@ const stores: StoreItem[] = [
 const products: Product[] = [
   {
     id: 'p1',
-    name: 'ط³ظ„ط© ط§ظ„ظپط·ظˆط± ط§ظ„ظٹظˆظ…ظٹط©',
-    description: 'ط®ط¨ط² ط·ط§ط²ط¬طŒ ط¨ظٹط¶طŒ ط­ظ„ظٹط¨طŒ ط¬ط¨ظ†ط© ظˆظ…ط±ط¨ظ‰',
+    name: 'سلة الفطور اليومية',
+    description: 'خبز طازج، بيض، حليب، جبنة ومربى',
     price: 3400,
-    category: 'ط§ظ„ط£ظƒط«ط± ط·ظ„ط¨ط§ظ‹',
+    category: 'الأكثر طلباً',
     storeId: 's1'
   },
   {
     id: 'p2',
-    name: 'ظ…ظٹط§ظ‡ ظ…ط¹ط¯ظ†ظٹط© 6 ط­ط¨ط§طھ',
-    description: 'ظ…ظٹط§ظ‡ ظ†ظ‚ظٹط© ط¨ط­ط¬ظ… 1.5 ظ„طھط±',
+    name: 'مياه معدنية 6 حبات',
+    description: 'مياه نقية بحجم 1.5 لتر',
     price: 1200,
-    category: 'ظ…ط´ط±ظˆط¨ط§طھ',
+    category: 'مشروبات',
     storeId: 's1'
   },
   {
     id: 'p3',
-    name: 'ط¨ط±ط¬ط± ط¬ظژط±ظ’ظ…ظژظ„',
-    description: 'ظ„ط­ظ… ظ…ط´ظˆظٹطŒ ط¬ط¨ظ†ط© ط´ظٹط¯ط±طŒ طµظˆطµ ط®ط§طµ',
+    name: 'برجر جَرْمَل',
+    description: 'لحم مشوي، جبنة شيدر، صوص خاص',
     price: 2900,
-    category: 'ط§ظ„ط£ظƒط«ط± ط·ظ„ط¨ط§ظ‹',
+    category: 'الأكثر طلباً',
     storeId: 's2'
   },
   {
     id: 'p4',
-    name: 'ط¨ط·ط§ط·ط³ ط¨ط§ظ„ط¬ط¨ظ†ط©',
-    description: 'ط¨ط·ط§ط·ط³ ظ…ظ‚ط±ظ…ط´ط© ظ…ط¹ طµظˆطµ ط§ظ„ط¬ط¨ظ†ط©',
+    name: 'بطاطس بالجبنة',
+    description: 'بطاطس مقرمشة مع صوص الجبنة',
     price: 1500,
-    category: 'ظ…ظ‚ط¨ظ„ط§طھ',
+    category: 'مقبلات',
     storeId: 's2'
   },
   {
     id: 'p5',
-    name: 'ظ„ط§طھظٹظ‡ ظƒط±ط§ظ…ظٹظ„',
-    description: 'ط¥ط³ط¨ط±ظٹط³ظˆطŒ ط­ظ„ظٹط¨ ظ…ط¨ط®ط±طŒ ظƒط±ط§ظ…ظٹظ„',
+    name: 'لاتيه كراميل',
+    description: 'إسبريسو، حليب مبخر، كراميل',
     price: 1800,
-    category: 'ظ…ط´ط±ظˆط¨ط§طھ',
+    category: 'مشروبات',
     storeId: 's3'
   },
   {
     id: 'p6',
-    name: 'ظƒظˆظƒظٹط² ط§ظ„ط´ظˆظƒظˆظ„ط§طھط©',
-    description: 'ظƒظˆظƒظٹط² ظ…ط®ط¨ظˆط²ط© ط·ط§ط²ط¬ط© ظٹظˆظ…ظٹط§ظ‹',
+    name: 'كوكيز الشوكولاتة',
+    description: 'كوكيز مخبوزة طازجة يومياً',
     price: 1400,
-    category: 'ط­ظ„ظˆظٹط§طھ',
+    category: 'حلويات',
     storeId: 's3'
   }
 ];
@@ -179,12 +179,12 @@ function Logo({ dark = false }: { dark?: boolean }) {
   return (
     <div className={`flex items-center gap-2 ${dark ? 'text-black' : 'text-white'}`}>
       <div className="relative flex h-11 w-11 items-center justify-center rounded-[50%_50%_50%_12px] border-2 border-black bg-[#e3fe00] text-2xl font-black text-black shadow-[0_0_22px_rgba(227,254,0,.22)]">
-        <span className="relative -top-0.5">ط¬</span>
+        <span className="relative -top-0.5">ج</span>
         <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-black" />
       </div>
 
       <div className="text-2xl font-black tracking-[-.08em]">
-        ط¬ظژط±ظ’ظ…ظژظ„<span className="text-[#e3fe00]">.</span>
+        جَرْمَل<span className="text-[#e3fe00]">.</span>
       </div>
     </div>
   );
@@ -256,7 +256,7 @@ function PhoneField({
   return (
     <div>
       <label className="mb-2 block text-sm font-bold">
-        ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ ط§ظ„ظٹظ…ظ†ظٹ
+        رقم الهاتف اليمني
       </label>
 
       <div className="flex gap-2" dir="ltr">
@@ -276,7 +276,7 @@ function PhoneField({
       </div>
 
       <p className="mt-1 text-[11px] text-white/30">
-        ظ…ط«ط§ظ„: 711 234 567
+        مثال: 711 234 567
       </p>
     </div>
   );
@@ -291,20 +291,20 @@ function Welcome({
     {
       role: 'customer' as const,
       icon: ShoppingBag,
-      title: 'ط¹ظ…ظٹظ„',
-      desc: 'ط§ط·ظ„ط¨ ط§ط­طھظٹط§ط¬ط§طھظƒ ظ…ظ† ظ…طھط§ط¬ط± ط­ظٹظƒ'
+      title: 'عميل',
+      desc: 'اطلب احتياجاتك من متاجر حيك'
     },
     {
       role: 'driver' as const,
       icon: Bike,
-      title: 'ظ…ظ†ط¯ظˆط¨ طھظˆطµظٹظ„',
-      desc: 'ظƒظ† ط¬ط²ط،ط§ظ‹ ظ…ظ† ظپط±ظٹظ‚ ط¬ظژط±ظ’ظ…ظژظ„'
+      title: 'مندوب توصيل',
+      desc: 'كن جزءاً من فريق جَرْمَل'
     },
     {
       role: 'merchant' as const,
       icon: Store,
-      title: 'طھط§ط¬ط± / طµط§ط­ط¨ ظ…طھط¬ط±',
-      desc: 'ظˆطµظ‘ظ„ ظ…ظ†طھط¬ط§طھظƒ ظ„ط¹ظ…ظ„ط§ط¦ظƒ'
+      title: 'تاجر / صاحب متجر',
+      desc: 'وصّل منتجاتك لعملائك'
     }
   ];
 
@@ -317,22 +317,22 @@ function Welcome({
 
         <div className="flex items-center gap-2 text-xs text-white/50">
           <ShieldCheck size={15} className="text-[#e3fe00]" />
-          طھظˆطµظٹظ„ ظ…ظˆط«ظˆظ‚ ط¯ط§ط®ظ„ ط§ظ„ظٹظ…ظ†
+          توصيل موثوق داخل اليمن
         </div>
       </header>
 
       <section className="relative mx-auto flex min-h-[calc(100vh-92px)] max-w-6xl flex-col justify-center py-10">
         <div className="max-w-3xl animate-slide-up">
-          <Pill>ط£ط³ط±ط¹ ظ…ظ† طھظˆظ‚ط¹ظƒ</Pill>
+          <Pill>أسرع من توقعك</Pill>
 
           <h1 className="mt-6 text-5xl font-black leading-[1.12] tracking-[-.05em] sm:text-7xl">
-            ط·ظ„ط¨ظƒ ط¹ظ†ط¯ ط¨ط§ط¨ظƒطŒ
+            طلبك عند بابك،
             <br />
-            <span className="text-[#e3fe00]">ط¨ط³ط±ط¹ط© ط¬ظژط±ظ’ظ…ظژظ„.</span>
+            <span className="text-[#e3fe00]">بسرعة جَرْمَل.</span>
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-8 text-white/55">
-            ظƒظ„ ظ…ط§ طھط­طھط§ط¬ظ‡ ظ…ظ† ظ…طھط§ط¬ط± ط­ظٹظƒطŒ ظپظٹ ظ…ظƒط§ظ† ظˆط§ط­ط¯. ط§ط®طھط± ط­ط³ط§ط¨ظƒ ظˆط§ط¨ط¯ط£ ط±ط­ظ„طھظƒ ظ…ط¹ظ†ط§.
+            كل ما تحتاجه من متاجر حيك، في مكان واحد. اختر حسابك وابدأ رحلتك معنا.
           </p>
         </div>
 
@@ -362,7 +362,7 @@ function Welcome({
               </p>
 
               <p className="mt-5 text-xs font-bold text-[#e3fe00] group-hover:text-black">
-                ط§ط¨ط¯ط£ ط§ظ„ط¢ظ†
+                ابدأ الآن
               </p>
             </button>
           ))}
@@ -371,17 +371,17 @@ function Welcome({
         <div className="mt-12 flex flex-wrap items-center gap-6 text-xs text-white/35">
           <span className="flex items-center gap-2">
             <Zap size={15} className="text-[#e3fe00]" />
-            طھظˆطµظٹظ„ ط³ط±ظٹط¹
+            توصيل سريع
           </span>
 
           <span className="flex items-center gap-2">
             <CheckCircle2 size={15} className="text-[#e3fe00]" />
-            ظ…طھط§ط¬ط± ظ…ظˆط«ظˆظ‚ط©
+            متاجر موثوقة
           </span>
 
           <span className="flex items-center gap-2">
             <Navigation size={15} className="text-[#e3fe00]" />
-            طھطھط¨ط¹ ظ…ط¨ط§ط´ط±
+            تتبع مباشر
           </span>
 
           <button
@@ -389,7 +389,7 @@ function Welcome({
             className="flex items-center gap-2 text-white/20 transition hover:text-[#e3fe00]"
           >
             <ShieldCheck size={15} />
-            ط¯ط®ظˆظ„ ط§ظ„ط¥ط¯ط§ط±ط©
+            دخول الإدارة
           </button>
         </div>
       </section>
@@ -419,7 +419,7 @@ function Auth({
     otp: '',
     accessCode: '',
     storeName: '',
-    category: 'ط¨ظ‚ط§ظ„ط©'
+    category: 'بقالة'
   });
 
   const update = (key: string, value: string) => {
@@ -438,10 +438,10 @@ function Auth({
 
   const stepLabels =
     role === 'merchant'
-      ? ['ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©', 'طھط£ظƒظٹط¯ ط§ظ„ظ‡ط§طھظپ', 'ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±']
+      ? ['البيانات الأساسية', 'تأكيد الهاتف', 'بيانات المتجر']
       : role === 'driver'
-        ? ['ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©', 'طھط£ظƒظٹط¯ ط§ظ„ظ‡ط§طھظپ', 'ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨']
-        : ['ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©', 'طھط£ظƒظٹط¯ ط§ظ„ظ‡ط§طھظپ'];
+        ? ['البيانات الأساسية', 'تأكيد الهاتف', 'كود المندوب']
+        : ['البيانات الأساسية', 'تأكيد الهاتف'];
 
   const prev = () => {
     setError('');
@@ -449,20 +449,20 @@ function Auth({
   };
 
   /*
-   * ط§ظ„ظˆط¶ط¹ ط§ظ„طھط¬ط±ظٹط¨ظٹ:
-   * ظ„ط§ ظٹطھظ… ط¥ط±ط³ط§ظ„ SMS ط­ظ‚ظٹظ‚ظٹ.
-   * ط§ظ„ط±ظ…ط² ط§ظ„طµط­ظٹط­ ظ„ظ„ط§ط®طھط¨ط§ط± ظ‡ظˆ 123456.
+   * الوضع التجريبي:
+   * لا يتم إرسال SMS حقيقي.
+   * الرمز الصحيح للاختبار هو 123456.
    */
   const sendOtp = () => {
     setError('');
 
     if (!form.name.trim()) {
-      setError('ط§ظƒطھط¨ ط§ط³ظ…ظƒ ط£ظˆظ„ط§ظ‹');
+      setError('اكتب اسمك أولاً');
       return;
     }
 
     if (form.phone.length !== 9) {
-      setError('ط£ط¯ط®ظ„ ط±ظ‚ظ… ظ‡ط§طھظپ ظٹظ…ظ†ظٹ طµط­ظٹط­ ظ…ظƒظˆظ† ظ…ظ† 9 ط£ط±ظ‚ط§ظ…');
+      setError('أدخل رقم هاتف يمني صحيح مكون من 9 أرقام');
       return;
     }
 
@@ -475,7 +475,7 @@ function Auth({
     setError('');
 
     if (form.otp !== TEST_OTP) {
-      setError('ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط؛ظٹط± طµط­ظٹط­. ط§ط³طھط®ط¯ظ… ط§ظ„ط±ظ…ط² ط§ظ„طھط¬ط±ظٹط¨ظٹ: 123456');
+      setError('رمز التحقق غير صحيح. استخدم الرمز التجريبي: 123456');
       return;
     }
 
@@ -490,14 +490,14 @@ function Auth({
   };
 
   /*
-   * ط¥ظ†ط´ط§ط، ط¬ظ„ط³ط© Supabase طھط¬ط±ظٹط¨ظٹط© ط­ظ‚ظٹظ‚ظٹط©.
+   * إنشاء جلسة Supabase تجريبية حقيقية.
    *
-   * ظ†ط³طھط®ط¯ظ… Anonymous Auth ظپظٹ ظˆط¶ط¹ ط§ظ„ط§ط®طھط¨ط§ط± ط­طھظ‰ ظ†ط³طھط·ظٹط¹
-   * ط§ط®طھط¨ط§ط± ط§ظ„طھط·ط¨ظٹظ‚ ط¨ط¯ظˆظ† SMS ظ…ط¯ظپظˆط¹.
+   * نستخدم Anonymous Auth في وضع الاختبار حتى نستطيع
+   * اختبار التطبيق بدون SMS مدفوع.
    *
-   * ظ„ط§ط­ظ‚ط§ظ‹ ط³ظٹطھظ… ط§ط³طھط¨ط¯ط§ظ„ ظ‡ط°ط§ ط§ظ„ط¬ط²ط، ط¨ظ€:
+   * لاحقاً سيتم استبدال هذا الجزء بـ:
    * signInWithOtp + verifyOtp
-   * ط¹ظ†ط¯ ط±ط¨ط· ط±ط³ط§ط¦ظ„ ط§ظ„ظ„ظˆطھط³.
+   * عند ربط رسائل اللوتس.
    */
   const createTestSession = async () => {
     const result = await supabase.auth.signInAnonymously();
@@ -508,7 +508,7 @@ function Auth({
 
     if (!result.data.session) {
       throw new Error(
-        'طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط¬ظ„ط³ط© ط§ظ„ط§ط®طھط¨ط§ط±. ظٹط¬ط¨ طھظپط¹ظٹظ„ Anonymous Sign-Ins ظپظٹ Supabase.'
+        'تعذر إنشاء جلسة الاختبار. يجب تفعيل Anonymous Sign-Ins في Supabase.'
       );
     }
 
@@ -521,21 +521,21 @@ function Auth({
 
     try {
       if (!otpVerified && role !== 'admin') {
-        throw new Error('ظٹط¬ط¨ طھط£ظƒظٹط¯ ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ ط£ظˆظ„ط§ظ‹');
+        throw new Error('يجب تأكيد رقم الهاتف أولاً');
       }
 
       if (role === 'driver') {
         if (!form.accessCode.trim()) {
-          throw new Error('ط£ط¯ط®ظ„ ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨');
+          throw new Error('أدخل كود المندوب');
         }
 
         const normalizedCode = form.accessCode.trim().toUpperCase();
 
         /*
-         * ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ط¨ظ†ظٹط© ط¬ط¯ظˆظ„ driver_access_codes ط§ظ„ط­ط§ظ„ظٹط©.
+         * التحقق من بنية جدول driver_access_codes الحالية.
          *
-         * ط§ظ„ط¬ط¯ظˆظ„ ط§ظ„ط­ط§ظ„ظٹ ظٹط­طھظˆظٹ ط¹ظ„ظ‰ is_used ظˆ assigned_to_phoneطŒ
-         * ظ„ط°ظ„ظƒ ظ„ط§ ظ†ط³طھط®ط¯ظ… is_active / used_by ط§ظ„ظ‚ط¯ظٹظ…ط©.
+         * الجدول الحالي يحتوي على is_used و assigned_to_phone،
+         * لذلك لا نستخدم is_active / used_by القديمة.
          */
         const { data: code, error: codeError } = await supabase
           .from('driver_access_codes')
@@ -549,17 +549,17 @@ function Auth({
         }
 
         if (!code) {
-          throw new Error('ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨ ط؛ظٹط± طµط­ظٹط­ ط£ظˆ طھظ… ط§ط³طھط®ط¯ط§ظ…ظ‡ ظ…ظ† ظ‚ط¨ظ„');
+          throw new Error('كود المندوب غير صحيح أو تم استخدامه من قبل');
         }
       }
 
       if (role === 'merchant') {
         if (!form.storeName.trim()) {
-          throw new Error('ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ظ…طھط¬ط±');
+          throw new Error('أدخل اسم المتجر');
         }
 
         if (!form.category.trim()) {
-          throw new Error('ط§ط®طھط± ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط· ط§ظ„طھط¬ط§ط±ظٹ');
+          throw new Error('اختر نوع النشاط التجاري');
         }
       }
 
@@ -567,15 +567,15 @@ function Auth({
       const userId = session.user.id;
 
       /*
-       * ط­ظپط¸ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط­ط³ط§ط¨ ظپظٹ profiles.
+       * حفظ بيانات الحساب في profiles.
        *
-       * ظ„ط§ ظ†ط±ط³ظ„ email ط£ظˆ password ط£ظˆ national_id
-       * ظ„ط£ظ† ط§ظ„طھط³ط¬ظٹظ„ ط§ظ„ط¬ط¯ظٹط¯ ظٹط¹طھظ…ط¯ ط¹ظ„ظ‰ ط§ظ„ظ‡ط§طھظپ.
+       * لا نرسل email أو password أو national_id
+       * لأن التسجيل الجديد يعتمد على الهاتف.
        */
       const profilePayload = {
         id: userId,
         full_name: form.name.trim(),
-        phone: `+967${form.phone}`,
+        phone_number: `+967${form.phone}`,
         role,
         is_active: true
       };
@@ -585,15 +585,15 @@ function Auth({
         .upsert(profilePayload);
 
       /*
-       * ظپظٹ ط­ط§ظ„ط© ط¹ط¯ظ… ظˆط¬ظˆط¯ RLS ظ…ظ†ط§ط³ط¨ ط­ط§ظ„ظٹط§ظ‹ ظ„ط§ ظ†ظ…ظ†ط¹ طھط¬ط±ط¨ط©
-       * ط§ظ„ط¯ط®ظˆظ„ ظ„ظ„طھط·ط¨ظٹظ‚طŒ ظ„ظƒظ† ظ†ط­ط§ظˆظ„ ط¯ط§ط¦ظ…ط§ظ‹ ط­ظپط¸ ط§ظ„ط¨ظٹط§ظ†ط§طھ.
+       * في حالة عدم وجود RLS مناسب حالياً لا نمنع تجربة
+       * الدخول للتطبيق، لكن نحاول دائماً حفظ البيانات.
        */
       if (profileError) {
-        console.warn('طھط¹ط°ط± ط­ظپط¸ profile:', profileError);
+        console.warn('تعذر حفظ profile:', profileError);
       }
 
       /*
-       * ط¥ط°ط§ ظƒط§ظ† ط§ظ„ظ…ط³طھط®ط¯ظ… ظ…ظ†ط¯ظˆط¨ط§ظ‹طŒ ظ†ط¹ظ„ظ‘ظ… ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨ ط¨ط£ظ†ظ‡ ظ…ط³طھط®ط¯ظ….
+       * إذا كان المستخدم مندوباً، نعلّم كود المندوب بأنه مستخدم.
        */
       if (role === 'driver') {
         const normalizedCode = form.accessCode.trim().toUpperCase();
@@ -608,15 +608,15 @@ function Auth({
           .eq('is_used', false);
 
         if (codeUpdateError) {
-          console.warn('طھط¹ط°ط± طھط­ط¯ظٹط« ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨:', codeUpdateError);
+          console.warn('تعذر تحديث كود المندوب:', codeUpdateError);
         }
       }
 
       /*
-       * ط¥ظ†ط´ط§ط، ط§ظ„ظ…طھط¬ط± ظ„طµط§ط­ط¨ ط§ظ„ظ…طھط¬ط±.
+       * إنشاء المتجر لصاحب المتجر.
        *
-       * ظ†ط³طھط®ط¯ظ… store_type ظ„ط£ظ†ظ‡ ط§ط³ظ… ط§ظ„ط­ظ‚ظ„ ط§ظ„ظ…ظˆط¬ظˆط¯
-       * ظپظٹ ط¨ظ†ظٹط© ط¬ط¯ظˆظ„ stores ط§ظ„طھظٹ طھظ… ط§ظ„ط¹ظ…ظ„ ط¹ظ„ظٹظ‡ط§.
+       * نستخدم store_type لأنه اسم الحقل الموجود
+       * في بنية جدول stores التي تم العمل عليها.
        */
       if (role === 'merchant') {
         const { error: storeError } = await supabase
@@ -625,18 +625,18 @@ function Auth({
             merchant_id: userId,
             name: form.storeName.trim(),
             store_type: form.category,
-            description: 'ظ…طھط¬ط± ط¬ط¯ظٹط¯ ط¹ظ„ظ‰ ط¬ظژط±ظ’ظ…ظژظ„',
+            description: 'متجر جديد على جَرْمَل',
             is_open: true
           });
 
         if (storeError) {
-          console.warn('طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط§ظ„ظ…طھط¬ط±:', storeError);
+          console.warn('تعذر إنشاء المتجر:', storeError);
         }
       }
 
       /*
-       * ط­ظپط¸ ط§ظ„ط¯ظˆط± ظ…ط­ظ„ظٹط§ظ‹ ط£ظٹط¶ط§ظ‹ ط­طھظ‰ ظ„ط§ طھط¶ظٹط¹ طھط¬ط±ط¨ط© ط§ظ„ط§ط®طھط¨ط§ط±
-       * ط¥ط°ط§ ظƒط§ظ†طھ RLS ظپظٹ profiles طھط­طھط§ط¬ ط¶ط¨ط·ط§ظ‹ ظ„ط§ط­ظ‚ط§ظ‹.
+       * حفظ الدور محلياً أيضاً حتى لا تضيع تجربة الاختبار
+       * إذا كانت RLS في profiles تحتاج ضبطاً لاحقاً.
        */
       localStorage.setItem('jarmal_test_role', role);
       localStorage.setItem('jarmal_test_name', form.name.trim());
@@ -647,7 +647,7 @@ function Auth({
       setError(
         caught instanceof Error
           ? caught.message
-          : 'ط­ط¯ط« ط®ط·ط£طŒ ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰'
+          : 'حدث خطأ، حاول مرة أخرى'
       );
     } finally {
       setBusy(false);
@@ -662,27 +662,27 @@ function Auth({
 
     try {
       /*
-       * ظپظٹ ط§ظ„ظ†ط³ط®ط© ط§ظ„طھط¬ط±ظٹط¨ظٹط© ظ„ط§ ظ†ط·ظ„ط¨ ط¨ط±ظٹط¯ ط£ظˆ ظƒظ„ظ…ط© ظ…ط±ظˆط±.
+       * في النسخة التجريبية لا نطلب بريد أو كلمة مرور.
        *
-       * ط§ظ„ظ…ط³طھط®ط¯ظ… ظٹط¯ط®ظ„ ط±ظ‚ظ… ظ‡ط§طھظپظ‡ ط«ظ… 123456.
+       * المستخدم يدخل رقم هاتفه ثم 123456.
        */
       if (form.phone.length !== 9) {
-        throw new Error('ط£ط¯ط®ظ„ ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ ط§ظ„ظ…ظƒظˆظ† ظ…ظ† 9 ط£ط±ظ‚ط§ظ…');
+        throw new Error('أدخل رقم الهاتف المكون من 9 أرقام');
       }
 
       if (form.otp !== TEST_OTP) {
-        throw new Error('ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط؛ظٹط± طµط­ظٹط­. ط§ط³طھط®ط¯ظ…: 123456');
+        throw new Error('رمز التحقق غير صحيح. استخدم: 123456');
       }
 
       const session = await createTestSession();
 
       /*
-       * ظ†ط­ط§ظˆظ„ ط§ط³طھط±ط¬ط§ط¹ ط§ظ„ط¯ظˆط± ظ…ظ† profiles.
+       * نحاول استرجاع الدور من profiles.
        */
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, full_name, phone')
-        .eq('phone', `+967${form.phone}`)
+        .select('role, full_name, phone_number')
+        .eq('phone_number', `+967${form.phone}`)
         .maybeSingle();
 
       const savedRole = profile?.role as Role | undefined;
@@ -694,7 +694,7 @@ function Auth({
 
         if (!localRole) {
           throw new Error(
-            'ظ„ظ… ظٹطھظ… ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ط­ط³ط§ط¨ ط¨ظ‡ط°ط§ ط§ظ„ط±ظ‚ظ…. ط§ط®طھط± "ط­ط³ط§ط¨ ط¬ط¯ظٹط¯" ط£ظˆظ„ط§ظ‹.'
+            'لم يتم العثور على حساب بهذا الرقم. اختر "حساب جديد" أولاً.'
           );
         }
 
@@ -714,7 +714,7 @@ function Auth({
       );
       localStorage.setItem(
         'jarmal_test_phone',
-        profile?.phone || `+967${form.phone}`
+        profile?.phone_number || `+967${form.phone}`
       );
 
       onSuccess(session, savedRole);
@@ -722,7 +722,7 @@ function Auth({
       setError(
         caught instanceof Error
           ? caught.message
-          : 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„'
+          : 'حدث خطأ أثناء تسجيل الدخول'
       );
     } finally {
       setBusy(false);
@@ -731,12 +731,12 @@ function Auth({
 
   const roleTitle =
     role === 'customer'
-      ? 'ط­ط³ط§ط¨ ط§ظ„ط¹ظ…ظٹظ„'
+      ? 'حساب العميل'
       : role === 'driver'
-        ? 'ط­ط³ط§ط¨ ط§ظ„ظ…ظ†ط¯ظˆط¨'
+        ? 'حساب المندوب'
         : role === 'merchant'
-          ? 'ط­ط³ط§ط¨ ط§ظ„طھط§ط¬ط±'
-          : 'ظ„ظˆط­ط© ط§ظ„ط¥ط¯ط§ط±ط©';
+          ? 'حساب التاجر'
+          : 'لوحة الإدارة';
 
   const isAdmin = role === 'admin';
 
@@ -748,7 +748,7 @@ function Auth({
           className="flex items-center gap-2 text-sm text-white/50 hover:text-white"
         >
           <ArrowRight size={18} />
-          ط§ظ„ط¹ظˆط¯ط©
+          العودة
         </button>
 
         <Logo />
@@ -760,13 +760,13 @@ function Auth({
 
           <h1 className="mt-4 text-4xl font-black">
             {mode === 'signup'
-              ? 'ط£ظ†ط´ط¦ ط­ط³ط§ط¨ظƒ'
-              : 'ط³ط¬ظ‘ظ„ ط¯ط®ظˆظ„ظƒ'}
+              ? 'أنشئ حسابك'
+              : 'سجّل دخولك'}
           </h1>
 
           {mode === 'signup' && (
             <p className="mt-3 text-sm text-white/40">
-              طھط³ط¬ظٹظ„ ط³ط±ظٹط¹ ظˆط³ظ‡ظ„ ط¨ط§ط³طھط®ط¯ط§ظ… ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ
+              تسجيل سريع وسهل باستخدام رقم الهاتف
             </p>
           )}
         </div>
@@ -826,7 +826,7 @@ function Auth({
                     : 'text-white/40'
                 }`}
               >
-                ط­ط³ط§ط¨ ط¬ط¯ظٹط¯
+                حساب جديد
               </button>
 
               <button
@@ -844,14 +844,14 @@ function Auth({
                     : 'text-white/40'
                 }`}
               >
-                ظ„ط¯ظٹ ط­ط³ط§ط¨
+                لدي حساب
               </button>
             </div>
           )}
 
           {isAdmin && (
             <div className="mb-7 rounded-xl border border-[#e3fe00]/20 bg-[#e3fe00]/5 px-4 py-3 text-center text-sm text-white/60">
-              ط¯ط®ظˆظ„ ظ…ط¯ظٹط± ط§ظ„ظ†ط¸ط§ظ… â€” ط§ظ„طµظ„ط§ط­ظٹط© ظ…ط·ظ„ظˆط¨ط©
+              دخول مدير النظام — الصلاحية مطلوبة
             </div>
           )}
 
@@ -859,11 +859,11 @@ function Auth({
             <form onSubmit={submitLogin} className="space-y-4">
               <div className="mb-3 text-center">
                 <h2 className="text-xl font-black">
-                  طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„
+                  تسجيل الدخول
                 </h2>
 
                 <p className="mt-1 text-sm text-white/40">
-                  ط£ط¯ط®ظ„ ط±ظ‚ظ… ظ‡ط§طھظپظƒ ظˆط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚
+                  أدخل رقم هاتفك ورمز التحقق
                 </p>
               </div>
 
@@ -873,7 +873,7 @@ function Auth({
               />
 
               <Field
-                label="ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚"
+                label="رمز التحقق"
                 value={form.otp}
                 onChange={(value) =>
                   update(
@@ -886,7 +886,7 @@ function Auth({
               />
 
               <div className="rounded-xl border border-[#e3fe00]/20 bg-[#e3fe00]/5 px-4 py-3 text-center text-xs text-[#e3fe00]">
-                ط±ظ…ط² ط§ظ„ط§ط®طھط¨ط§ط±: <strong>123456</strong>
+                رمز الاختبار: <strong>123456</strong>
               </div>
 
               {error && (
@@ -899,7 +899,7 @@ function Auth({
                 disabled={busy || form.phone.length !== 9 || form.otp.length !== 6}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
               >
-                {busy ? 'ط¬ط§ط±ظچ ط§ظ„ط¯ط®ظˆظ„...' : 'ط¯ط®ظˆظ„ ط¥ظ„ظ‰ ط­ط³ط§ط¨ظٹ'}
+                {busy ? 'جارٍ الدخول...' : 'دخول إلى حسابي'}
                 <ArrowLeft size={18} />
               </button>
             </form>
@@ -913,7 +913,7 @@ function Auth({
               />
 
               <Field
-                label="ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚"
+                label="رمز التحقق"
                 value={form.otp}
                 onChange={(value) =>
                   update(
@@ -935,7 +935,7 @@ function Auth({
                 disabled={busy}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-50"
               >
-                {busy ? 'ط¬ط§ط±ظچ ط§ظ„ط¯ط®ظˆظ„...' : 'ط¯ط®ظˆظ„ ط§ظ„ط¥ط¯ط§ط±ط©'}
+                {busy ? 'جارٍ الدخول...' : 'دخول الإدارة'}
                 <ArrowLeft size={18} />
               </button>
             </form>
@@ -951,19 +951,19 @@ function Auth({
             >
               <div className="mb-2 text-center">
                 <h2 className="text-xl font-black">
-                  ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©
+                  البيانات الأساسية
                 </h2>
 
                 <p className="mt-1 text-sm text-white/40">
-                  ط£ط¯ط®ظ„ ط§ط³ظ…ظƒ ظˆط±ظ‚ظ… ظ‡ط§طھظپظƒ ظ„ظ„ط¨ط¯ط،
+                  أدخل اسمك ورقم هاتفك للبدء
                 </p>
               </div>
 
               <Field
-                label="ط§ظ„ط§ط³ظ…"
+                label="الاسم"
                 value={form.name}
                 onChange={(value) => update('name', value)}
-                placeholder="ط§ظƒطھط¨ ط§ط³ظ…ظƒ"
+                placeholder="اكتب اسمك"
                 icon={<UserRound size={17} />}
               />
 
@@ -983,7 +983,7 @@ function Auth({
                 disabled={!form.name.trim() || form.phone.length !== 9}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
               >
-                طھط£ظƒظٹط¯ ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ
+                تأكيد رقم الهاتف
                 <ArrowLeft size={18} />
               </button>
             </form>
@@ -998,19 +998,19 @@ function Auth({
                 />
 
                 <h2 className="mt-4 text-xl font-black">
-                  طھط£ظƒظٹط¯ ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ
+                  تأكيد رقم الهاتف
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-white/45">
                   {otpSent
-                    ? `طھظ… ط¥ط±ط³ط§ظ„ ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ طھط¬ط±ظٹط¨ظٹط§ظ‹ ط¥ظ„ظ‰ +967 ${form.phone}`
-                    : `ط£ط¯ط®ظ„ ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط¥ظ„ظ‰ +967 ${form.phone}`}
+                    ? `تم إرسال رمز التحقق تجريبياً إلى +967 ${form.phone}`
+                    : `أدخل رمز التحقق إلى +967 ${form.phone}`}
                 </p>
               </div>
 
               <div className="rounded-xl border border-[#e3fe00]/30 bg-[#e3fe00]/10 px-4 py-4 text-center">
                 <p className="text-xs text-white/50">
-                  ط±ظ…ط² SMS ط§ظ„طھط¬ط±ظٹط¨ظٹ
+                  رمز SMS التجريبي
                 </p>
 
                 <p className="mt-1 text-2xl font-black tracking-[.3em] text-[#e3fe00]">
@@ -1019,7 +1019,7 @@ function Auth({
               </div>
 
               <Field
-                label="ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ OTP"
+                label="رمز التحقق OTP"
                 value={form.otp}
                 onChange={(value) =>
                   update(
@@ -1039,7 +1039,7 @@ function Auth({
                 }}
                 className="mx-auto block text-xs text-[#e3fe00] hover:underline"
               >
-                ط¥ط¹ط§ط¯ط© ط¥ط±ط³ط§ظ„ ط§ظ„ط±ظ…ط²
+                إعادة إرسال الرمز
               </button>
 
               {error && (
@@ -1055,7 +1055,7 @@ function Auth({
                   className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-4 text-sm font-bold text-white/60 hover:border-white/30"
                 >
                   <ArrowRight size={18} />
-                  ط§ظ„ط³ط§ط¨ظ‚
+                  السابق
                 </button>
 
                 <button
@@ -1064,7 +1064,7 @@ function Auth({
                   disabled={form.otp.length !== 6}
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
                 >
-                  طھط£ظƒظٹط¯ ظˆط§ط³طھظ…ط±ط§ط±
+                  تأكيد واستمرار
                   <ArrowLeft size={18} />
                 </button>
               </div>
@@ -1077,17 +1077,17 @@ function Auth({
               <div className="space-y-4">
                 <div className="mb-2 text-center">
                   <h2 className="text-xl font-black">
-                    ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨
+                    كود المندوب
                   </h2>
 
                   <p className="mt-1 text-sm text-white/40">
-                    ط£ط¯ط®ظ„ ط§ظ„ظƒظˆط¯ ط§ظ„ط°ظٹ ط£طµط¯ط±ظ‡ ظ„ظƒ ظ…ط¯ظٹط± ط¬ظژط±ظ’ظ…ظژظ„
+                    أدخل الكود الذي أصدره لك مدير جَرْمَل
                   </p>
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-bold">
-                    ظƒظˆط¯ ط§ظ„ظ…ظ†ط¯ظˆط¨
+                    كود المندوب
                   </label>
 
                   <input
@@ -1099,12 +1099,12 @@ function Auth({
                         e.target.value.toUpperCase()
                       )
                     }
-                    placeholder="ظ…ط«ط§ظ„: JARMAL-101"
+                    placeholder="مثال: JARMAL-101"
                     className="w-full rounded-xl border border-[#e3fe00]/40 bg-black px-4 py-3.5 text-left font-bold tracking-widest text-[#e3fe00] outline-none placeholder:text-white/20 focus:border-[#e3fe00]"
                   />
 
                   <p className="mt-2 text-xs text-white/35">
-                    ط§ظ„ظƒظˆط¯ ظٹط¬ط¨ ط£ظ† ظٹظƒظˆظ† طµط§ط¯ط±ظ‹ط§ ظ…ظ† ط§ظ„ط¥ط¯ط§ط±ط©.
+                    الكود يجب أن يكون صادرًا من الإدارة.
                   </p>
                 </div>
 
@@ -1121,7 +1121,7 @@ function Auth({
                     className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-4 text-sm font-bold text-white/60 hover:border-white/30"
                   >
                     <ArrowRight size={18} />
-                    ط§ظ„ط³ط§ط¨ظ‚
+                    السابق
                   </button>
 
                   <button
@@ -1131,8 +1131,8 @@ function Auth({
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
                   >
                     {busy
-                      ? 'ط¬ط§ط±ظچ ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨...'
-                      : 'ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨'}
+                      ? 'جارٍ إنشاء الحساب...'
+                      : 'إنشاء الحساب'}
                     <ArrowLeft size={18} />
                   </button>
                 </div>
@@ -1145,27 +1145,27 @@ function Auth({
               <div className="space-y-4">
                 <div className="mb-2 text-center">
                   <h2 className="text-xl font-black">
-                    ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±
+                    بيانات المتجر
                   </h2>
 
                   <p className="mt-1 text-sm text-white/40">
-                    ط¨ظ‚ظٹطھ ط®ط·ظˆط© ظˆط§ط­ط¯ط© ظپظ‚ط·
+                    بقيت خطوة واحدة فقط
                   </p>
                 </div>
 
                 <Field
-                  label="ط§ط³ظ… ط§ظ„ظ…طھط¬ط±"
+                  label="اسم المتجر"
                   value={form.storeName}
                   onChange={(value) =>
                     update('storeName', value)
                   }
-                  placeholder="ظ…ط«ط§ظ„: طھظ…ظˆظٹظ†ط§طھ ط§ظ„ظ†ط®ط¨ط©"
+                  placeholder="مثال: تموينات النخبة"
                   icon={<Store size={17} />}
                 />
 
                 <div>
                   <label className="mb-2 block text-sm font-bold">
-                    ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط· ط§ظ„طھط¬ط§ط±ظٹ
+                    نوع النشاط التجاري
                   </label>
 
                   <select
@@ -1196,7 +1196,7 @@ function Auth({
                     className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-4 text-sm font-bold text-white/60 hover:border-white/30"
                   >
                     <ArrowRight size={18} />
-                    ط§ظ„ط³ط§ط¨ظ‚
+                    السابق
                   </button>
 
                   <button
@@ -1206,8 +1206,8 @@ function Auth({
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
                   >
                     {busy
-                      ? 'ط¬ط§ط±ظچ ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨...'
-                      : 'ط¥ظ†ط´ط§ط، ط§ظ„ط­ط³ط§ط¨ ظˆط¯ط®ظˆظ„ ط§ظ„طھط·ط¨ظٹظ‚'}
+                      ? 'جارٍ إنشاء الحساب...'
+                      : 'إنشاء الحساب ودخول التطبيق'}
                     <ArrowLeft size={18} />
                   </button>
                 </div>
@@ -1258,10 +1258,10 @@ function Topbar({
 
             <span>
               {role === 'customer'
-                ? 'ط£ظ‡ظ„ط§ظ‹ ط¨ظƒ'
+                ? 'أهلاً بك'
                 : role === 'driver'
-                  ? 'ظ…ظ†ط¯ظˆط¨ ط¬ظژط±ظ’ظ…ظژظ„'
-                  : 'ظ…طھط¬ط±ظƒ'}
+                  ? 'مندوب جَرْمَل'
+                  : 'متجرك'}
             </span>
           </div>
 
@@ -1289,30 +1289,30 @@ function SideNav({
   const items: [string, string, React.ElementType][] =
     role === 'customer'
       ? [
-          ['home', 'ط§ظ„ط±ط¦ظٹط³ظٹط©', Home],
-          ['orders', 'ط·ظ„ط¨ط§طھظٹ', ClipboardList],
-          ['map', 'طھطھط¨ط¹ ط§ظ„ط·ظ„ط¨', Navigation],
-          ['profile', 'ط­ط³ط§ط¨ظٹ', UserRound]
+          ['home', 'الرئيسية', Home],
+          ['orders', 'طلباتي', ClipboardList],
+          ['map', 'تتبع الطلب', Navigation],
+          ['profile', 'حسابي', UserRound]
         ]
       : role === 'driver'
         ? [
-            ['available', 'ط§ظ„ط·ظ„ط¨ط§طھ ط§ظ„ظ‚ط±ظٹط¨ط©', Navigation],
-            ['active', 'ط§ظ„ط·ظ„ط¨ ط§ظ„ط­ط§ظ„ظٹ', Truck],
-            ['history', 'ط³ط¬ظ„ ط§ظ„طھظˆطµظٹظ„ط§طھ', ClipboardList],
-            ['wallet', 'ظ…ط­ظپط¸طھظٹ', WalletCards]
+            ['available', 'الطلبات القريبة', Navigation],
+            ['active', 'الطلب الحالي', Truck],
+            ['history', 'سجل التوصيلات', ClipboardList],
+            ['wallet', 'محفظتي', WalletCards]
           ]
         : [
-            ['dashboard', 'ظ†ط¸ط±ط© ط¹ط§ظ…ط©', BarChart3],
-            ['incoming', 'ط§ظ„ط·ظ„ط¨ط§طھ ط§ظ„ظˆط§ط±ط¯ط©', ClipboardList],
-            ['products', 'ط¥ط¯ط§ط±ط© ط§ظ„ظ…ظ†طھط¬ط§طھ', ShoppingBag],
-            ['wallet', 'ظ…ط­ظپط¸طھظٹ', WalletCards],
-            ['settings', 'ط¥ط¹ط¯ط§ط¯ط§طھ ط§ظ„ظ…طھط¬ط±', Settings2]
+            ['dashboard', 'نظرة عامة', BarChart3],
+            ['incoming', 'الطلبات الواردة', ClipboardList],
+            ['products', 'إدارة المنتجات', ShoppingBag],
+            ['wallet', 'محفظتي', WalletCards],
+            ['settings', 'إعدادات المتجر', Settings2]
           ];
 
   return (
     <aside className="hidden w-60 shrink-0 border-l border-white/10 bg-[#080808] p-4 lg:block">
       <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">
-        ط§ظ„ظ‚ط§ط¦ظ…ط© ط§ظ„ط±ط¦ظٹط³ظٹط©
+        القائمة الرئيسية
       </p>
 
       <nav className="space-y-1">
@@ -1355,7 +1355,7 @@ function MapCard({ driver = false }: { driver?: boolean }) {
           size={14}
           className="ml-1 inline text-[#e3fe00]"
         />
-        {driver ? 'ط§ظ„ظ…ط³ط§ط± ط§ظ„ط£ظ‚طµط±' : 'طھطھط¨ط¹ ظ…ط¨ط§ط´ط±'}
+        {driver ? 'المسار الأقصر' : 'تتبع مباشر'}
       </div>
 
       <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/85 p-4 backdrop-blur">
@@ -1370,14 +1370,14 @@ function MapCard({ driver = false }: { driver?: boolean }) {
         <div>
           <p className="font-bold">
             {driver
-              ? 'ط§ظ„ظ…ط³ط§ط± ط¥ظ„ظ‰ ط§ظ„ظ…طھط¬ط± ط«ظ… ط§ظ„ط¹ظ…ظٹظ„'
-              : 'ط§ظ„ظ…ظ†ط¯ظˆط¨ ظپظٹ ط·ط±ظٹظ‚ظ‡ ط¥ظ„ظٹظƒ'}
+              ? 'المسار إلى المتجر ثم العميل'
+              : 'المندوب في طريقه إليك'}
           </p>
 
           <p className="text-xs text-white/40">
             {driver
-              ? 'ط§ظپطھط­ ط§ظ„ظ…ط³ط§ط± ظپظٹ ط®ط±ط§ط¦ط· Google'
-              : 'ظ…طھط¨ظ‚ظٹ طھظ‚ط±ظٹط¨ط§ظ‹ 12 ط¯ظ‚ظٹظ‚ط©'}
+              ? 'افتح المسار في خرائط Google'
+              : 'متبقي تقريباً 12 دقيقة'}
           </p>
         </div>
 
@@ -1391,7 +1391,7 @@ function MapCard({ driver = false }: { driver?: boolean }) {
           }
           className="mr-auto rounded-lg bg-[#e3fe00] px-3 py-2 text-xs font-black text-black"
         >
-          ط®ط±ط§ط¦ط· Google
+          خرائط Google
         </button>
       </div>
     </div>
@@ -1409,17 +1409,17 @@ function Wallet({
   return (
     <section>
       <p className="text-sm text-white/40">
-        ط£ظ…ظˆط§ظ„ظƒ ط¨ظٹظ† ظٹط¯ظٹظƒ
+        أموالك بين يديك
       </p>
 
       <h1 className="mt-1 text-3xl font-black">
-        ظ…ط­ظپط¸طھظٹ
+        محفظتي
       </h1>
 
       <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-black/60">
-            ط§ظ„ط±طµظٹط¯ ط§ظ„ظ…طھط§ط­
+            الرصيد المتاح
           </span>
 
           <WalletCards size={23} />
@@ -1434,7 +1434,7 @@ function Wallet({
           onClick={() => setShow(true)}
           className="mt-6 rounded-xl bg-black px-5 py-3 text-sm font-black text-white"
         >
-          ط³ط­ط¨ ط§ظ„ط£ط±ط¨ط§ط­
+          سحب الأرباح
           <ArrowLeft
             className="mr-2 inline"
             size={16}
@@ -1445,7 +1445,7 @@ function Wallet({
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
-            ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ط£ط±ط¨ط§ط­
+            إجمالي الأرباح
           </p>
 
           <p className="mt-3 text-xl font-black">
@@ -1458,7 +1458,7 @@ function Wallet({
 
         <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
-            ط¹ظ…ظˆظ„ط§طھ ظ‡ط°ط§ ط§ظ„ط´ظ‡ط±
+            عمولات هذا الشهر
           </p>
 
           <p className="mt-3 text-xl font-black text-[#e3fe00]">
@@ -1468,7 +1468,7 @@ function Wallet({
 
         <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
-            ط¢ط®ط± ط³ط­ط¨
+            آخر سحب
           </p>
 
           <p className="mt-3 text-xl font-black">
@@ -1482,7 +1482,7 @@ function Wallet({
           <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111] p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-black">
-                ط³ط­ط¨ ط§ظ„ط£ط±ط¨ط§ط­
+                سحب الأرباح
               </h2>
 
               <button onClick={() => setShow(false)}>
@@ -1495,16 +1495,16 @@ function Wallet({
 
             <div className="mt-6 space-y-4">
               <Field
-                label="ط§ظ„ظ…ط¨ظ„ط؛"
+                label="المبلغ"
                 value=""
                 onChange={() => undefined}
-                placeholder={`ظ…ط«ط§ظ„: 10000 ${CURRENCY}`}
+                placeholder={`مثال: 10000 ${CURRENCY}`}
                 icon={<WalletCards size={17} />}
               />
 
               <div>
                 <label className="mb-2 block text-sm font-bold">
-                  ظ‚ظ†ط§ط© ط§ظ„ط³ط­ط¨
+                  قناة السحب
                 </label>
 
                 <select
@@ -1522,13 +1522,13 @@ function Wallet({
 
               <Field
                 label={
-                  channel === 'ط­ظˆط§ظ„ط© ظ…ط­ظ„ظٹط©'
-                    ? 'ط§ط³ظ… ط§ظ„ظ…ط³طھظ„ظ… / ط§ظ„ظˆظƒظٹظ„'
-                    : 'ط±ظ‚ظ… ط§ظ„ط­ط³ط§ط¨ ط£ظˆ ط§ظ„ظ‡ط§طھظپ'
+                  channel === 'حوالة محلية'
+                    ? 'اسم المستلم / الوكيل'
+                    : 'رقم الحساب أو الهاتف'
                 }
                 value=""
                 onChange={() => undefined}
-                placeholder="ط£ط¯ط®ظ„ ط§ظ„ط¨ظٹط§ظ†ط§طھ"
+                placeholder="أدخل البيانات"
                 icon={<Phone size={17} />}
               />
 
@@ -1536,7 +1536,7 @@ function Wallet({
                 onClick={() => setShow(false)}
                 className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black"
               >
-                ط¥ط±ط³ط§ظ„ ط·ظ„ط¨ ط§ظ„ط³ط­ط¨
+                إرسال طلب السحب
               </button>
             </div>
           </div>
@@ -1552,7 +1552,7 @@ function CustomerApp({
   onLogout: () => void;
 }) {
   const [active, setActive] = useState('home');
-  const [category, setCategory] = useState('ط§ظ„ظƒظ„');
+  const [category, setCategory] = useState('الكل');
   const [selectedStore, setSelectedStore] =
     useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -1560,7 +1560,7 @@ function CustomerApp({
   const [ordered, setOrdered] = useState(false);
 
   const filtered =
-    category === 'ط§ظ„ظƒظ„'
+    category === 'الكل'
       ? stores
       : stores.filter((s) => s.category === category);
 
@@ -1597,7 +1597,7 @@ function CustomerApp({
     <div className="min-h-screen bg-black text-white">
       <Topbar
         role="customer"
-        title="ظ…ط³ط§ط­ط© ط§ظ„ط¹ظ…ظٹظ„"
+        title="مساحة العميل"
         onLogout={onLogout}
       />
 
@@ -1613,17 +1613,17 @@ function CustomerApp({
             <>
               <div className="rounded-3xl bg-[#e3fe00] p-7 text-black sm:p-10">
                 <Pill dark>
-                  ظ…ط±ط­ط¨ط§ظ‹ ط¨ظƒ ظپظٹ ط¬ظژط±ظ’ظ…ظژظ„
+                  مرحباً بك في جَرْمَل
                 </Pill>
 
                 <h1 className="mt-5 text-3xl font-black leading-tight sm:text-4xl">
-                  ظ†ظ‚ظˆظ… ط¨طھظˆطµظٹظ„ ط·ظ„ط¨ظƒظ…
+                  نقوم بتوصيل طلبكم
                   <br />
-                  ط¨ظƒظ„ ط­ظ…ط§ط³ ظˆظپط§ط¹ظ„ظٹط©.
+                  بكل حماس وفاعلية.
                 </h1>
 
                 <p className="mt-4 text-sm font-bold text-black/60">
-                  ط£ظˆظ‚ط§طھ ط§ظ„ط¯ظˆط§ظ… ظ…ظ† ط§ظ„ط³ط§ط¹ط© 9:00 طµط¨ط§ط­ظ‹ط§ ط­طھظ‰ 9:00 ظ…ط³ط§ط،ظ‹
+                  أوقات الدوام من الساعة 9:00 صباحًا حتى 9:00 مساءً
                 </p>
               </div>
 
@@ -1631,11 +1631,11 @@ function CustomerApp({
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-sm text-white/40">
-                      ط§ظƒطھط´ظپ ظ…ط§ ط­ظˆظ„ظƒ
+                      اكتشف ما حولك
                     </p>
 
                     <h2 className="mt-1 text-2xl font-black">
-                      طھط³ظˆظ‘ظ‚ ط­ط³ط¨ ط§ظ„ظپط¦ط©
+                      تسوّق حسب الفئة
                     </h2>
                   </div>
 
@@ -1644,7 +1644,7 @@ function CustomerApp({
                       size={14}
                       className="text-[#e3fe00]"
                     />
-                    طµظ†ط¹ط§ط،
+                    صنعاء
                   </span>
                 </div>
 
@@ -1672,7 +1672,7 @@ function CustomerApp({
 
               <section className="mt-10">
                 <h2 className="text-2xl font-black">
-                  ظ…طھط§ط¬ط± ظ…ظ…ظٹط²ط©
+                  متاجر مميزة
                 </h2>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -1717,20 +1717,20 @@ function CustomerApp({
                             }`}
                           >
                             {store.isOpen
-                              ? 'ظ…ظپطھظˆط­'
-                              : 'ظ…ط؛ظ„ظ‚'}
+                              ? 'مفتوح'
+                              : 'مغلق'}
                           </span>
                         </div>
 
                         <div className="mt-4 flex items-center justify-between text-xs text-white/35">
                           <span>
-                            âک… {store.rating} â€¢ {store.time}
+                            ★ {store.rating} • {store.time}
                           </span>
 
                           <span className="font-bold text-[#e3fe00]">
                             {store.isOpen
-                              ? 'ط§ط·ظ„ط¨ ط§ظ„ط¢ظ†'
-                              : 'ظ„ط§ ظٹط³طھظ‚ط¨ظ„ ط·ظ„ط¨ط§طھ'}
+                              ? 'اطلب الآن'
+                              : 'لا يستقبل طلبات'}
                           </span>
                         </div>
                       </div>
@@ -1758,4 +1758,532 @@ function CustomerApp({
           )}
 
           {active === 'map' && (
-            <
+            <div>
+              <h2 className="mb-5 text-2xl font-black">
+                تتبع الطلب
+              </h2>
+
+              <MapCard />
+            </div>
+          )}
+
+          {active === 'profile' && (
+            <div className="mx-auto max-w-md space-y-4">
+              <h2 className="text-2xl font-black">حسابي</h2>
+
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                <p className="text-sm text-white/40">الاسم</p>
+                <p className="mt-1 font-bold">
+                  {localStorage.getItem('jarmal_test_name') || '—'}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                <p className="text-sm text-white/40">رقم الهاتف</p>
+                <p className="mt-1 font-bold" dir="ltr">
+                  {localStorage.getItem('jarmal_test_phone') || '—'}
+                </p>
+              </div>
+
+              <button
+                onClick={onLogout}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"
+              >
+                <LogOut size={18} />
+                تسجيل الخروج
+              </button>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {cart.length > 0 && !showCart && (
+        <button
+          onClick={() => setShowCart(true)}
+          className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-[#e3fe00] px-6 py-4 font-black text-black shadow-2xl"
+        >
+          <ShoppingBag size={18} />
+          عرض السلة (
+          {cart.reduce((n, item) => n + item.quantity, 0)})
+          <span className="mr-2">
+            {total} {CURRENCY}
+          </span>
+        </button>
+      )}
+
+      {showCart && (
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
+          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[#0d0d0d] p-6 sm:rounded-3xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-xl font-black">سلة الطلبات</h3>
+
+              <button
+                onClick={() => setShowCart(false)}
+                className="rounded-lg p-2 text-white/50 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {cart.length === 0 ? (
+              <p className="py-10 text-center text-white/40">
+                السلة فارغة
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between rounded-xl border border-white/10 p-3"
+                  >
+                    <div>
+                      <p className="font-bold">{item.name}</p>
+                      <p className="text-xs text-white/40">
+                        {item.price} {CURRENCY} × {item.quantity}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          setCart((current) =>
+                            current
+                              .map((c) =>
+                                c.id === item.id
+                                  ? {
+                                      ...c,
+                                      quantity: c.quantity - 1
+                                    }
+                                  : c
+                              )
+                              .filter((c) => c.quantity > 0)
+                          )
+                        }
+                        className="h-7 w-7 rounded-lg bg-white/10 font-black"
+                      >
+                        −
+                      </button>
+
+                      <span className="w-5 text-center font-bold">
+                        {item.quantity}
+                      </span>
+
+                      <button
+                        onClick={() => add(item)}
+                        className="h-7 w-7 rounded-lg bg-white/10 font-black"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black">
+                  <span>الإجمالي</span>
+                  <span>
+                    {total} {CURRENCY}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setOrdered(true);
+                    setCart([]);
+                    setShowCart(false);
+                    setActive('orders');
+                  }}
+                  className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white"
+                >
+                  تأكيد الطلب
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StoreView({
+  store,
+  onBack,
+  onAdd
+}: {
+  store: StoreItem;
+  onBack: () => void;
+  onAdd: (product: Product) => void;
+}) {
+  const items = products.filter(
+    (product) => product.storeId === store.id
+  );
+
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="mb-5 flex items-center gap-2 text-sm font-bold text-white/50 hover:text-white"
+      >
+        <ArrowRight size={16} />
+        رجوع للمتاجر
+      </button>
+
+      <div
+        className="flex h-40 items-center justify-center rounded-3xl"
+        style={{ backgroundColor: store.color }}
+      >
+        <Store size={56} className="text-[#e3fe00]" />
+      </div>
+
+      <div className="mt-5 flex items-start justify-between">
+        <div>
+          <h2 className="text-2xl font-black">{store.name}</h2>
+          <p className="mt-1 text-sm text-white/40">
+            {store.description}
+          </p>
+        </div>
+
+        <span className="rounded-lg bg-white/5 px-3 py-1 text-xs text-white/50">
+          ★ {store.rating} • {store.time}
+        </span>
+      </div>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        {items.map((product) => (
+          <div
+            key={product.id}
+            className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0d0d0d] p-4"
+          >
+            <div>
+              <p className="font-bold">{product.name}</p>
+              <p className="mt-1 text-xs text-white/40">
+                {product.description}
+              </p>
+              <p className="mt-2 font-black text-[#e3fe00]">
+                {product.price} {CURRENCY}
+              </p>
+            </div>
+
+            <button
+              onClick={() => onAdd(product)}
+              className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white"
+            >
+              إضافة
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Orders({ ordered }: { ordered: boolean }) {
+  if (!ordered) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <ClipboardList size={40} className="text-white/20" />
+        <p className="mt-4 text-white/40">
+          لا توجد طلبات حتى الآن
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="mb-5 text-2xl font-black">طلباتي</h2>
+
+      <div className="rounded-2xl border border-[#e3fe00]/30 bg-[#e3fe00]/5 p-5">
+        <div className="flex items-center justify-between">
+          <span className="font-black">طلب جارٍ #1</span>
+
+          <span className="rounded-lg bg-[#e3fe00] px-3 py-1 text-xs font-black text-black">
+            قيد التحضير
+          </span>
+        </div>
+
+        <p className="mt-3 text-sm text-white/40">
+          سيتم تحديث حالة طلبك فور مغادرته المتجر.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DriverApp({ onLogout }: { onLogout: () => void }) {
+  const [active, setActive] = useState('available');
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <Topbar
+        role="driver"
+        title="مساحة المندوب"
+        onLogout={onLogout}
+      />
+
+      <div className="mx-auto flex max-w-7xl">
+        <SideNav
+          role="driver"
+          active={active}
+          onActive={setActive}
+        />
+
+        <main className="min-w-0 flex-1 p-5 sm:p-8">
+          {active === 'available' && (
+            <div>
+              <h2 className="mb-5 text-2xl font-black">
+                الطلبات القريبة
+              </h2>
+
+              <div className="space-y-3">
+                {stores.slice(0, 2).map((store) => (
+                  <div
+                    key={store.id}
+                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0d0d0d] p-4"
+                  >
+                    <div>
+                      <p className="font-bold">{store.name}</p>
+                      <p className="text-xs text-white/40">
+                        {store.description}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setActive('active')}
+                      className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white"
+                    >
+                      قبول الطلب
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {active === 'active' && (
+            <div>
+              <h2 className="mb-5 text-2xl font-black">
+                الطلب الحالي
+              </h2>
+
+              <MapCard driver />
+            </div>
+          )}
+
+          {active === 'history' && (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <ClipboardList size={40} className="text-white/20" />
+              <p className="mt-4 text-white/40">
+                لا يوجد سجل توصيلات بعد
+              </p>
+            </div>
+          )}
+
+          {active === 'wallet' && <Wallet role="driver" />}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function MerchantApp({ onLogout }: { onLogout: () => void }) {
+  const [active, setActive] = useState('dashboard');
+
+  const myProducts = products.filter(
+    (product) => product.storeId === 's1'
+  );
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <Topbar
+        role="merchant"
+        title="مساحة التاجر"
+        onLogout={onLogout}
+      />
+
+      <div className="mx-auto flex max-w-7xl">
+        <SideNav
+          role="merchant"
+          active={active}
+          onActive={setActive}
+        />
+
+        <main className="min-w-0 flex-1 p-5 sm:p-8">
+          {active === 'dashboard' && (
+            <div>
+              <h2 className="mb-5 text-2xl font-black">
+                نظرة عامة
+              </h2>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                  <p className="text-xs text-white/40">
+                    طلبات اليوم
+                  </p>
+                  <p className="mt-2 text-3xl font-black text-[#e3fe00]">
+                    0
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                  <p className="text-xs text-white/40">
+                    إجمالي المبيعات
+                  </p>
+                  <p className="mt-2 text-3xl font-black text-[#e3fe00]">
+                    0 {CURRENCY}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                  <p className="text-xs text-white/40">
+                    تقييم المتجر
+                  </p>
+                  <p className="mt-2 text-3xl font-black text-[#e3fe00]">
+                    —
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {active === 'incoming' && (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <ClipboardList size={40} className="text-white/20" />
+              <p className="mt-4 text-white/40">
+                لا توجد طلبات واردة حالياً
+              </p>
+            </div>
+          )}
+
+          {active === 'products' && (
+            <div>
+              <h2 className="mb-5 text-2xl font-black">
+                إدارة المنتجات
+              </h2>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {myProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0d0d0d] p-4"
+                  >
+                    <div>
+                      <p className="font-bold">
+                        {product.name}
+                      </p>
+                      <p className="mt-1 text-xs text-white/40">
+                        {product.category}
+                      </p>
+                    </div>
+
+                    <span className="font-black text-[#e3fe00]">
+                      {product.price} {CURRENCY}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {active === 'wallet' && <Wallet role="merchant" />}
+
+          {active === 'settings' && (
+            <div className="max-w-md space-y-4">
+              <h2 className="text-2xl font-black">
+                إعدادات المتجر
+              </h2>
+
+              <Field
+                label="اسم المتجر"
+                value={
+                  localStorage.getItem('jarmal_test_name') || ''
+                }
+                onChange={() => {}}
+                placeholder="اسم متجرك"
+              />
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [screen, setScreen] = useState<Screen>('welcome');
+  const [role, setRole] = useState<Role>('customer');
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    const savedRole = localStorage.getItem(
+      'jarmal_test_role'
+    ) as Role | null;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && savedRole) {
+        setSession(data.session);
+
+        if (savedRole === 'admin') {
+          setScreen('admin');
+        } else {
+          setRole(savedRole);
+          setScreen('app');
+        }
+      }
+    });
+  }, []);
+
+  const handleLogout = () => {
+    void supabase.auth.signOut();
+    localStorage.removeItem('jarmal_test_role');
+    localStorage.removeItem('jarmal_test_name');
+    localStorage.removeItem('jarmal_test_phone');
+    setSession(null);
+    setScreen('welcome');
+  };
+
+  if (screen === 'admin' && session) {
+    return <AdminApp session={session} onLogout={handleLogout} />;
+  }
+
+  if (screen === 'app') {
+    if (role === 'driver') {
+      return <DriverApp onLogout={handleLogout} />;
+    }
+
+    if (role === 'merchant') {
+      return <MerchantApp onLogout={handleLogout} />;
+    }
+
+    return <CustomerApp onLogout={handleLogout} />;
+  }
+
+  if (screen === 'auth') {
+    return (
+      <Auth
+        role={role}
+        onBack={() => setScreen('welcome')}
+        onSuccess={(newSession, resolvedRole) => {
+          setSession(newSession);
+
+          if (resolvedRole === 'admin') {
+            setScreen('admin');
+          } else {
+            setRole(resolvedRole);
+            setScreen('app');
+          }
+        }}
+      />
+    );
+  }
+
+  return (
+    <Welcome
+      onSelect={(selectedRole) => {
+        setRole(selectedRole);
+        setScreen('auth');
+      }}
+    />
+  );
+}
+
