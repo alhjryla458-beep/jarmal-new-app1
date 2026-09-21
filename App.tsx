@@ -1718,120 +1718,125 @@ function CustomerApp({
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"
               >
                 <LogOut size={18} />
-                تسجيل الخروج
-              </button>
+function CustomerApp({ onLogout }: { onLogout: () => void }) {
+  const [active, setActive] = useState('home');
+  const [storesReal, setStoresReal] = useState<StoreRow[]>([]);
+  const [productsReal, setProductsReal] = useState<ProductRow[]>([]);
+  const [categoriesReal, setCategoriesReal] = useState<CategoryRow[]>([]);
+  const [variantsReal, setVariantsReal] = useState<VariantRow[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [selectedStore, setSelectedStore] = useState<StoreRow | null>(null);
+  const [cart, setCart] = useState<CartLine[]>([]);
+  const [cartStoreId, setCartStoreId] = useState<string | null>(null);
+  const [showCart, setShowCart] = useState(false);
+  const [ordersReal, setOrdersReal] = useState<OrderRow[]>([]);
+  const [wallet, setWallet] = useState<ClientWalletRow>({ balance: 0, points: 0 });
+  const [providers, setProviders] = useState<ServiceProviderRow[]>([]);
+  const [packages, setPackages] = useState<ServicePackageRow[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
+
+  const loadAll = () => {
+    supabase.from('stores').select('id, name, store_type, address_description, is_open, rating').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
+    supabase.from('products').select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
+    supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
+    supabase.from('product_variants').select('id, product_id, variant_name, price, is_available').then(({ data }) => { if (data) setVariantsReal(data as VariantRow[]); });
+    supabase.from('favorites').select('product_id').then(({ data }) => { if (data) setFavorites(data.map((f: any) => f.product_id)); });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, order_type, fulfillment_type, points_earned').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrdersReal(data as OrderRow[]); });
+    supabase.from('client_wallets').select('balance, points').maybeSingle().then(({ data }) => { if (data) setWallet(data as ClientWalletRow); });
+    supabase.from('service_providers').select('id, service_type, name, account_number_length, region').eq('is_active', true).then(({ data }) => { if (data) setProviders(data as ServiceProviderRow[]); });
+    supabase.from('service_packages').select('id, provider_id, name, face_value, price').eq('is_active', true).then(({ data }) => { if (data) setPackages(data as ServicePackageRow[]); });
+    supabase.from('payment_methods').select('id, name, code, account_number, instructions').eq('is_active', true).then(({ data }) => { if (data) setPaymentMethods(data as PaymentMethodRow[]); });
+  };
+
+  useEffect(() => { loadAll(); }, []);
+
+  const toggleFavorite = async (productId: string) => {
+    await supabase.rpc('toggle_favorite', { p_product_id: productId });
+    const { data } = await supabase.from('favorites').select('product_id');
+    if (data) setFavorites(data.map((f: any) => f.product_id));
+  };
+
+  const addToCart = (storeId: string, line: Omit<CartLine, 'key' | 'quantity'>) => {
+    setCart((current) => {
+      const base = cartStoreId && cartStoreId !== storeId ? [] : current;
+      const key = line.variant_id || line.product_id || line.custom_name || Math.random().toString();
+      const found = base.find((c) => c.key === key);
+      return found ? base.map((c) => (c.key === key ? { ...c, quantity: c.quantity + 1 } : c)) : [...base, { ...line, key, quantity: 1 }];
+    });
+    setCartStoreId(storeId);
+  };
+
+  const cartTotal = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <Topbar role="customer" title="مساحة العميل" onLogout={onLogout} />
+      <div className="mx-auto flex max-w-7xl">
+        <SideNav role="customer" active={active} onActive={setActive} />
+        <main className="min-w-0 flex-1 p-5 sm:p-8">
+          {active === 'home' && !selectedStore && (
+            <>
+              <div className="rounded-3xl bg-[#e3fe00] p-7 text-black sm:p-10">
+                <Pill dark>مرحباً بك في جَرْمَل</Pill>
+                <h1 className="mt-5 text-3xl font-black leading-tight sm:text-4xl">نقوم بتوصيل طلبكم<br />بكل حماس وفاعلية.</h1>
+              </div>
+              <section className="mt-10">
+                <h2 className="text-2xl font-black">متاجرنا</h2>
+                <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {storesReal.map((store) => (
+                    <button key={store.id} disabled={!store.is_open} onClick={() => setSelectedStore(store)} className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d] text-right transition hover:-translate-y-1 hover:border-[#e3fe00]/50 disabled:cursor-not-allowed disabled:opacity-60">
+                      <div className="flex h-28 items-center justify-center bg-white/[.03]"><Store size={40} className="text-[#e3fe00]" /></div>
+                      <div className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div><h3 className="font-black">{store.name}</h3><p className="mt-1 text-xs text-white/40">{store.address_description}</p></div>
+                          <span className={`rounded-lg px-2 py-1 text-[10px] font-bold ${store.is_open ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-white/10 text-white/50'}`}>{store.is_open ? 'مفتوح' : 'مغلق'}</span>
+                        </div>
+                        <div className="mt-4 text-xs text-white/35">★ {store.rating ?? '—'} • {store.store_type}</div>
+                      </div>
+                    </button>
+                  ))}
+                  {storesReal.length === 0 && <p className="text-sm text-white/40">لا توجد متاجر حالياً</p>}
+                </div>
+              </section>
+            </>
+          )}
+          {active === 'home' && selectedStore && (
+            <StoreView
+              store={selectedStore}
+              products={productsReal.filter((p) => p.store_id === selectedStore.id)}
+              categories={categoriesReal.filter((c) => c.store_id === selectedStore.id)}
+              variants={variantsReal}
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
+              onBack={() => setSelectedStore(null)}
+              onAdd={(line) => addToCart(selectedStore.id, line)}
+            />
+          )}
+          {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} />}
+          {active === 'services' && <ServicesView providers={providers} packages={packages} onRefresh={loadAll} />}
+          {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
+          {active === 'map' && (<div><h2 className="mb-5 text-2xl font-black">تتبع الطلب</h2><MapCard /></div>)}
+          {active === 'profile' && (
+            <div className="mx-auto max-w-md space-y-4">
+              <h2 className="text-2xl font-black">حسابي</h2>
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">الاسم</p><p className="mt-1 font-bold">{localStorage.getItem('jarmal_test_name') || '—'}</p></div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{localStorage.getItem('jarmal_test_phone') || '—'}</p></div>
+              <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"><LogOut size={18} />تسجيل الخروج</button>
             </div>
           )}
         </main>
       </div>
-
       {cart.length > 0 && !showCart && (
-        <button
-          onClick={() => setShowCart(true)}
-          className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-[#e3fe00] px-6 py-4 font-black text-black shadow-2xl"
-        >
-          <ShoppingBag size={18} />
-          عرض السلة (
-          {cart.reduce((n, item) => n + item.quantity, 0)})
-          <span className="mr-2">
-            {total} {CURRENCY}
-          </span>
+        <button onClick={() => setShowCart(true)} className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-[#e3fe00] px-6 py-4 font-black text-black shadow-2xl">
+          <ShoppingBag size={18} />عرض السلة ({cart.reduce((n, c) => n + c.quantity, 0)})<span className="mr-2">{cartTotal.toLocaleString('ar-YE')} {CURRENCY}</span>
         </button>
       )}
-
-      {showCart && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
-          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[#0d0d0d] p-6 sm:rounded-3xl">
-            <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-xl font-black">سلة الطلبات</h3>
-
-              <button
-                onClick={() => setShowCart(false)}
-                className="rounded-lg p-2 text-white/50 hover:text-white"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {cart.length === 0 ? (
-              <p className="py-10 text-center text-white/40">
-                السلة فارغة
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {cart.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between rounded-xl border border-white/10 p-3"
-                  >
-                    <div>
-                      <p className="font-bold">{item.name}</p>
-                      <p className="text-xs text-white/40">
-                        {item.price} {CURRENCY} × {item.quantity}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() =>
-                          setCart((current) =>
-                            current
-                              .map((c) =>
-                                c.id === item.id
-                                  ? {
-                                      ...c,
-                                      quantity: c.quantity - 1
-                                    }
-                                  : c
-                              )
-                              .filter((c) => c.quantity > 0)
-                          )
-                        }
-                        className="h-7 w-7 rounded-lg bg-white/10 font-black"
-                      >
-                        −
-                      </button>
-
-                      <span className="w-5 text-center font-bold">
-                        {item.quantity}
-                      </span>
-
-                      <button
-                        onClick={() => add(item)}
-                        className="h-7 w-7 rounded-lg bg-white/10 font-black"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black">
-                  <span>الإجمالي</span>
-                  <span>
-                    {total} {CURRENCY}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => {
-                    setOrdered(true);
-                    setCart([]);
-                    setShowCart(false);
-                    setActive('orders');
-                  }}
-                  className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white"
-                >
-                  تأكيد الطلب
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      {showCart && cartStoreId && (
+        <Cart cart={cart} setCart={setCart} total={cartTotal} storeId={cartStoreId} onClose={() => setShowCart(false)} onOrdered={() => { setCart([]); setCartStoreId(null); setShowCart(false); setActive('orders'); loadAll(); }} />
       )}
     </div>
   );
-}
+                                              }
 
 function StoreView({
   store,
