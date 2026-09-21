@@ -13,175 +13,71 @@ type Role = 'customer' | 'driver' | 'merchant' | 'admin';
 type Screen = 'welcome' | 'auth' | 'app' | 'admin';
 type AuthMode = 'login' | 'signup';
 
-type Product = {
+// ===== أنواع بيانات العميل الحقيقية (تطابق قاعدة البيانات) =====
+type StoreRow = {
   id: string;
   name: string;
-  description: string;
-  price: number;
-  category: string;
-  storeId: string;
+  store_type: string;
+  address_description: string | null;
+  is_open: boolean;
+  rating: number | null;
 };
-
-type CartItem = Product & {
+type CategoryRow = { id: string; store_id: string; name: string; sort_order: number };
+type VariantRow = { id: string; product_id: string; variant_name: string; price: number; is_available: boolean };
+type ProductRow = {
+  id: string;
+  store_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  is_available: boolean;
+  category_id: string | null;
+  redemption_points_cost: number | null;
+};
+type OrderRow = {
+  id: string;
+  status: string;
+  total_amount: number;
+  delivery_fee: number;
+  created_at: string;
+  store_id: string | null;
+  order_type: string;
+  fulfillment_type: string;
+  points_earned: number;
+};
+type ServiceProviderRow = {
+  id: string;
+  service_type: string;
+  name: string;
+  account_number_length: number | null;
+  region: string | null;
+};
+type ServicePackageRow = { id: string; provider_id: string; name: string; face_value: number | null; price: number };
+type PaymentMethodRow = { id: string; name: string; code: string; account_number: string | null; instructions: string | null };
+type ClientWalletRow = { balance: number; points: number };
+type CartLine = {
+  key: string;
+  product_id?: string;
+  variant_id?: string;
+  custom_name?: string;
+  custom_price?: number;
+  name: string;
+  price: number;
   quantity: number;
 };
 
-type StoreItem = {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  rating: number;
-  time: string;
-  color: string;
-  isOpen: boolean;
+const statusLabels: Record<string, string> = {
+  pending: 'بانتظار موافقة المتجر',
+  accepted: 'تم القبول',
+  rejected: 'تم الرفض',
+  preparing: 'جاري التحضير',
+  ready_for_pickup: 'جاهز للاستلام',
+  picked_up: 'استلمه المندوب',
+  on_the_way: 'في الطريق إليك',
+  delivered: 'تم التسليم',
+  cancelled: 'ملغي'
 };
 
-const CURRENCY = 'ر.ي';
-
-/*
- * ============================================================
- * جَرْمَل - وضع تسجيل تجريبي
- * ============================================================
- *
- * رمز التحقق التجريبي:
- * 123456
- *
- * هذا مؤقت للاختبار فقط.
- * لاحقاً سيتم استبداله بتوثيق SMS الحقيقي.
- */
-const TEST_OTP = '123456';
-
-/*
- * رقم الهاتف التجريبي المحجوز للاختبار.
- * هذا الرقم سيبقى يعمل بالرمز التجريبي 123456
- * حتى بعد ربط خدمة SMS حقيقية لاحقاً (المرحلة 4)،
- * حتى تبقى إمكانية الاختبار متاحة دون استهلاك أرصدة SMS حقيقية.
- */
-const TEST_PHONE = '711234567';
-
-const paymentChannels = [
-  'جيب',
-  'ون كاش',
-  'الكريمي',
-  'البنك اليمني الكويتي',
-  'حوالة محلية'
-];
-
-const businessCategories = [
-  'بقالة',
-  'مطعم',
-  'بوفيه',
-  'سوبرماركت',
-  'صيدلية',
-  'خضار وفواكه',
-  'حلويات',
-  'ملابس',
-  'إلكترونيات'
-];
-
-const categories = [
-  { name: 'الكل', icon: ListChecks },
-  { name: 'بقالة', icon: Store },
-  { name: 'مطاعم', icon: Store },
-  { name: 'قهوة', icon: Store },
-  { name: 'صيدلية', icon: ShieldCheck },
-  { name: 'حلويات', icon: Sparkles }
-];
-
-const stores: StoreItem[] = [
-  {
-    id: 's1',
-    name: 'تموينات النخبة',
-    category: 'بقالة',
-    description: 'كل احتياجات البيت في مكان واحد',
-    rating: 4.9,
-    time: '15 - 25 د',
-    color: '#263700',
-    isOpen: true
-  },
-  {
-    id: 's2',
-    name: 'مذاق المدينة',
-    category: 'مطاعم',
-    description: 'وجبات ساخنة بطعم لا يُنسى',
-    rating: 4.8,
-    time: '25 - 35 د',
-    color: '#3e2900',
-    isOpen: true
-  },
-  {
-    id: 's3',
-    name: 'بُنّ ومزاج',
-    category: 'قهوة',
-    description: 'قهوة مختصة وحلويات يومية',
-    rating: 4.7,
-    time: '10 - 20 د',
-    color: '#30251c',
-    isOpen: false
-  },
-  {
-    id: 's4',
-    name: 'صيدلية الحياة',
-    category: 'صيدلية',
-    description: 'احتياجاتك الصحية تصلك بسرعة',
-    rating: 4.9,
-    time: '20 - 30 د',
-    color: '#172e32',
-    isOpen: true
-  }
-];
-
-const products: Product[] = [
-  {
-    id: 'p1',
-    name: 'سلة الفطور اليومية',
-    description: 'خبز طازج، بيض، حليب، جبنة ومربى',
-    price: 3400,
-    category: 'الأكثر طلباً',
-    storeId: 's1'
-  },
-  {
-    id: 'p2',
-    name: 'مياه معدنية 6 حبات',
-    description: 'مياه نقية بحجم 1.5 لتر',
-    price: 1200,
-    category: 'مشروبات',
-    storeId: 's1'
-  },
-  {
-    id: 'p3',
-    name: 'برجر جَرْمَل',
-    description: 'لحم مشوي، جبنة شيدر، صوص خاص',
-    price: 2900,
-    category: 'الأكثر طلباً',
-    storeId: 's2'
-  },
-  {
-    id: 'p4',
-    name: 'بطاطس بالجبنة',
-    description: 'بطاطس مقرمشة مع صوص الجبنة',
-    price: 1500,
-    category: 'مقبلات',
-    storeId: 's2'
-  },
-  {
-    id: 'p5',
-    name: 'لاتيه كراميل',
-    description: 'إسبريسو، حليب مبخر، كراميل',
-    price: 1800,
-    category: 'مشروبات',
-    storeId: 's3'
-  },
-  {
-    id: 'p6',
-    name: 'كوكيز الشوكولاتة',
-    description: 'كوكيز مخبوزة طازجة يومياً',
-    price: 1400,
-    category: 'حلويات',
-    storeId: 's3'
-  }
-];
 
 function Logo({ dark = false }: { dark?: boolean }) {
   return (
