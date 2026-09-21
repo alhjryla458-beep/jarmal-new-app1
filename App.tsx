@@ -1809,7 +1809,304 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           )}
           {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} />}
           {active === 'services' && <ServicesView providers={providers} packages={packages} onRefresh={loadAll} />}
-          {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
+function StoreView({ store, products, categories, variants, favorites, onToggleFavorite, onBack, onAdd }: {
+  store: StoreRow; products: ProductRow[]; categories: CategoryRow[]; variants: VariantRow[]; favorites: string[];
+  onToggleFavorite: (id: string) => void; onBack: () => void;
+  onAdd: (line: Omit<CartLine, 'key' | 'quantity'>) => void;
+}) {
+  const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
+  const [showCustom, setShowCustom] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customPrice, setCustomPrice] = useState('');
+  const shown = activeCategory === 'all' ? products : products.filter((p) => p.category_id === activeCategory);
+
+  return (
+    <div>
+      <button onClick={onBack} className="mb-5 flex items-center gap-2 text-sm font-bold text-white/50 hover:text-white"><ArrowRight size={16} />رجوع للمتاجر</button>
+      <div className="flex h-32 items-center justify-center rounded-3xl bg-white/[.03]"><Store size={48} className="text-[#e3fe00]" /></div>
+      <h2 className="mt-5 text-2xl font-black">{store.name}</h2>
+      <p className="mt-1 text-sm text-white/40">{store.address_description}</p>
+      {categories.length > 0 && (
+        <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
+          <button onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>الكل</button>
+          {categories.map((c) => (<button key={c.id} onClick={() => setActiveCategory(c.id)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === c.id ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>{c.name}</button>))}
+        </div>
+      )}
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {shown.filter((p) => p.is_available).map((product) => {
+          const productVariants = variants.filter((v) => v.product_id === product.id && v.is_available);
+          const isFav = favorites.includes(product.id);
+          return (
+            <div key={product.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div><p className="font-bold">{product.name}</p><p className="mt-1 text-xs text-white/40">{product.description}</p></div>
+                <button onClick={() => onToggleFavorite(product.id)} className={isFav ? 'text-[#e3fe00]' : 'text-white/25'}><Sparkles size={18} /></button>
+              </div>
+              {productVariants.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {productVariants.map((v) => (
+                    <button key={v.id} onClick={() => onAdd({ product_id: product.id, variant_id: v.id, name: `${product.name} - ${v.variant_name}`, price: v.price })} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/70 hover:border-[#e3fe00]">
+                      {v.variant_name} • {v.price.toLocaleString('ar-YE')} {CURRENCY}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="font-black text-[#e3fe00]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</span>
+                  <button onClick={() => onAdd({ product_id: product.id, name: product.name, price: product.price })} className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white">إضافة</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {shown.length === 0 && <p className="text-sm text-white/40">لا توجد منتجات في هذا القسم</p>}
+      </div>
+      <div className="mt-8 rounded-2xl border border-dashed border-white/15 p-4">
+        {!showCustom ? (
+          <button onClick={() => setShowCustom(true)} className="text-sm font-bold text-[#e3fe00]">+ طلب منتج غير موجود بالقائمة</button>
+        ) : (
+          <div className="space-y-3">
+            <Field label="اسم المنتج" value={customName} onChange={setCustomName} placeholder="مثال: كيلو تفاح أحمر" />
+            <Field label="السعر التقديري" value={customPrice} onChange={(v) => setCustomPrice(v.replace(/\D/g, ''))} placeholder="مثال: 2000" />
+            <button disabled={!customName.trim() || !customPrice} onClick={() => { onAdd({ custom_name: customName.trim(), custom_price: Number(customPrice), name: customName.trim(), price: Number(customPrice) }); setShowCustom(false); setCustomName(''); setCustomPrice(''); }} className="w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black disabled:opacity-40">إضافة للسلة</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
+  cart: CartLine[]; setCart: React.Dispatch<React.SetStateAction<CartLine[]>>; total: number; storeId: string;
+  onClose: () => void; onOrdered: () => void;
+}) {
+  const [fulfillment, setFulfillment] = useState<'delivery' | 'pickup'>('delivery');
+  const [address, setAddress] = useState('');
+  const [notes, setNotes] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const deliveryFee = fulfillment === 'delivery' ? 500 : 0;
+
+  const confirmOrder = async () => {
+    setError(''); setBusy(true);
+    try {
+      if (fulfillment === 'delivery' && !address.trim()) throw new Error('أدخل عنوان التوصيل');
+      const items = cart.map((c) => c.custom_name ? { custom_name: c.custom_name, custom_price: c.custom_price, quantity: c.quantity } : { product_id: c.product_id, ...(c.variant_id ? { variant_id: c.variant_id } : {}), quantity: c.quantity });
+      const { error: rpcError } = await supabase.rpc('create_cash_order', {
+        p_store_id: storeId, p_items: items, p_delivery_fee: deliveryFee,
+        p_delivery_address: fulfillment === 'delivery' ? address.trim() : null,
+        p_delivery_latitude: null, p_delivery_longitude: null,
+        p_fulfillment_type: fulfillment, p_notes: notes.trim() || null
+      });
+      if (rpcError) throw rpcError;
+      onOrdered();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر إتمام الطلب');
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
+      <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[#0d0d0d] p-6 sm:rounded-3xl">
+        <div className="mb-5 flex items-center justify-between"><h3 className="text-xl font-black">سلة الطلبات</h3><button onClick={onClose}><X size={20} className="text-white/50" /></button></div>
+        <div className="space-y-3">
+          {cart.map((item) => (
+            <div key={item.key} className="flex items-center justify-between rounded-xl border border-white/10 p-3">
+              <div><p className="font-bold">{item.name}</p><p className="text-xs text-white/40">{item.price.toLocaleString('ar-YE')} {CURRENCY} × {item.quantity}</p></div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setCart((c) => c.map((x) => x.key === item.key ? { ...x, quantity: x.quantity - 1 } : x).filter((x) => x.quantity > 0))} className="h-7 w-7 rounded-lg bg-white/10 font-black">−</button>
+                <span className="w-5 text-center font-bold">{item.quantity}</span>
+                <button onClick={() => setCart((c) => c.map((x) => x.key === item.key ? { ...x, quantity: x.quantity + 1 } : x))} className="h-7 w-7 rounded-lg bg-white/10 font-black">+</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 flex gap-2">
+          <button onClick={() => setFulfillment('delivery')} className={`flex-1 rounded-xl py-3 text-sm font-bold ${fulfillment === 'delivery' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/50'}`}>توصيل للمنزل</button>
+          <button onClick={() => setFulfillment('pickup')} className={`flex-1 rounded-xl py-3 text-sm font-bold ${fulfillment === 'pickup' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/50'}`}>استلام بنفسك</button>
+        </div>
+        {fulfillment === 'delivery' && <div className="mt-3"><Field label="عنوان التوصيل" value={address} onChange={setAddress} placeholder="الحي، الشارع، أقرب معلم" /></div>}
+        <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: بدون بصل" /></div>
+        {error && <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black"><span>الإجمالي</span><span>{(total + deliveryFee).toLocaleString('ar-YE')} {CURRENCY}</span></div>
+        <button disabled={busy || cart.length === 0} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? 'جارٍ الإرسال...' : 'تأكيد الطلب (دفع نقدي)'}</button>
+      </div>
+    </div>
+  );
+}
+
+function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => void }) {
+  const [ratingFor, setRatingFor] = useState<string | null>(null);
+  const [driverRating, setDriverRating] = useState(5);
+  const [merchantRating, setMerchantRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submitRating = async () => {
+    if (!ratingFor) return;
+    setBusy(true);
+    await supabase.rpc('submit_order_rating', { p_order_id: ratingFor, p_driver_rating: driverRating, p_merchant_rating: merchantRating, p_driver_comment: comment || null, p_merchant_comment: comment || null });
+    setBusy(false); setRatingFor(null); setComment('');
+  };
+
+  const reorder = async (orderId: string) => {
+    await supabase.rpc('get_reorder_items', { p_order_id: orderId });
+    onRefresh();
+  };
+
+  if (orders.length === 0) {
+    return (<div className="flex flex-col items-center justify-center py-24 text-center"><ClipboardList size={40} className="text-white/20" /><p className="mt-4 text-white/40">لا توجد طلبات حتى الآن</p></div>);
+  }
+
+  return (
+    <div>
+      <h2 className="mb-5 text-2xl font-black">طلباتي</h2>
+      <div className="space-y-4">
+        {orders.map((order) => (
+          <div key={order.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+            <div className="flex items-center justify-between">
+              <span className="font-black">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+              <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#e3fe00]">{statusLabels[order.status] || order.status}</span>
+            </div>
+            <p className="mt-2 text-xs text-white/40">{new Date(order.created_at).toLocaleString('ar-YE')} • {order.fulfillment_type === 'pickup' ? 'استلام بنفسك' : 'توصيل'}</p>
+            {order.status === 'delivered' && (
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => setRatingFor(order.id)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]">قيّم الطلب</button>
+                <button onClick={() => reorder(order.id)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]">إعادة الطلب</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {ratingFor && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 p-5 backdrop-blur">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111] p-6">
+            <div className="flex items-center justify-between"><h2 className="text-xl font-black">تقييم الطلب</h2><button onClick={() => setRatingFor(null)}><X size={20} className="text-white/40" /></button></div>
+            <div className="mt-5 space-y-4">
+              <div><p className="mb-2 text-sm font-bold">تقييم المندوب</p><div className="flex gap-2">{[1, 2, 3, 4, 5].map((n) => (<button key={n} onClick={() => setDriverRating(n)} className={n <= driverRating ? 'text-[#e3fe00]' : 'text-white/20'}>★</button>))}</div></div>
+              <div><p className="mb-2 text-sm font-bold">تقييم المتجر</p><div className="flex gap-2">{[1, 2, 3, 4, 5].map((n) => (<button key={n} onClick={() => setMerchantRating(n)} className={n <= merchantRating ? 'text-[#e3fe00]' : 'text-white/20'}>★</button>))}</div></div>
+              <Field label="تعليق (اختياري)" value={comment} onChange={setComment} placeholder="اكتب رأيك" />
+              <button disabled={busy} onClick={submitRating} className="w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black">{busy ? 'جارٍ الإرسال...' : 'إرسال التقييم'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ServicesView({ providers, packages, onRefresh }: { providers: ServiceProviderRow[]; packages: ServicePackageRow[]; onRefresh: () => void }) {
+  const [tab, setTab] = useState<'mobile_recharge' | 'bill_payment'>('mobile_recharge');
+  const [providerId, setProviderId] = useState('');
+  const [packageId, setPackageId] = useState('');
+  const [amount, setAmount] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+
+  const providerList = providers.filter((p) => p.service_type === tab || (tab === 'bill_payment' && p.service_type !== 'mobile_recharge'));
+  const providerPackages = packages.filter((p) => p.provider_id === providerId);
+  const selectedProvider = providers.find((p) => p.id === providerId);
+
+  const submit = async () => {
+    setError(''); setBusy(true);
+    try {
+      const { error: rpcError } = await supabase.rpc('create_service_order', {
+        p_order_type: tab, p_provider_id: providerId, p_package_id: packageId || null,
+        p_amount: packageId ? null : Number(amount), p_account_number: accountNumber.trim(), p_service_fee: 100
+      });
+      if (rpcError) throw rpcError;
+      setDone(true); onRefresh();
+    } catch (caught) { setError(caught instanceof Error ? caught.message : 'تعذر إرسال الطلب'); }
+    finally { setBusy(false); }
+  };
+
+  if (done) return (<div className="flex flex-col items-center py-20 text-center"><CheckCircle2 size={44} className="text-[#e3fe00]" /><p className="mt-4 font-bold">تم إرسال طلبك بنجاح، سيتم تنفيذه قريباً</p><button onClick={() => { setDone(false); setProviderId(''); setPackageId(''); setAmount(''); setAccountNumber(''); }} className="mt-6 rounded-xl bg-[#e3fe00] px-6 py-3 font-black text-black">طلب جديد</button></div>);
+
+  return (
+    <div>
+      <h2 className="mb-5 text-2xl font-black">الخدمات</h2>
+      <div className="flex gap-2">
+        <button onClick={() => { setTab('mobile_recharge'); setProviderId(''); setPackageId(''); }} className={`flex-1 rounded-xl py-3 text-sm font-bold ${tab === 'mobile_recharge' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/50'}`}>تعبئة رصيد</button>
+        <button onClick={() => { setTab('bill_payment'); setProviderId(''); setPackageId(''); }} className={`flex-1 rounded-xl py-3 text-sm font-bold ${tab === 'bill_payment' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/50'}`}>سداد فواتير</button>
+      </div>
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {providerList.map((p) => (<button key={p.id} onClick={() => { setProviderId(p.id); setPackageId(''); }} className={`rounded-xl border p-4 text-sm font-bold ${providerId === p.id ? 'border-[#e3fe00] bg-[#e3fe00]/10 text-[#e3fe00]' : 'border-white/10 text-white/60'}`}>{p.name}{p.region ? ` - ${p.region}` : ''}</button>))}
+      </div>
+      {providerId && (
+        <div className="mt-6 space-y-4">
+          {providerPackages.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              {providerPackages.map((pkg) => (<button key={pkg.id} onClick={() => setPackageId(pkg.id)} className={`rounded-xl border p-3 text-xs font-bold ${packageId === pkg.id ? 'border-[#e3fe00] bg-[#e3fe00]/10 text-[#e3fe00]' : 'border-white/10 text-white/60'}`}>{pkg.name}<br />{pkg.price.toLocaleString('ar-YE')} {CURRENCY}</button>))}
+            </div>
+          )}
+          {!packageId && <Field label="المبلغ" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} placeholder="أدخل المبلغ" />}
+          <Field label={`رقم الحساب${selectedProvider?.account_number_length ? ` (${selectedProvider.account_number_length} أرقام)` : ''}`} value={accountNumber} onChange={(v) => setAccountNumber(v.replace(/\D/g, ''))} placeholder="رقم الهاتف / رقم المشترك" />
+          {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+          <button disabled={busy || !accountNumber || (!packageId && !amount)} onClick={submit} className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-40">{busy ? 'جارٍ الإرسال...' : 'تأكيد الطلب'}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: ClientWalletRow; paymentMethods: PaymentMethodRow[]; onRefresh: () => void }) {
+  const [show, setShow] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [methodCode, setMethodCode] = useState('');
+  const [reference, setReference] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const submit = async () => {
+    setError(''); setBusy(true);
+    try {
+      const { error: rpcError } = await supabase.rpc('request_wallet_topup', { p_amount: Number(amount), p_payment_method_code: methodCode, p_reference_number: reference.trim() || null });
+      if (rpcError) throw rpcError;
+      setShow(false); setAmount(''); setReference(''); onRefresh();
+    } catch (caught) { setError(caught instanceof Error ? caught.message : 'تعذر إرسال طلب الشحن'); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <section>
+      <h1 className="text-3xl font-black">محفظتي</h1>
+      <div className="mt-7 grid gap-4 sm:grid-cols-2">
+        <div className="rounded-3xl bg-[#e3fe00] p-7 text-black">
+          <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
+          <p className="mt-4 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+          <button onClick={() => setShow(true)} className="mt-6 rounded-xl bg-black px-5 py-3 text-sm font-black text-white">شحن المحفظة</button>
+        </div>
+        <div className="rounded-3xl border border-white/10 bg-[#0d0d0d] p-7">
+          <span className="text-sm font-bold text-white/50">نقاطك</span>
+          <p className="mt-4 text-4xl font-black text-[#e3fe00]">{wallet.points}</p>
+          <p className="mt-2 text-xs text-white/40">تُستبدل بخصومات على منتجات مختارة</p>
+        </div>
+      </div>
+      {show && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 p-5 backdrop-blur">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111] p-6">
+            <div className="flex items-center justify-between"><h2 className="text-xl font-black">شحن المحفظة</h2><button onClick={() => setShow(false)}><X size={20} className="text-white/40" /></button></div>
+            <div className="mt-6 space-y-4">
+              <Field label="المبلغ" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} placeholder="مثال: 10000" />
+              <div><label className="mb-2 block text-sm font-bold">طريقة الدفع</label>
+                <select value={methodCode} onChange={(e) => setMethodCode(e.target.value)} className="w-full rounded-xl border border-white/10 bg-black px-4 py-3.5 text-white outline-none focus:border-[#e3fe00]">
+                  <option value="">اختر</option>
+                  {paymentMethods.map((m) => (<option key={m.id} value={m.code}>{m.name}</option>))}
+                </select>
+              </div>
+              {paymentMethods.find((m) => m.code === methodCode)?.instructions && <p className="text-xs text-white/40">{paymentMethods.find((m) => m.code === methodCode)?.instructions}</p>}
+              <Field label="رقم مرجع التحويل" value={reference} onChange={setReference} placeholder="رقم العملية / إثبات التحويل" />
+              {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+              <button disabled={busy || !amount || !methodCode} onClick={submit} className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-50">{busy ? 'جارٍ الإرسال...' : 'إرسال طلب الشحن'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+          }          {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
           {active === 'map' && (<div><h2 className="mb-5 text-2xl font-black">تتبع الطلب</h2><MapCard /></div>)}
           {active === 'profile' && (
             <div className="mx-auto max-w-md space-y-4">
@@ -1834,109 +2131,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
                                               }
 
 function StoreView({
-  store,
-  onBack,
-  onAdd
-}: {
-  store: StoreItem;
-  onBack: () => void;
-  onAdd: (product: Product) => void;
-}) {
-  const items = products.filter(
-    (product) => product.storeId === store.id
-  );
 
-  return (
-    <div>
-      <button
-        onClick={onBack}
-        className="mb-5 flex items-center gap-2 text-sm font-bold text-white/50 hover:text-white"
-      >
-        <ArrowRight size={16} />
-        رجوع للمتاجر
-      </button>
-
-      <div
-        className="flex h-40 items-center justify-center rounded-3xl"
-        style={{ backgroundColor: store.color }}
-      >
-        <Store size={56} className="text-[#e3fe00]" />
-      </div>
-
-      <div className="mt-5 flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-black">{store.name}</h2>
-          <p className="mt-1 text-sm text-white/40">
-            {store.description}
-          </p>
-        </div>
-
-        <span className="rounded-lg bg-white/5 px-3 py-1 text-xs text-white/50">
-          ★ {store.rating} • {store.time}
-        </span>
-      </div>
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {items.map((product) => (
-          <div
-            key={product.id}
-            className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0d0d0d] p-4"
-          >
-            <div>
-              <p className="font-bold">{product.name}</p>
-              <p className="mt-1 text-xs text-white/40">
-                {product.description}
-              </p>
-              <p className="mt-2 font-black text-[#e3fe00]">
-                {product.price} {CURRENCY}
-              </p>
-            </div>
-
-            <button
-              onClick={() => onAdd(product)}
-              className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white"
-            >
-              إضافة
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Orders({ ordered }: { ordered: boolean }) {
-  if (!ordered) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <ClipboardList size={40} className="text-white/20" />
-        <p className="mt-4 text-white/40">
-          لا توجد طلبات حتى الآن
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <h2 className="mb-5 text-2xl font-black">طلباتي</h2>
-
-      <div className="rounded-2xl border border-[#e3fe00]/30 bg-[#e3fe00]/5 p-5">
-        <div className="flex items-center justify-between">
-          <span className="font-black">طلب جارٍ #1</span>
-
-          <span className="rounded-lg bg-[#e3fe00] px-3 py-1 text-xs font-black text-black">
-            قيد التحضير
-          </span>
-        </div>
-
-        <p className="mt-3 text-sm text-white/40">
-          سيتم تحديث حالة طلبك فور مغادرته المتجر.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('available');
