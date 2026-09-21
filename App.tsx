@@ -1216,12 +1216,7 @@ function SideNav({
 }) {
   const items: [string, string, React.ElementType][] =
     role === 'customer'
-      ? [
-          ['home', 'الرئيسية', Home],
-          ['orders', 'طلباتي', ClipboardList],
-          ['map', 'تتبع الطلب', Navigation],
-          ['profile', 'حسابي', UserRound]
-        ]
+      ? [ ['home', 'الرئيسية', Home], ['orders', 'طلباتي', ClipboardList], ['services', 'الخدمات', Zap], ['wallet', 'محفظتي', WalletCards], ['map', 'تتبع الطلب', Navigation], ['profile', 'حسابي', UserRound] ]
       : role === 'driver'
         ? [
             ['available', 'الطلبات القريبة', Navigation],
