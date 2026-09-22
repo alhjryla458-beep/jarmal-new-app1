@@ -13,6 +13,158 @@ type Role = 'customer' | 'driver' | 'merchant' | 'admin';
 type Screen = 'welcome' | 'auth' | 'app' | 'admin';
 type AuthMode = 'login' | 'signup';
 
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  storeId: string;
+};
+
+type CartItem = Product & {
+  quantity: number;
+};
+
+type StoreItem = {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  rating: number;
+  time: string;
+  color: string;
+  isOpen: boolean;
+};
+
+const CURRENCY = 'ر.ي';
+
+const TEST_OTP = '123456';
+const TEST_PHONE = '711234567';
+
+const paymentChannels = [
+  'جيب',
+  'ون كاش',
+  'الكريمي',
+  'البنك اليمني الكويتي',
+  'حوالة محلية'
+];
+
+const businessCategories = [
+  'بقالة',
+  'مطعم',
+  'بوفيه',
+  'سوبرماركت',
+  'صيدلية',
+  'خضار وفواكه',
+  'حلويات',
+  'ملابس',
+  'إلكترونيات'
+];
+
+const categories = [
+  { name: 'الكل', icon: ListChecks },
+  { name: 'بقالة', icon: Store },
+  { name: 'مطاعم', icon: Store },
+  { name: 'قهوة', icon: Store },
+  { name: 'صيدلية', icon: ShieldCheck },
+  { name: 'حلويات', icon: Sparkles }
+];
+
+const stores: StoreItem[] = [
+  {
+    id: 's1',
+    name: 'تموينات النخبة',
+    category: 'بقالة',
+    description: 'كل احتياجات البيت في مكان واحد',
+    rating: 4.9,
+    time: '15 - 25 د',
+    color: '#263700',
+    isOpen: true
+  },
+  {
+    id: 's2',
+    name: 'مذاق المدينة',
+    category: 'مطاعم',
+    description: 'وجبات ساخنة بطعم لا يُنسى',
+    rating: 4.8,
+    time: '25 - 35 د',
+    color: '#3e2900',
+    isOpen: true
+  },
+  {
+    id: 's3',
+    name: 'بُنّ ومزاج',
+    category: 'قهوة',
+    description: 'قهوة مختصة وحلويات يومية',
+    rating: 4.7,
+    time: '10 - 20 د',
+    color: '#30251c',
+    isOpen: false
+  },
+  {
+    id: 's4',
+    name: 'صيدلية الحياة',
+    category: 'صيدلية',
+    description: 'احتياجاتك الصحية تصلك بسرعة',
+    rating: 4.9,
+    time: '20 - 30 د',
+    color: '#172e32',
+    isOpen: true
+  }
+];
+
+const products: Product[] = [
+  {
+    id: 'p1',
+    name: 'سلة الفطور اليومية',
+    description: 'خبز طازج، بيض، حليب، جبنة ومربى',
+    price: 3400,
+    category: 'الأكثر طلباً',
+    storeId: 's1'
+  },
+  {
+    id: 'p2',
+    name: 'مياه معدنية 6 حبات',
+    description: 'مياه نقية بحجم 1.5 لتر',
+    price: 1200,
+    category: 'مشروبات',
+    storeId: 's1'
+  },
+  {
+    id: 'p3',
+    name: 'برجر جَرْمَل',
+    description: 'لحم مشوي، جبنة شيدر، صوص خاص',
+    price: 2900,
+    category: 'الأكثر طلباً',
+    storeId: 's2'
+  },
+  {
+    id: 'p4',
+    name: 'بطاطس بالجبنة',
+    description: 'بطاطس مقرمشة مع صوص الجبنة',
+    price: 1500,
+    category: 'مقبلات',
+    storeId: 's2'
+  },
+  {
+    id: 'p5',
+    name: 'لاتيه كراميل',
+    description: 'إسبريسو، حليب مبخر، كراميل',
+    price: 1800,
+    category: 'مشروبات',
+    storeId: 's3'
+  },
+  {
+    id: 'p6',
+    name: 'كوكيز الشوكولاتة',
+    description: 'كوكيز مخبوزة طازجة يومياً',
+    price: 1400,
+    category: 'حلويات',
+    storeId: 's3'
+  }
+];
+
 // ===== أنواع بيانات العميل الحقيقية (تطابق قاعدة البيانات) =====
 type StoreRow = {
   id: string;
@@ -77,7 +229,6 @@ const statusLabels: Record<string, string> = {
   delivered: 'تم التسليم',
   cancelled: 'ملغي'
 };
-
 
 function Logo({ dark = false }: { dark?: boolean }) {
   return (
@@ -352,11 +503,6 @@ function Auth({
     setStep((current) => Math.max(current - 1, 1));
   };
 
-  /*
-   * الوضع التجريبي:
-   * لا يتم إرسال SMS حقيقي.
-   * الرمز الصحيح للاختبار هو 123456.
-   */
   const sendOtp = () => {
     setError('');
 
@@ -393,16 +539,6 @@ function Auth({
     setStep(3);
   };
 
-  /*
-   * إنشاء جلسة Supabase تجريبية حقيقية.
-   *
-   * نستخدم Anonymous Auth في وضع الاختبار حتى نستطيع
-   * اختبار التطبيق بدون SMS مدفوع.
-   *
-   * لاحقاً سيتم استبدال هذا الجزء بـ:
-   * signInWithOtp + verifyOtp
-   * عند ربط رسائل اللوتس.
-   */
   const createTestSession = async () => {
     const result = await supabase.auth.signInAnonymously();
 
@@ -435,12 +571,6 @@ function Auth({
 
         const normalizedCode = form.accessCode.trim().toUpperCase();
 
-        /*
-         * التحقق من بنية جدول driver_access_codes الحالية.
-         *
-         * الجدول الحالي يحتوي على is_used و assigned_to_phone،
-         * لذلك لا نستخدم is_active / used_by القديمة.
-         */
         const { data: code, error: codeError } = await supabase
           .from('driver_access_codes')
           .select('id, code, is_used, assigned_to_phone')
@@ -470,12 +600,6 @@ function Auth({
       const session = await createTestSession();
       const userId = session.user.id;
 
-      /*
-       * حفظ بيانات الحساب في profiles.
-       *
-       * لا نرسل email أو password أو national_id
-       * لأن التسجيل الجديد يعتمد على الهاتف.
-       */
       const profilePayload = {
         id: userId,
         full_name: form.name.trim(),
@@ -488,17 +612,10 @@ function Auth({
         .from('profiles')
         .upsert(profilePayload);
 
-      /*
-       * في حالة عدم وجود RLS مناسب حالياً لا نمنع تجربة
-       * الدخول للتطبيق، لكن نحاول دائماً حفظ البيانات.
-       */
       if (profileError) {
         console.warn('تعذر حفظ profile:', profileError);
       }
 
-      /*
-       * إذا كان المستخدم مندوباً، نعلّم كود المندوب بأنه مستخدم.
-       */
       if (role === 'driver') {
         const normalizedCode = form.accessCode.trim().toUpperCase();
 
@@ -516,12 +633,6 @@ function Auth({
         }
       }
 
-      /*
-       * إنشاء المتجر لصاحب المتجر.
-       *
-       * نستخدم store_type لأنه اسم الحقل الموجود
-       * في بنية جدول stores التي تم العمل عليها.
-       */
       if (role === 'merchant') {
         const { error: storeError } = await supabase
           .from('stores')
@@ -538,10 +649,6 @@ function Auth({
         }
       }
 
-      /*
-       * حفظ الدور محلياً أيضاً حتى لا تضيع تجربة الاختبار
-       * إذا كانت RLS في profiles تحتاج ضبطاً لاحقاً.
-       */
       localStorage.setItem('jarmal_test_role', role);
       localStorage.setItem('jarmal_test_name', form.name.trim());
       localStorage.setItem('jarmal_test_phone', `+967${form.phone}`);
@@ -565,11 +672,6 @@ function Auth({
     setBusy(true);
 
     try {
-      /*
-       * في النسخة التجريبية لا نطلب بريد أو كلمة مرور.
-       *
-       * المستخدم يدخل رقم هاتفه ثم 123456.
-       */
       if (form.phone.length !== 9) {
         throw new Error('أدخل رقم الهاتف المكون من 9 أرقام');
       }
@@ -580,9 +682,6 @@ function Auth({
 
       const session = await createTestSession();
 
-      /*
-       * نحاول استرجاع الدور من profiles.
-       */
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, full_name, phone_number')
@@ -1216,7 +1315,14 @@ function SideNav({
 }) {
   const items: [string, string, React.ElementType][] =
     role === 'customer'
-      ? [ ['home', 'الرئيسية', Home], ['orders', 'طلباتي', ClipboardList], ['services', 'الخدمات', Zap], ['wallet', 'محفظتي', WalletCards], ['map', 'تتبع الطلب', Navigation], ['profile', 'حسابي', UserRound] ]
+      ? [
+          ['home', 'الرئيسية', Home],
+          ['orders', 'طلباتي', ClipboardList],
+          ['services', 'الخدمات', Zap],
+          ['wallet', 'محفظتي', WalletCards],
+          ['map', 'تتبع الطلب', Navigation],
+          ['profile', 'حسابي', UserRound]
+        ]
       : role === 'driver'
         ? [
             ['available', 'الطلبات القريبة', Navigation],
@@ -1469,250 +1575,6 @@ function Wallet({
   );
 }
 
-function CustomerApp({
-  onLogout
-}: {
-  onLogout: () => void;
-}) {
-  const [active, setActive] = useState('home');
-  const [category, setCategory] = useState('الكل');
-  const [selectedStore, setSelectedStore] =
-    useState<string | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [showCart, setShowCart] = useState(false);
-  const [ordered, setOrdered] = useState(false);
-
-  const filtered =
-    category === 'الكل'
-      ? stores
-      : stores.filter((s) => s.category === category);
-
-  const add = (product: Product) =>
-    setCart((current) => {
-      const found = current.find(
-        (item) => item.id === product.id
-      );
-
-      return found
-        ? current.map((item) =>
-            item.id === product.id
-              ? {
-                  ...item,
-                  quantity: item.quantity + 1
-                }
-              : item
-          )
-        : [
-            ...current,
-            {
-              ...product,
-              quantity: 1
-            }
-          ];
-    });
-
-  const total = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
-  return (
-    <div className="min-h-screen bg-black text-white">
-      <Topbar
-        role="customer"
-        title="مساحة العميل"
-        onLogout={onLogout}
-      />
-
-      <div className="mx-auto flex max-w-7xl">
-        <SideNav
-          role="customer"
-          active={active}
-          onActive={setActive}
-        />
-
-        <main className="min-w-0 flex-1 p-5 sm:p-8">
-          {active === 'home' && !selectedStore && (
-            <>
-              <div className="rounded-3xl bg-[#e3fe00] p-7 text-black sm:p-10">
-                <Pill dark>
-                  مرحباً بك في جَرْمَل
-                </Pill>
-
-                <h1 className="mt-5 text-3xl font-black leading-tight sm:text-4xl">
-                  نقوم بتوصيل طلبكم
-                  <br />
-                  بكل حماس وفاعلية.
-                </h1>
-
-                <p className="mt-4 text-sm font-bold text-black/60">
-                  أوقات الدوام من الساعة 9:00 صباحًا حتى 9:00 مساءً
-                </p>
-              </div>
-
-              <section className="mt-10">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-sm text-white/40">
-                      اكتشف ما حولك
-                    </p>
-
-                    <h2 className="mt-1 text-2xl font-black">
-                      تسوّق حسب الفئة
-                    </h2>
-                  </div>
-
-                  <span className="flex items-center gap-1 text-xs text-white/35">
-                    <MapPin
-                      size={14}
-                      className="text-[#e3fe00]"
-                    />
-                    صنعاء
-                  </span>
-                </div>
-
-                <div className="no-scrollbar mt-5 flex gap-3 overflow-x-auto pb-2">
-                  {categories.map(
-                    ({ name, icon: Icon }) => (
-                      <button
-                        key={name}
-                        onClick={() => setCategory(name)}
-                        className={`flex min-w-[88px] flex-col items-center gap-3 rounded-2xl border px-4 py-4 ${
-                          category === name
-                            ? 'border-[#e3fe00] bg-[#e3fe00] text-black'
-                            : 'border-white/10 bg-white/[.03] text-white/55'
-                        }`}
-                      >
-                        <Icon size={22} />
-                        <span className="text-xs font-bold">
-                          {name}
-                        </span>
-                      </button>
-                    )
-                  )}
-                </div>
-              </section>
-
-              <section className="mt-10">
-                <h2 className="text-2xl font-black">
-                  متاجر مميزة
-                </h2>
-
-                <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {filtered.map((store) => (
-                    <button
-                      key={store.id}
-                      disabled={!store.isOpen}
-                      onClick={() =>
-                        setSelectedStore(store.id)
-                      }
-                      className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d] text-right transition hover:-translate-y-1 hover:border-[#e3fe00]/50 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <div
-                        className="flex h-32 items-center justify-center"
-                        style={{
-                          backgroundColor: store.color
-                        }}
-                      >
-                        <Store
-                          size={44}
-                          className="text-[#e3fe00]"
-                        />
-                      </div>
-
-                      <div className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-black">
-                              {store.name}
-                            </h3>
-
-                            <p className="mt-1 text-xs text-white/40">
-                              {store.description}
-                            </p>
-                          </div>
-
-                          <span
-                            className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                              store.isOpen
-                                ? 'bg-[#e3fe00]/10 text-[#e3fe00]'
-                                : 'bg-white/10 text-white/50'
-                            }`}
-                          >
-                            {store.isOpen
-                              ? 'مفتوح'
-                              : 'مغلق'}
-                          </span>
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between text-xs text-white/35">
-                          <span>
-                            ★ {store.rating} • {store.time}
-                          </span>
-
-                          <span className="font-bold text-[#e3fe00]">
-                            {store.isOpen
-                              ? 'اطلب الآن'
-                              : 'لا يستقبل طلبات'}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            </>
-          )}
-
-          {active === 'home' && selectedStore && (
-            <StoreView
-              store={
-                stores.find(
-                  (item) => item.id === selectedStore
-                )!
-              }
-              onBack={() => setSelectedStore(null)}
-              onAdd={add}
-            />
-          )}
-
-          {active === 'orders' && (
-            <Orders ordered={ordered} />
-          )}
-
-          {active === 'map' && (
-            <div>
-              <h2 className="mb-5 text-2xl font-black">
-                تتبع الطلب
-              </h2>
-
-              <MapCard />
-            </div>
-          )}
-
-          {active === 'profile' && (
-            <div className="mx-auto max-w-md space-y-4">
-              <h2 className="text-2xl font-black">حسابي</h2>
-
-              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
-                <p className="text-sm text-white/40">الاسم</p>
-                <p className="mt-1 font-bold">
-                  {localStorage.getItem('jarmal_test_name') || '—'}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
-                <p className="text-sm text-white/40">رقم الهاتف</p>
-                <p className="mt-1 font-bold" dir="ltr">
-                  {localStorage.getItem('jarmal_test_phone') || '—'}
-                </p>
-              </div>
-
-              <button
-                onClick={onLogout}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"
-              >
-                <LogOut size={18} />
 function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('home');
   const [storesReal, setStoresReal] = useState<StoreRow[]>([]);
@@ -1809,6 +1671,30 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           )}
           {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} />}
           {active === 'services' && <ServicesView providers={providers} packages={packages} onRefresh={loadAll} />}
+          {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
+          {active === 'map' && (<div><h2 className="mb-5 text-2xl font-black">تتبع الطلب</h2><MapCard /></div>)}
+          {active === 'profile' && (
+            <div className="mx-auto max-w-md space-y-4">
+              <h2 className="text-2xl font-black">حسابي</h2>
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">الاسم</p><p className="mt-1 font-bold">{localStorage.getItem('jarmal_test_name') || '—'}</p></div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{localStorage.getItem('jarmal_test_phone') || '—'}</p></div>
+              <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"><LogOut size={18} />تسجيل الخروج</button>
+            </div>
+          )}
+        </main>
+      </div>
+      {cart.length > 0 && !showCart && (
+        <button onClick={() => setShowCart(true)} className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-[#e3fe00] px-6 py-4 font-black text-black shadow-2xl">
+          <ShoppingBag size={18} />عرض السلة ({cart.reduce((n, c) => n + c.quantity, 0)})<span className="mr-2">{cartTotal.toLocaleString('ar-YE')} {CURRENCY}</span>
+        </button>
+      )}
+      {showCart && cartStoreId && (
+        <Cart cart={cart} setCart={setCart} total={cartTotal} storeId={cartStoreId} onClose={() => setShowCart(false)} onOrdered={() => { setCart([]); setCartStoreId(null); setShowCart(false); setActive('orders'); loadAll(); }} />
+      )}
+    </div>
+  );
+}
+
 function StoreView({ store, products, categories, variants, favorites, onToggleFavorite, onBack, onAdd }: {
   store: StoreRow; products: ProductRow[]; categories: CategoryRow[]; variants: VariantRow[]; favorites: string[];
   onToggleFavorite: (id: string) => void; onBack: () => void;
@@ -2106,32 +1992,7 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
       )}
     </section>
   );
-          }          {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
-          {active === 'map' && (<div><h2 className="mb-5 text-2xl font-black">تتبع الطلب</h2><MapCard /></div>)}
-          {active === 'profile' && (
-            <div className="mx-auto max-w-md space-y-4">
-              <h2 className="text-2xl font-black">حسابي</h2>
-              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">الاسم</p><p className="mt-1 font-bold">{localStorage.getItem('jarmal_test_name') || '—'}</p></div>
-              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{localStorage.getItem('jarmal_test_phone') || '—'}</p></div>
-              <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"><LogOut size={18} />تسجيل الخروج</button>
-            </div>
-          )}
-        </main>
-      </div>
-      {cart.length > 0 && !showCart && (
-        <button onClick={() => setShowCart(true)} className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-[#e3fe00] px-6 py-4 font-black text-black shadow-2xl">
-          <ShoppingBag size={18} />عرض السلة ({cart.reduce((n, c) => n + c.quantity, 0)})<span className="mr-2">{cartTotal.toLocaleString('ar-YE')} {CURRENCY}</span>
-        </button>
-      )}
-      {showCart && cartStoreId && (
-        <Cart cart={cart} setCart={setCart} total={cartTotal} storeId={cartStoreId} onClose={() => setShowCart(false)} onOrdered={() => { setCart([]); setCartStoreId(null); setShowCart(false); setActive('orders'); loadAll(); }} />
-      )}
-    </div>
-  );
-                                              }
-
-function StoreView({
-
+}
 
 function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('available');
