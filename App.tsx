@@ -207,6 +207,43 @@ type ServiceProviderRow = {
 type ServicePackageRow = { id: string; provider_id: string; name: string; face_value: number | null; price: number };
 type PaymentMethodRow = { id: string; name: string; code: string; account_number: string | null; instructions: string | null };
 type ClientWalletRow = { balance: number; points: number };
+type FullOrderRow = {
+  id: string;
+  status: string;
+  total_amount: number;
+  delivery_fee: number;
+  created_at: string;
+  store_id: string | null;
+  driver_id: string | null;
+  delivery_address: string | null;
+  notes: string | null;
+  courier_distance: number | null;
+  fulfillment_type: string;
+  payment_status: string;
+};
+type OrderItemRow = { id: string; order_id: string; product_id: string | null; custom_name: string | null; unit_price: number; quantity: number };
+type DriverProfileRow = {
+  is_available: boolean;
+  vehicle_type: string | null;
+  vehicle_plate_number: string | null;
+  rating: number | null;
+};
+type MyStoreRow = {
+  id: string;
+  name: string;
+  is_open: boolean;
+  rating: number | null;
+  commission_rate: number | null;
+};
+type MerchantProductRow = {
+  id: string;
+  store_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  is_available: boolean;
+};
 type CartLine = {
   key: string;
   product_id?: string;
@@ -1577,6 +1614,7 @@ function Wallet({
 
 function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('home');
+  const [storeCategory, setStoreCategory] = useState<string>('الكل');
   const [storesReal, setStoresReal] = useState<StoreRow[]>([]);
   const [productsReal, setProductsReal] = useState<ProductRow[]>([]);
   const [categoriesReal, setCategoriesReal] = useState<CategoryRow[]>([]);
@@ -1639,8 +1677,14 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
               </div>
               <section className="mt-10">
                 <h2 className="text-2xl font-black">متاجرنا</h2>
+                <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
+                  <button onClick={() => setStoreCategory('الكل')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${storeCategory === 'الكل' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>الكل</button>
+                  {Array.from(new Set(storesReal.map((s) => s.store_type))).map((type) => (
+                    <button key={type} onClick={() => setStoreCategory(type)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${storeCategory === type ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>{type}</button>
+                  ))}
+                </div>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {storesReal.map((store) => (
+                  {storesReal.filter((s) => storeCategory === 'الكل' || s.store_type === storeCategory).map((store) => (
                     <button key={store.id} disabled={!store.is_open} onClick={() => setSelectedStore(store)} className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d] text-right transition hover:-translate-y-1 hover:border-[#e3fe00]/50 disabled:cursor-not-allowed disabled:opacity-60">
                       <div className="flex h-28 items-center justify-center bg-white/[.03]"><Store size={40} className="text-[#e3fe00]" /></div>
                       <div className="p-4">
@@ -1996,74 +2040,161 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
 
 function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('available');
+  const [profile, setProfile] = useState<DriverProfileRow | null>(null);
+  const [wallet, setWallet] = useState<{ balance: number }>({ balance: 0 });
+  const [available, setAvailable] = useState<FullOrderRow[]>([]);
+  const [activeOrder, setActiveOrder] = useState<FullOrderRow | null>(null);
+  const [history, setHistory] = useState<FullOrderRow[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const loadAll = () => {
+    supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating').maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
+    supabase.from('driver_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'ready_for_pickup').is('driver_id', null).then(({ data }) => { if (data) setAvailable(data as FullOrderRow[]); });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').not('status', 'in', '(delivered,cancelled,pending)').then(({ data }) => {
+      const mine = (data as FullOrderRow[] | null)?.find((o) => o.driver_id) || null;
+      setActiveOrder(mine);
+    });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'delivered').order('created_at', { ascending: false }).then(({ data }) => { if (data) setHistory(data as FullOrderRow[]); });
+  };
+
+  useEffect(() => { loadAll(); }, []);
+
+  const toggleAvailability = async () => {
+    const next = !profile?.is_available;
+    await supabase.from('driver_profiles').update({ is_available: next }).eq('id', (await supabase.auth.getUser()).data.user?.id || '');
+    loadAll();
+  };
+
+  const acceptOrder = async (orderId: string) => {
+    setBusy(true); setError('');
+    try {
+      const { error: rpcError } = await supabase.rpc('driver_accept_order', { p_order_id: orderId });
+      if (rpcError) throw rpcError;
+      loadAll();
+      setActive('active');
+    } catch (caught) { setError(caught instanceof Error ? caught.message : 'تعذر قبول الطلب'); }
+    finally { setBusy(false); }
+  };
+
+  const nextStatus = (status: string) => {
+    if (status === 'picked_up') return 'on_the_way';
+    if (status === 'on_the_way') return 'delivered';
+    return null;
+  };
+
+  const advance = async (orderId: string, status: string) => {
+    const target = nextStatus(status);
+    if (!target) return;
+    setBusy(true);
+    await supabase.rpc('driver_update_order_status', { p_order_id: orderId, p_status: target });
+    setBusy(false);
+    loadAll();
+  };
+
+  const confirmCash = async (orderId: string) => {
+    setBusy(true);
+    await supabase.rpc('confirm_cash_collected', { p_order_id: orderId });
+    setBusy(false);
+    loadAll();
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Topbar
-        role="driver"
-        title="مساحة المندوب"
-        onLogout={onLogout}
-      />
-
+      <Topbar role="driver" title="مساحة المندوب" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
-        <SideNav
-          role="driver"
-          active={active}
-          onActive={setActive}
-        />
-
+        <SideNav role="driver" active={active} onActive={setActive} />
         <main className="min-w-0 flex-1 p-5 sm:p-8">
           {active === 'available' && (
             <div>
-              <h2 className="mb-5 text-2xl font-black">
-                الطلبات القريبة
-              </h2>
-
-              <div className="space-y-3">
-                {stores.slice(0, 2).map((store) => (
-                  <div
-                    key={store.id}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0d0d0d] p-4"
-                  >
-                    <div>
-                      <p className="font-bold">{store.name}</p>
-                      <p className="text-xs text-white/40">
-                        {store.description}
-                      </p>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <h2 className="text-2xl font-black">الطلبات القريبة</h2>
+                <button onClick={toggleAvailability} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black ${profile?.is_available ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-white/50'}`}>
+                  <span className={`h-3 w-3 rounded-full ${profile?.is_available ? 'bg-black' : 'bg-white/30'}`} />
+                  {profile?.is_available ? 'متصل الآن' : 'غير متصل'}
+                </button>
+              </div>
+              {error && <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+              <div className="mt-7 space-y-3">
+                {available.map((order) => (
+                  <div key={order.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-black">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+                      <span className="text-xs text-white/40">{order.courier_distance ? `${order.courier_distance} كم` : ''}</span>
                     </div>
-
-                    <button
-                      onClick={() => setActive('active')}
-                      className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white"
-                    >
-                      قبول الطلب
-                    </button>
+                    <p className="mt-2 text-xs text-white/40">{order.fulfillment_type === 'pickup' ? 'استلام من المتجر فقط' : order.delivery_address}</p>
+                    <button disabled={busy} onClick={() => acceptOrder(order.id)} className="mt-4 w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black hover:bg-white disabled:opacity-50">قبول الطلب</button>
                   </div>
                 ))}
+                {available.length === 0 && <p className="text-sm text-white/40">لا توجد طلبات جاهزة للاستلام حالياً</p>}
               </div>
             </div>
           )}
 
           {active === 'active' && (
             <div>
-              <h2 className="mb-5 text-2xl font-black">
-                الطلب الحالي
-              </h2>
-
-              <MapCard driver />
+              <h2 className="mb-5 text-2xl font-black">الطلب الحالي</h2>
+              {activeOrder ? (
+                <>
+                  <MapCard driver />
+                  <div className="mt-6 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-black">{activeOrder.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+                      <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#e3fe00]">{statusLabels[activeOrder.status] || activeOrder.status}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-white/50">{activeOrder.delivery_address}</p>
+                    <div className="mt-5 flex gap-3">
+                      {nextStatus(activeOrder.status) && (
+                        <button disabled={busy} onClick={() => advance(activeOrder.id, activeOrder.status)} className="flex-1 rounded-xl bg-[#e3fe00] py-3 font-black text-black disabled:opacity-50">
+                          {activeOrder.status === 'picked_up' ? 'بدء التوصيل' : 'تم التسليم'}
+                        </button>
+                      )}
+                      {activeOrder.payment_status !== 'paid' && (
+                        <button disabled={busy} onClick={() => confirmCash(activeOrder.id)} className="flex-1 rounded-xl border border-[#e3fe00]/40 py-3 font-black text-[#e3fe00] disabled:opacity-50">تأكيد استلام النقد</button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-white/40">لا يوجد طلب نشط حالياً</p>
+              )}
             </div>
           )}
 
           {active === 'history' && (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <ClipboardList size={40} className="text-white/20" />
-              <p className="mt-4 text-white/40">
-                لا يوجد سجل توصيلات بعد
-              </p>
+            <div>
+              <h2 className="mb-5 text-2xl font-black">سجل التوصيلات</h2>
+              <div className="space-y-3">
+                {history.map((order) => (
+                  <div key={order.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+                      <span className="text-xs text-white/40">{new Date(order.created_at).toLocaleDateString('ar-YE')}</span>
+                    </div>
+                  </div>
+                ))}
+                {history.length === 0 && <p className="text-sm text-white/40">لا يوجد سجل توصيلات بعد</p>}
+              </div>
             </div>
           )}
 
-          {active === 'wallet' && <Wallet role="driver" />}
+          {active === 'wallet' && (
+            <section>
+              <p className="text-sm text-white/40">أموالك بين يديك</p>
+              <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
+              <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
+                <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
+                <p className="mt-6 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+              </div>
+              {profile && (
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">التقييم</p><p className="mt-2 text-xl font-black text-[#e3fe00]">★ {profile.rating ?? '—'}</p></div>
+                  <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
+                </div>
+              )}
+            </section>
+          )}
         </main>
       </div>
     </div>
@@ -2072,201 +2203,205 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
 
 function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('dashboard');
+  const [store, setStore] = useState<MyStoreRow | null>(null);
+  const [incoming, setIncoming] = useState<FullOrderRow[]>([]);
+  const [orderItems, setOrderItems] = useState<Record<string, OrderItemRow[]>>({});
+  const [myProducts, setMyProducts] = useState<MerchantProductRow[]>([]);
+  const [wallet, setWallet] = useState<{ balance: number }>({ balance: 0 });
+  const [busy, setBusy] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newPrice, setNewPrice] = useState('');
+  const [newImage, setNewImage] = useState('');
+  const [addError, setAddError] = useState('');
 
-  const myProducts = products.filter(
-    (product) => product.storeId === 's1'
-  );
+  const loadAll = () => {
+    supabase.from('stores').select('id, name, is_open, rating, commission_rate').maybeSingle().then(({ data }) => {
+      if (data) {
+        const row = data as MyStoreRow;
+        setStore(row);
+        supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').eq('store_id', row.id).in('status', ['pending', 'accepted', 'preparing']).order('created_at', { ascending: false }).then(async ({ data: orders }) => {
+          const list = (orders as FullOrderRow[]) || [];
+          setIncoming(list);
+          if (list.length > 0) {
+            const { data: items } = await supabase.from('order_items').select('id, order_id, product_id, custom_name, unit_price, quantity').in('order_id', list.map((o) => o.id));
+            const grouped: Record<string, OrderItemRow[]> = {};
+            (items as OrderItemRow[] | null)?.forEach((item) => { grouped[item.order_id] = [...(grouped[item.order_id] || []), item]; });
+            setOrderItems(grouped);
+          }
+        });
+        supabase.from('products').select('id, store_id, name, description, price, image_url, is_available').eq('store_id', row.id).then(({ data: prods }) => { if (prods) setMyProducts(prods as MerchantProductRow[]); });
+      }
+    });
+    supabase.from('merchant_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
+  };
+
+  useEffect(() => { loadAll(); }, []);
+
+  const toggleOpen = async () => {
+    if (!store) return;
+    await supabase.from('stores').update({ is_open: !store.is_open }).eq('id', store.id);
+    loadAll();
+  };
+
+  const respond = async (orderId: string, accept: boolean) => {
+    setBusy(true);
+    await supabase.rpc('merchant_respond_to_order', { p_order_id: orderId, p_accept: accept, p_reject_reason: accept ? null : 'غير متوفر حالياً' });
+    setBusy(false);
+    loadAll();
+  };
+
+  const advance = async (orderId: string) => {
+    setBusy(true);
+    await supabase.rpc('merchant_update_order_status', { p_order_id: orderId, p_status: 'ready_for_pickup' });
+    setBusy(false);
+    loadAll();
+  };
+
+  const addProduct = async () => {
+    if (!store) return;
+    setAddError('');
+    if (!newName.trim() || !newPrice) { setAddError('أدخل اسم المنتج والسعر'); return; }
+    setBusy(true);
+    const { error } = await supabase.from('products').insert({
+      store_id: store.id, name: newName.trim(), description: newDesc.trim() || null,
+      price: Number(newPrice), image_url: newImage.trim() || null, is_available: true
+    });
+    setBusy(false);
+    if (error) { setAddError('تعذر إضافة المنتج'); return; }
+    setShowAdd(false); setNewName(''); setNewDesc(''); setNewPrice(''); setNewImage('');
+    loadAll();
+  };
+
+  const toggleProductAvailable = async (productId: string, current: boolean) => {
+    await supabase.from('products').update({ is_available: !current }).eq('id', productId);
+    loadAll();
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Topbar
-        role="merchant"
-        title="مساحة التاجر"
-        onLogout={onLogout}
-      />
-
+      <Topbar role="merchant" title="مساحة التاجر" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
-        <SideNav
-          role="merchant"
-          active={active}
-          onActive={setActive}
-        />
-
+        <SideNav role="merchant" active={active} onActive={setActive} />
         <main className="min-w-0 flex-1 p-5 sm:p-8">
           {active === 'dashboard' && (
             <div>
-              <h2 className="mb-5 text-2xl font-black">
-                نظرة عامة
-              </h2>
-
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
-                  <p className="text-xs text-white/40">
-                    طلبات اليوم
-                  </p>
-                  <p className="mt-2 text-3xl font-black text-[#e3fe00]">
-                    0
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
-                  <p className="text-xs text-white/40">
-                    إجمالي المبيعات
-                  </p>
-                  <p className="mt-2 text-3xl font-black text-[#e3fe00]">
-                    0 {CURRENCY}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
-                  <p className="text-xs text-white/40">
-                    تقييم المتجر
-                  </p>
-                  <p className="mt-2 text-3xl font-black text-[#e3fe00]">
-                    —
-                  </p>
-                </div>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <h2 className="text-2xl font-black">نظرة عامة</h2>
+                {store && (
+                  <button onClick={toggleOpen} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-white/50'}`}>
+                    <span className={`h-3 w-3 rounded-full ${store.is_open ? 'bg-black' : 'bg-white/30'}`} />
+                    المتجر {store.is_open ? 'مفتوح' : 'مغلق'}
+                  </button>
+                )}
+              </div>
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">طلبات قيد الانتظار</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">{incoming.length}</p></div>
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">نسبة عمولة جَرْمَل</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">{store?.commission_rate ? `${(store.commission_rate * 100).toFixed(0)}%` : '—'}</p></div>
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">تقييم المتجر</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">★ {store?.rating ?? '—'}</p></div>
               </div>
             </div>
           )}
 
           {active === 'incoming' && (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <ClipboardList size={40} className="text-white/20" />
-              <p className="mt-4 text-white/40">
-                لا توجد طلبات واردة حالياً
-              </p>
+            <div>
+              <h2 className="mb-5 text-2xl font-black">الطلبات الواردة</h2>
+              <div className="space-y-4">
+                {incoming.map((order) => {
+                  const items = orderItems[order.id] || [];
+                  const commission = store?.commission_rate ? order.total_amount * store.commission_rate : 0;
+                  return (
+                    <div key={order.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-black">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+                        <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#e3fe00]">{statusLabels[order.status] || order.status}</span>
+                      </div>
+                      <div className="mt-3 space-y-1 text-sm text-white/60">
+                        {items.map((item) => (<p key={item.id}>{item.custom_name || 'منتج'} × {item.quantity}</p>))}
+                      </div>
+                      <p className="mt-2 text-xs text-white/35">عمولة جَرْمَل التقديرية: {commission.toLocaleString('ar-YE')} {CURRENCY}</p>
+                      {order.status === 'pending' && (
+                        <div className="mt-4 flex gap-2">
+                          <button disabled={busy} onClick={() => respond(order.id, true)} className="flex-1 rounded-xl bg-[#e3fe00] py-3 text-sm font-black text-black disabled:opacity-50">قبول</button>
+                          <button disabled={busy} onClick={() => respond(order.id, false)} className="flex-1 rounded-xl border border-red-500/40 py-3 text-sm font-black text-red-300 disabled:opacity-50">رفض</button>
+                        </div>
+                      )}
+                      {(order.status === 'accepted' || order.status === 'preparing') && (
+                        <button disabled={busy} onClick={() => advance(order.id)} className="mt-4 w-full rounded-xl border border-[#e3fe00]/40 py-3 text-sm font-black text-[#e3fe00] disabled:opacity-50">جاهز للاستلام</button>
+                      )}
+                    </div>
+                  );
+                })}
+                {incoming.length === 0 && <p className="text-sm text-white/40">لا توجد طلبات واردة حالياً</p>}
+              </div>
             </div>
           )}
 
           {active === 'products' && (
             <div>
-              <h2 className="mb-5 text-2xl font-black">
-                إدارة المنتجات
-              </h2>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex items-end justify-between">
+                <h2 className="text-2xl font-black">إدارة المنتجات</h2>
+                <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 rounded-xl bg-[#e3fe00] px-4 py-3 text-sm font-black text-black"><Plus size={17} />إضافة منتج</button>
+              </div>
+              <div className="mt-7 grid gap-4 sm:grid-cols-2">
                 {myProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0d0d0d] p-4"
-                  >
-                    <div>
-                      <p className="font-bold">
-                        {product.name}
-                      </p>
-                      <p className="mt-1 text-xs text-white/40">
-                        {product.category}
-                      </p>
+                  <div key={product.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/5">
+                        {product.image_url ? <img src={product.image_url} className="h-full w-full object-cover" /> : <ShoppingBag size={22} className="text-[#e3fe00]" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate font-bold">{product.name}</h3>
+                        <p className="mt-1 text-xs text-white/40">{product.price.toLocaleString('ar-YE')} {CURRENCY}</p>
+                      </div>
                     </div>
-
-                    <span className="font-black text-[#e3fe00]">
-                      {product.price} {CURRENCY}
-                    </span>
+                    <button onClick={() => toggleProductAvailable(product.id, product.is_available)} className={`mt-4 w-full rounded-lg py-2 text-xs font-bold ${product.is_available ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-white/10 text-white/40'}`}>{product.is_available ? 'متوفر — اضغط للإخفاء' : 'غير متوفر — اضغط للإظهار'}</button>
                   </div>
                 ))}
+                {myProducts.length === 0 && <p className="text-sm text-white/40">لا توجد منتجات بعد</p>}
               </div>
+              {showAdd && (
+                <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-5 backdrop-blur">
+                  <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111] p-6">
+                    <div className="flex items-center justify-between"><h2 className="text-xl font-black">إضافة منتج جديد</h2><button onClick={() => setShowAdd(false)}><X size={20} className="text-white/40" /></button></div>
+                    <div className="mt-6 space-y-4">
+                      <Field label="اسم المنتج" value={newName} onChange={setNewName} placeholder="مثال: وجبة اليوم" icon={<ShoppingBag size={17} />} />
+                      <Field label="وصف المنتج" value={newDesc} onChange={setNewDesc} placeholder="اكتب وصفاً مختصراً" icon={<FileText size={17} />} />
+                      <Field label="السعر" value={newPrice} onChange={(v) => setNewPrice(v.replace(/\D/g, ''))} placeholder="مثال: 2500" />
+                      <Field label="رابط صورة المنتج (اختياري)" value={newImage} onChange={setNewImage} placeholder="https://..." />
+                      {addError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{addError}</div>}
+                      <button disabled={busy} onClick={addProduct} className="w-full rounded-xl bg-[#e3fe00] py-3.5 font-black text-black disabled:opacity-50">حفظ المنتج</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {active === 'wallet' && <Wallet role="merchant" />}
+          {active === 'wallet' && (
+            <section>
+              <p className="text-sm text-white/40">أموالك بين يديك</p>
+              <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
+              <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
+                <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
+                <p className="mt-6 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+              </div>
+            </section>
+          )}
 
-          {active === 'settings' && (
+          {active === 'settings' && store && (
             <div className="max-w-md space-y-4">
-              <h2 className="text-2xl font-black">
-                إعدادات المتجر
-              </h2>
-
-              <Field
-                label="اسم المتجر"
-                value={
-                  localStorage.getItem('jarmal_test_name') || ''
-                }
-                onChange={() => {}}
-                placeholder="اسم متجرك"
-              />
+              <h2 className="text-2xl font-black">إعدادات المتجر</h2>
+              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                <p className="text-sm text-white/40">اسم المتجر</p>
+                <p className="mt-1 font-bold">{store.name}</p>
+              </div>
+              <button onClick={toggleOpen} className={`w-full rounded-xl py-4 font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-white/50'}`}>{store.is_open ? 'إغلاق المتجر مؤقتاً' : 'فتح المتجر'}</button>
             </div>
           )}
         </main>
       </div>
     </div>
-  );
-}
-
-export default function App() {
-  const [screen, setScreen] = useState<Screen>('welcome');
-  const [role, setRole] = useState<Role>('customer');
-  const [session, setSession] = useState<Session | null>(null);
-
-  useEffect(() => {
-    const savedRole = localStorage.getItem(
-      'jarmal_test_role'
-    ) as Role | null;
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session && savedRole) {
-        setSession(data.session);
-
-        if (savedRole === 'admin') {
-          setScreen('admin');
-        } else {
-          setRole(savedRole);
-          setScreen('app');
-        }
-      }
-    });
-  }, []);
-
-  const handleLogout = () => {
-    void supabase.auth.signOut();
-    localStorage.removeItem('jarmal_test_role');
-    localStorage.removeItem('jarmal_test_name');
-    localStorage.removeItem('jarmal_test_phone');
-    setSession(null);
-    setScreen('welcome');
-  };
-
-  if (screen === 'admin' && session) {
-    return <AdminApp session={session} onLogout={handleLogout} />;
-  }
-
-  if (screen === 'app') {
-    if (role === 'driver') {
-      return <DriverApp onLogout={handleLogout} />;
-    }
-
-    if (role === 'merchant') {
-      return <MerchantApp onLogout={handleLogout} />;
-    }
-
-    return <CustomerApp onLogout={handleLogout} />;
-  }
-
-  if (screen === 'auth') {
-    return (
-      <Auth
-        role={role}
-        onBack={() => setScreen('welcome')}
-        onSuccess={(newSession, resolvedRole) => {
-          setSession(newSession);
-
-          if (resolvedRole === 'admin') {
-            setScreen('admin');
-          } else {
-            setRole(resolvedRole);
-            setScreen('app');
-          }
-        }}
-      />
-    );
-  }
-
-  return (
-    <Welcome
-      onSelect={(selectedRole) => {
-        setRole(selectedRole);
-        setScreen('auth');
-      }}
-    />
   );
 }
