@@ -2405,3 +2405,81 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     </div>
   );
 }
+
+export default function App() {
+  const [screen, setScreen] = useState<Screen>('welcome');
+  const [role, setRole] = useState<Role>('customer');
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    const savedRole = localStorage.getItem(
+      'jarmal_test_role'
+    ) as Role | null;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && savedRole) {
+        setSession(data.session);
+
+        if (savedRole === 'admin') {
+          setScreen('admin');
+        } else {
+          setRole(savedRole);
+          setScreen('app');
+        }
+      }
+    });
+  }, []);
+
+  const handleLogout = () => {
+    void supabase.auth.signOut();
+    localStorage.removeItem('jarmal_test_role');
+    localStorage.removeItem('jarmal_test_name');
+    localStorage.removeItem('jarmal_test_phone');
+    setSession(null);
+    setScreen('welcome');
+  };
+
+  if (screen === 'admin' && session) {
+    return <AdminApp session={session} onLogout={handleLogout} />;
+  }
+
+  if (screen === 'app') {
+    if (role === 'driver') {
+      return <DriverApp onLogout={handleLogout} />;
+    }
+
+    if (role === 'merchant') {
+      return <MerchantApp onLogout={handleLogout} />;
+    }
+
+    return <CustomerApp onLogout={handleLogout} />;
+  }
+
+  if (screen === 'auth') {
+    return (
+      <Auth
+        role={role}
+        onBack={() => setScreen('welcome')}
+        onSuccess={(newSession, resolvedRole) => {
+          setSession(newSession);
+
+          if (resolvedRole === 'admin') {
+            setScreen('admin');
+          } else {
+            setRole(resolvedRole);
+            setScreen('app');
+          }
+        }}
+      />
+    );
+  }
+
+  return (
+    <Welcome
+      onSelect={(selectedRole) => {
+        setRole(selectedRole);
+        setScreen('auth');
+      }}
+    />
+  );
+}
