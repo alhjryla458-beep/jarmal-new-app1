@@ -1296,10 +1296,6 @@ function Topbar({
     <header className="sticky top-0 z-20 border-b border-white/10 bg-black/90 px-5 py-4 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center gap-4">
-          <button className="rounded-lg p-2 text-white/60 lg:hidden">
-            <Menu size={22} />
-          </button>
-
           <Logo />
 
           <span className="hidden h-5 w-px bg-white/20 sm:block" />
@@ -1376,34 +1372,45 @@ function SideNav({
           ];
 
   return (
-    <aside className="hidden w-60 shrink-0 border-l border-white/10 bg-[#080808] p-4 lg:block">
-      <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">
-        القائمة الرئيسية
-      </p>
+    <>
+      <aside className="hidden w-60 shrink-0 border-l border-white/10 bg-[#080808] p-4 lg:block">
+        <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">
+          القائمة الرئيسية
+        </p>
 
-      <nav className="space-y-1">
+        <nav className="space-y-1">
+          {items.map(([id, label, Icon]) => (
+            <button
+              key={id}
+              onClick={() => onActive(id)}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold transition ${
+                active === id
+                  ? 'bg-[#e3fe00] text-black'
+                  : 'text-white/45 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <Icon size={18} />
+              {label}
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-white/10 bg-[#080808]/95 backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {items.map(([id, label, Icon]) => (
           <button
             key={id}
             onClick={() => onActive(id)}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold transition ${
-              active === id
-                ? 'bg-[#e3fe00] text-black'
-                : 'text-white/45 hover:bg-white/5 hover:text-white'
+            className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-bold ${
+              active === id ? 'text-[#e3fe00]' : 'text-white/40'
             }`}
           >
-            <Icon size={18} />
-            {label}
-
-            {id === 'incoming' && (
-              <span className="mr-auto rounded-full bg-[#e3fe00] px-2 py-0.5 text-[10px] text-black">
-                3
-              </span>
-            )}
+            <Icon size={19} />
+            <span className="truncate px-1">{label}</span>
           </button>
         ))}
       </nav>
-    </aside>
+    </>
   );
 }
 
@@ -1668,7 +1675,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
       <Topbar role="customer" title="مساحة العميل" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="customer" active={active} onActive={setActive} />
-        <main className="min-w-0 flex-1 p-5 sm:p-8">
+        <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'home' && !selectedStore && (
             <>
               <div className="rounded-3xl bg-[#e3fe00] p-7 text-black sm:p-10">
@@ -1728,7 +1735,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
         </main>
       </div>
       {cart.length > 0 && !showCart && (
-        <button onClick={() => setShowCart(true)} className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-[#e3fe00] px-6 py-4 font-black text-black shadow-2xl">
+        <button onClick={() => setShowCart(true)} className="fixed bottom-24 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-[#e3fe00] px-6 py-4 font-black text-black shadow-2xl lg:bottom-6">
           <ShoppingBag size={18} />عرض السلة ({cart.reduce((n, c) => n + c.quantity, 0)})<span className="mr-2">{cartTotal.toLocaleString('ar-YE')} {CURRENCY}</span>
         </button>
       )}
@@ -2105,7 +2112,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
       <Topbar role="driver" title="مساحة المندوب" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="driver" active={active} onActive={setActive} />
-        <main className="min-w-0 flex-1 p-5 sm:p-8">
+        <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'available' && (
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -2284,7 +2291,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
       <Topbar role="merchant" title="مساحة التاجر" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="merchant" active={active} onActive={setActive} />
-        <main className="min-w-0 flex-1 p-5 sm:p-8">
+        <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'dashboard' && (
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
