@@ -240,6 +240,23 @@ type StoreMemberContext = {
   member_role: 'owner' | 'manager' | 'orders_employee' | 'warehouse_employee';
   store_id: string;
 };
+
+type StoreTeamMemberRow = {
+  id: string;
+  user_id: string;
+  member_role: StoreMemberContext['member_role'];
+  is_active: boolean;
+  profile?: { full_name: string | null; phone_number: string | null } | null;
+};
+
+type StoreInvitationRow = {
+  id: string;
+  phone_number: string;
+  member_role: Exclude<StoreMemberContext['member_role'], 'owner'>;
+  status: 'pending' | 'accepted' | 'revoked' | 'expired';
+  expires_at: string;
+  created_at: string;
+};
 type MerchantProductRow = {
   id: string;
   store_id: string;
@@ -1342,14 +1359,179 @@ function Topbar({
   );
 }
 
+function StoreTeamView({ storeId }: { storeId: string }) {
+  const [members, setMembers] = useState<StoreTeamMemberRow[]>([]);
+  const [invitations, setInvitations] = useState<StoreInvitationRow[]>([]);
+  const [phone, setPhone] = useState('');
+  const [memberRole, setMemberRole] = useState<Exclude<StoreMemberContext['member_role'], 'owner'>>('orders_employee');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+
+  const roleLabel: Record<string, string> = {
+    manager: 'مدير المتجر',
+    orders_employee: 'موظف الطلبات',
+    warehouse_employee: 'موظف المخزون'
+  };
+
+  const loadTeam = async () => {
+    const { data: memberRows } = await supabase
+      .from('store_members')
+      .select('id, user_id, member_role, is_active')
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: true });
+
+    const rows = (memberRows as StoreTeamMemberRow[] | null) || [];
+    if (rows.length) {
+      const ids = rows.map((row) => row.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone_number')
+        .in('id', ids);
+      const byId = new Map((profiles || []).map((profile: { id: string; full_name: string | null; phone_number: string | null }) => [profile.id, profile]));
+      rows.forEach((row) => { row.profile = byId.get(row.user_id) || null; });
+    }
+    setMembers(rows);
+
+    const { data: inviteRows } = await supabase
+      .from('store_member_invitations')
+      .select('id, phone_number, member_role, status, expires_at, created_at')
+      .eq('store_id', storeId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    setInvitations((inviteRows as StoreInvitationRow[] | null) || []);
+  };
+
+  useEffect(() => { void loadTeam(); }, [storeId]);
+
+  const createInvitation = async () => {
+    setError('');
+    setInviteCode('');
+    const normalizedPhone = phone.replace(/\\D/g, '');
+    if (normalizedPhone.length !== 9) {
+      setError('أدخل رقم هاتف يمني مكوناً من 9 أرقام');
+      return;
+    }
+
+    setBusy(true);
+    const { data, error: rpcError } = await supabase.rpc('create_store_member_invitation', {
+      p_store_id: storeId,
+      p_phone_number: `+967${normalizedPhone}`,
+      p_member_role: memberRole
+    });
+    setBusy(false);
+
+    if (rpcError) {
+      setError(rpcError.message || 'تعذر إنشاء الدعوة');
+      return;
+    }
+
+    setInviteCode(String(data || ''));
+    setPhone('');
+    void loadTeam();
+  };
+
+  const toggleMember = async (member: StoreTeamMemberRow) => {
+    setError('');
+    const { error: updateError } = await supabase
+      .from('store_members')
+      .update({ is_active: !member.is_active })
+      .eq('id', member.id);
+    if (updateError) setError(updateError.message || 'تعذر تحديث الموظف');
+    else void loadTeam();
+  };
+
+  return (
+    <section className="max-w-4xl">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-white/40">إدارة الصلاحيات</p>
+          <h2 className="mt-1 text-2xl font-black">فريق المتجر</h2>
+        </div>
+        <span className="rounded-full bg-[#e3fe00]/10 px-3 py-2 text-xs font-bold text-[#e3fe00]">المالك فقط</span>
+      </div>
+
+      <div className="mt-7 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+        <h3 className="font-black">دعوة موظف</h3>
+        <p className="mt-1 text-xs text-white/40">سيظهر لك رمز دعوة لمرة واحدة. أعطه للموظف عبر قناة موثوقة.</p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_220px_auto]">
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.replace(/\\D/g, '').slice(0, 9))}
+            placeholder="7xx xxx xxx"
+            dir="ltr"
+            className="rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-[#e3fe00]"
+          />
+          <select
+            value={memberRole}
+            onChange={(e) => setMemberRole(e.target.value as typeof memberRole)}
+            className="rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-[#e3fe00]"
+          >
+            <option value="orders_employee">موظف الطلبات</option>
+            <option value="warehouse_employee">موظف المخزون</option>
+            <option value="manager">مدير المتجر</option>
+          </select>
+          <button disabled={busy} onClick={() => void createInvitation()} className="rounded-xl bg-[#e3fe00] px-5 py-3 font-black text-black disabled:opacity-50">
+            {busy ? 'جارٍ...' : 'إنشاء الدعوة'}
+          </button>
+        </div>
+        {error && <p className="mt-3 rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>}
+        {inviteCode && (
+          <div className="mt-4 rounded-xl border border-[#e3fe00]/30 bg-[#e3fe00]/5 p-4">
+            <p className="text-xs text-white/50">رمز الدعوة — اعرضه للموظف مرة واحدة:</p>
+            <p className="mt-2 text-2xl font-black tracking-[.18em] text-[#e3fe00]" dir="ltr">{inviteCode}</p>
+            <p className="mt-2 text-xs text-white/35">تنتهي الدعوة تلقائياً بعد 7 أيام، والرمز غير مخزن كنص في قاعدة البيانات.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+        <h3 className="font-black">أعضاء الفريق</h3>
+        <div className="mt-4 space-y-3">
+          {members.filter((member) => member.member_role !== 'owner').map((member) => (
+            <div key={member.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/5 bg-black/30 p-4">
+              <div>
+                <p className="font-bold">{member.profile?.full_name || 'موظف'}</p>
+                <p className="mt-1 text-xs text-white/40" dir="ltr">{member.profile?.phone_number || '—'} • {roleLabel[member.member_role]}</p>
+              </div>
+              <button onClick={() => void toggleMember(member)} className={`rounded-lg px-3 py-2 text-xs font-bold ${member.is_active ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-white/10 text-white/40'}`}>
+                {member.is_active ? 'نشط — تعطيل' : 'معطل — تفعيل'}
+              </button>
+            </div>
+          ))}
+          {members.filter((member) => member.member_role !== 'owner').length === 0 && <p className="text-sm text-white/40">لا يوجد موظفون مرتبطون بالمتجر بعد.</p>}
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+        <h3 className="font-black">الدعوات المعلقة</h3>
+        <div className="mt-4 space-y-3">
+          {invitations.map((invitation) => (
+            <div key={invitation.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/5 bg-black/30 p-4">
+              <div>
+                <p className="font-bold" dir="ltr">{invitation.phone_number}</p>
+                <p className="mt-1 text-xs text-white/40">{roleLabel[invitation.member_role]} • تنتهي {new Date(invitation.expires_at).toLocaleDateString('ar-YE')}</p>
+              </div>
+              <span className="rounded-lg bg-white/5 px-3 py-2 text-xs text-white/40">معلقة</span>
+            </div>
+          ))}
+          {invitations.length === 0 && <p className="text-sm text-white/40">لا توجد دعوات معلقة.</p>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SideNav({
   role,
   active,
-  onActive
+  onActive,
+  merchantCanManageTeam = false
 }: {
   role: Role;
   active: string;
   onActive: (value: string) => void;
+  merchantCanManageTeam?: boolean;
 }) {
   const items: [string, string, React.ElementType][] =
     role === 'customer'
@@ -1373,7 +1555,8 @@ function SideNav({
             ['incoming', 'الطلبات الواردة', ClipboardList],
             ['products', 'إدارة المنتجات', ShoppingBag],
             ['wallet', 'محفظتي', WalletCards],
-            ['settings', 'إعدادات المتجر', Settings2]
+            ['settings', 'إعدادات المتجر', Settings2],
+            ...(merchantCanManageTeam ? [['team', 'فريق المتجر', UserRound] as [string, string, React.ElementType]] : [])
           ];
 
   return (
@@ -2330,7 +2513,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     <div className="min-h-screen bg-black text-white">
       <Topbar role="merchant" title="مساحة التاجر" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
-        <SideNav role="merchant" active={active} onActive={setActive} />
+        <SideNav role="merchant" active={active} onActive={setActive} merchantCanManageTeam={isOwner} />
         <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'dashboard' && (
             <div>
@@ -2442,6 +2625,10 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                 <p className="mt-6 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
               </div>
             </section>
+          )}
+
+          {active === 'team' && store && isOwner && (
+            <StoreTeamView storeId={store.id} />
           )}
 
           {active === 'settings' && store && isOwner && (
