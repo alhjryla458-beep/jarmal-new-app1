@@ -39,9 +39,6 @@ type StoreItem = {
 
 const CURRENCY = 'ر.ي';
 
-const TEST_OTP = '123456';
-const TEST_PHONE = '711234567';
-
 const paymentChannels = [
   'جيب',
   'ون كاش',
@@ -562,163 +559,153 @@ function Auth({
     setStep((current) => Math.max(current - 1, 1));
   };
 
-  const sendOtp = () => {
+  const sendOtp = async () => {
     setError('');
-
     if (!form.name.trim()) {
       setError('اكتب اسمك أولاً');
       return;
     }
-
     if (form.phone.length !== 9) {
       setError('أدخل رقم هاتف يمني صحيح مكون من 9 أرقام');
       return;
     }
 
-    setOtpSent(true);
-    setOtpVerified(false);
-    setStep(2);
+    setBusy(true);
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        phone: `+967${form.phone}`,
+        options: {
+          data: {
+            full_name: form.name.trim(),
+            phone_number: `+967${form.phone}`,
+            role: role === 'admin' ? 'customer' : role
+          }
+        }
+      });
+      if (otpError) throw otpError;
+      setOtpSent(true);
+      setOtpVerified(false);
+      setStep(2);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر إرسال رمز التحقق');
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const verifyTestOtp = () => {
+  const verifyPhoneOtp = async () => {
     setError('');
-
-    if (form.otp !== TEST_OTP) {
-      setError('رمز التحقق غير صحيح. استخدم الرمز التجريبي: 123456');
+    if (form.otp.length !== 6) {
+      setError('أدخل رمز التحقق المكون من 6 أرقام');
       return;
     }
 
-    setOtpVerified(true);
+    setBusy(true);
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        phone: `+967${form.phone}`,
+        token: form.otp,
+        type: 'sms'
+      });
+      if (verifyError) throw verifyError;
+      if (!data.session) throw new Error('تم التحقق لكن لم يتم إنشاء جلسة الحساب');
 
-    if (role === 'customer') {
-      void finishSignup();
+      setOtpVerified(true);
+
+      if (mode === 'login') {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, full_name, phone_number')
+          .eq('id', data.session.user.id)
+          .maybeSingle();
+        if (profileError) throw profileError;
+
+        const savedRole = profile?.role as Role | undefined;
+        if (!savedRole) throw new Error('لم يتم العثور على ملف الحساب بعد التحقق');
+
+        localStorage.setItem('jarmal_test_role', savedRole);
+        localStorage.setItem('jarmal_test_name', profile?.full_name || '');
+        localStorage.setItem('jarmal_test_phone', profile?.phone_number || `+967${form.phone}`);
+        onSuccess(data.session, savedRole);
+        return;
+      }
+
+      if (role === 'customer') {
+        await finishSignup(data.session);
+      } else {
+        setStep(3);
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'رمز التحقق غير صحيح أو انتهت صلاحيته');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const requestLoginOtp = async () => {
+    setError('');
+    if (form.phone.length !== 9) {
+      setError('أدخل رقم الهاتف المكون من 9 أرقام');
       return;
     }
-
-    setStep(3);
+    setBusy(true);
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        phone: `+967${form.phone}`
+      });
+      if (otpError) throw otpError;
+      setOtpSent(true);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر إرسال رمز التحقق');
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const createTestSession = async () => {
-    const result = await supabase.auth.signInAnonymously();
-
-    if (result.error) {
-      throw result.error;
-    }
-
-    if (!result.data.session) {
-      throw new Error(
-        'تعذر إنشاء جلسة الاختبار. يجب تفعيل Anonymous Sign-Ins في Supabase.'
-      );
-    }
-
-    return result.data.session;
-  };
-
-  const finishSignup = async () => {
+  const finishSignup = async (session?: Session) => {
     setError('');
     setBusy(true);
 
     try {
-      if (!otpVerified && role !== 'admin') {
+      if (!otpVerified && !session) {
         throw new Error('يجب تأكيد رقم الهاتف أولاً');
       }
 
-      if (role === 'driver') {
-        if (!form.accessCode.trim()) {
-          throw new Error('أدخل كود المندوب');
-        }
+      const activeSession = session || (await supabase.auth.getSession()).data.session;
+      if (!activeSession) throw new Error('انتهت جلسة التحقق، أعد إرسال الرمز');
 
-        const normalizedCode = form.accessCode.trim().toUpperCase();
-
-        const { data: code, error: codeError } = await supabase
-          .from('driver_access_codes')
-          .select('id, code, is_used, assigned_to_phone')
-          .eq('code', normalizedCode)
-          .eq('is_used', false)
-          .maybeSingle();
-
-        if (codeError) {
-          throw codeError;
-        }
-
-        if (!code) {
-          throw new Error('كود المندوب غير صحيح أو تم استخدامه من قبل');
-        }
+      if (role === 'driver' && !form.accessCode.trim()) {
+        throw new Error('أدخل كود المندوب');
       }
 
       if (role === 'merchant') {
-        if (!form.storeName.trim()) {
-          throw new Error('أدخل اسم المتجر');
-        }
-
-        if (!form.category.trim()) {
-          throw new Error('اختر نوع النشاط التجاري');
-        }
+        if (!form.storeName.trim()) throw new Error('أدخل اسم المتجر');
+        if (!form.category.trim()) throw new Error('اختر نوع النشاط التجاري');
       }
 
-      const session = await createTestSession();
-      const userId = session.user.id;
-
-      const profilePayload = {
-        id: userId,
-        full_name: form.name.trim(),
-        phone_number: `+967${form.phone}`,
-        role,
-        is_active: true
-      };
-
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert(profilePayload);
-
-      if (profileError) {
-        console.warn('تعذر حفظ profile:', profileError);
-      }
-
-      if (role === 'driver') {
-        const normalizedCode = form.accessCode.trim().toUpperCase();
-
-        const { error: codeUpdateError } = await supabase
-          .from('driver_access_codes')
-          .update({
-            is_used: true,
-            assigned_to_phone: `+967${form.phone}`,
-            used_by: userId
-          })
-          .eq('code', normalizedCode)
-          .eq('is_used', false);
-
-        if (codeUpdateError) {
-          console.warn('تعذر تحديث كود المندوب:', codeUpdateError);
+      const { data: registeredRole, error: registerError } = await supabase.rpc(
+        'register_user_profile',
+        {
+          p_role: role,
+          p_full_name: form.name.trim(),
+          p_phone: `+967${form.phone}`,
+          p_national_id: null,
+          p_email: null,
+          p_store_name: role === 'merchant' ? form.storeName.trim() : null,
+          p_store_category: role === 'merchant' ? form.category : null,
+          p_access_code: role === 'driver' ? form.accessCode.trim().toUpperCase() : null
         }
-      }
+      );
 
-      if (role === 'merchant') {
-        const { error: storeError } = await supabase
-          .from('stores')
-          .insert({
-            merchant_id: userId,
-            name: form.storeName.trim(),
-            store_type: form.category,
-            is_open: true
-          });
+      if (registerError) throw registerError;
 
-        if (storeError) {
-          console.warn('تعذر إنشاء المتجر:', storeError);
-        }
-      }
-
-      localStorage.setItem('jarmal_test_role', role);
+      const resolvedRole = registeredRole as Role;
+      localStorage.setItem('jarmal_test_role', resolvedRole);
       localStorage.setItem('jarmal_test_name', form.name.trim());
       localStorage.setItem('jarmal_test_phone', `+967${form.phone}`);
-
-      onSuccess(session, role);
+      onSuccess(activeSession, resolvedRole);
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'حدث خطأ، حاول مرة أخرى'
-      );
+      setError(caught instanceof Error ? caught.message : 'تعذر إنشاء الحساب');
     } finally {
       setBusy(false);
     }
@@ -726,66 +713,42 @@ function Auth({
 
   const submitLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-
     setError('');
+    if (form.phone.length !== 9) {
+      setError('أدخل رقم الهاتف المكون من 9 أرقام');
+      return;
+    }
+    if (!form.otp) {
+      await requestLoginOtp();
+      return;
+    }
+
     setBusy(true);
-
     try {
-      if (form.phone.length !== 9) {
-        throw new Error('أدخل رقم الهاتف المكون من 9 أرقام');
-      }
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        phone: `+967${form.phone}`,
+        token: form.otp,
+        type: 'sms'
+      });
+      if (verifyError) throw verifyError;
+      if (!data.session) throw new Error('تعذر إنشاء جلسة الدخول');
 
-      if (form.otp !== TEST_OTP) {
-        throw new Error('رمز التحقق غير صحيح. استخدم: 123456');
-      }
-
-      const session = await createTestSession();
-
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role, full_name, phone_number')
-        .eq('phone_number', `+967${form.phone}`)
+        .eq('id', data.session.user.id)
         .maybeSingle();
+      if (profileError) throw profileError;
 
       const savedRole = profile?.role as Role | undefined;
-
-      if (!savedRole) {
-        const localRole = localStorage.getItem(
-          'jarmal_test_role'
-        ) as Role | null;
-
-        if (!localRole) {
-          throw new Error(
-            'لم يتم العثور على حساب بهذا الرقم. اختر "حساب جديد" أولاً.'
-          );
-        }
-
-        localStorage.setItem(
-          'jarmal_test_phone',
-          `+967${form.phone}`
-        );
-
-        onSuccess(session, localRole);
-        return;
-      }
+      if (!savedRole) throw new Error('لم يتم العثور على حساب بهذا الرقم');
 
       localStorage.setItem('jarmal_test_role', savedRole);
-      localStorage.setItem(
-        'jarmal_test_name',
-        profile?.full_name || ''
-      );
-      localStorage.setItem(
-        'jarmal_test_phone',
-        profile?.phone_number || `+967${form.phone}`
-      );
-
-      onSuccess(session, savedRole);
+      localStorage.setItem('jarmal_test_name', profile?.full_name || '');
+      localStorage.setItem('jarmal_test_phone', profile?.phone_number || `+967${form.phone}`);
+      onSuccess(data.session, savedRole);
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'حدث خطأ أثناء تسجيل الدخول'
-      );
+      setError(caught instanceof Error ? caught.message : 'رمز التحقق غير صحيح أو انتهت صلاحيته');
     } finally {
       setBusy(false);
     }
@@ -936,10 +899,11 @@ function Auth({
 
               <button
                 type="button"
-                onClick={() => update('phone', TEST_PHONE)}
-                className="text-xs font-bold text-[#e3fe00] underline underline-offset-2"
+                onClick={() => void requestLoginOtp()}
+                disabled={busy || form.phone.length !== 9}
+                className="w-full rounded-xl border border-[#e3fe00]/30 py-3 text-sm font-bold text-[#e3fe00] disabled:opacity-50"
               >
-                استخدام الرقم التجريبي ({TEST_PHONE})
+                {busy ? 'جارٍ إرسال الرمز...' : otpSent ? 'إعادة إرسال رمز التحقق' : 'إرسال رمز التحقق'}
               </button>
 
               <Field
@@ -954,10 +918,6 @@ function Auth({
                 placeholder="123456"
                 icon={<ShieldCheck size={17} />}
               />
-
-              <div className="rounded-xl border border-[#e3fe00]/20 bg-[#e3fe00]/5 px-4 py-3 text-center text-xs text-[#e3fe00]">
-                رمز الاختبار: <strong>123456</strong>
-              </div>
 
               {error && (
                 <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -984,10 +944,11 @@ function Auth({
 
               <button
                 type="button"
-                onClick={() => update('phone', TEST_PHONE)}
-                className="text-xs font-bold text-[#e3fe00] underline underline-offset-2"
+                onClick={() => void requestLoginOtp()}
+                disabled={busy || form.phone.length !== 9}
+                className="w-full rounded-xl border border-[#e3fe00]/30 py-3 text-sm font-bold text-[#e3fe00] disabled:opacity-50"
               >
-                استخدام الرقم التجريبي ({TEST_PHONE})
+                {busy ? 'جارٍ إرسال الرمز...' : otpSent ? 'إعادة إرسال رمز التحقق' : 'إرسال رمز التحقق'}
               </button>
 
               <Field
@@ -1049,14 +1010,6 @@ function Auth({
                 value={form.phone}
                 onChange={(value) => update('phone', value)}
               />
-
-              <button
-                type="button"
-                onClick={() => update('phone', TEST_PHONE)}
-                className="text-xs font-bold text-[#e3fe00] underline underline-offset-2"
-              >
-                استخدام الرقم التجريبي ({TEST_PHONE})
-              </button>
 
               {error && (
                 <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -1146,7 +1099,7 @@ function Auth({
 
                 <button
                   type="button"
-                  onClick={verifyTestOtp}
+                  onClick={verifyPhoneOtp}
                   disabled={form.otp.length !== 6}
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
                 >
