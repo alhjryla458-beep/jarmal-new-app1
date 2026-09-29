@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  ArrowLeft, ArrowRight, BarChart3, Bell, Bike, Check, CheckCircle2,
+  ArrowLeft, ArrowRight, BarChart3, Bell, Bike, Boxes, Check, CheckCircle2,
   ClipboardList, Clock3, FileText, Home, ListChecks, LogOut, MapPin,
   Menu, Minus, Navigation, Package, Phone, Plus, Settings2, ShieldCheck,
   ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap
