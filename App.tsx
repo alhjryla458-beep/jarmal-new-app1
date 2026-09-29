@@ -707,10 +707,13 @@ function Auth({
       const result = data as { success?: boolean; member_role?: string } | null;
       if (!result?.success) throw new Error('تعذر قبول الدعوة');
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error('انتهت جلسة الدخول');
+
       localStorage.setItem('jarmal_test_role', 'merchant');
       localStorage.setItem('jarmal_test_name', form.name.trim() || 'موظف');
       localStorage.setItem('jarmal_test_phone', `+967${form.phone}`);
-      onSuccess((await supabase.auth.getSession()).data.session || (() => { throw new Error('انتهت جلسة الدخول'); })(), 'merchant');
+      onSuccess(sessionData.session, 'merchant');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'تعذر قبول دعوة المتجر');
     } finally {
@@ -913,43 +916,56 @@ function Auth({
           )}
 
           {!isAdmin && (
-            <div className="mb-7 flex rounded-xl bg-white/5 p-1">
+            <>
+              <div className="mb-4 flex rounded-xl bg-white/5 p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('signup');
+                    setInviteMode(false);
+                    setStep(1);
+                    setError('');
+                    setOtpVerified(false);
+                    setOtpSent(false);
+                  }}
+                  className={`flex-1 rounded-lg py-3 text-sm font-bold ${mode === 'signup' && !inviteMode ? 'bg-[#e3fe00] text-black' : 'text-white/40'}`}
+                >
+                  حساب جديد
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setInviteMode(false);
+                    setStep(1);
+                    setError('');
+                    setOtpVerified(false);
+                    setOtpSent(false);
+                  }}
+                  className={`flex-1 rounded-lg py-3 text-sm font-bold ${mode === 'login' && !inviteMode ? 'bg-[#e3fe00] text-black' : 'text-white/40'}`}
+                >
+                  لدي حساب
+                </button>
+              </div>
+
               <button
                 type="button"
                 onClick={() => {
+                  setInviteMode(true);
                   setMode('signup');
                   setStep(1);
                   setError('');
                   setOtpVerified(false);
                   setOtpSent(false);
+                  update('otp', '');
+                  update('accessCode', '');
                 }}
-                className={`flex-1 rounded-lg py-3 text-sm font-bold ${
-                  mode === 'signup'
-                    ? 'bg-[#e3fe00] text-black'
-                    : 'text-white/40'
-                }`}
+                className="mb-7 w-full rounded-xl border border-[#e3fe00]/30 py-3 text-sm font-bold text-[#e3fe00] hover:bg-[#e3fe00]/5"
               >
-                حساب جديد
+                لدي دعوة من متجر
               </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('login');
-                  setStep(1);
-                  setError('');
-                  setOtpVerified(false);
-                  setOtpSent(false);
-                }}
-                className={`flex-1 rounded-lg py-3 text-sm font-bold ${
-                  mode === 'login'
-                    ? 'bg-[#e3fe00] text-black'
-                    : 'text-white/40'
-                }`}
-              >
-                لدي حساب
-              </button>
-            </div>
+            </>
           )}
 
           {isAdmin && (
