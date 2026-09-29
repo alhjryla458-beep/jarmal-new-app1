@@ -286,18 +286,13 @@ const statusLabels: Record<string, string> = {
   cancelled: 'ملغي'
 };
 
-function Logo({ dark = false }: { dark?: boolean }) {
+function Logo({ dark = false, size = 'sm' }: { dark?: boolean; size?: 'sm' | 'lg' }) {
   return (
-    <div className={`flex items-center gap-2 ${dark ? 'text-black' : 'text-white'}`}>
-      <div className="relative flex h-11 w-11 items-center justify-center rounded-[50%_50%_50%_12px] border-2 border-black bg-[#e3fe00] text-2xl font-black text-black shadow-[0_0_22px_rgba(227,254,0,.22)]">
-        <span className="relative -top-0.5">ج</span>
-        <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-black" />
-      </div>
-
-      <div className="text-2xl font-black tracking-[-.08em]">
-        جَرْمَل<span className="text-[#e3fe00]">.</span>
-      </div>
-    </div>
+    <img
+      src="/jarmal-logo.svg"
+      alt="جَرْمَل"
+      className={`${size === 'lg' ? 'h-40 w-40 sm:h-52 sm:w-52' : 'h-12 w-12'} object-contain drop-shadow-[0_10px_30px_rgba(244,255,0,.16)]`}
+    />
   );
 }
 
@@ -420,13 +415,13 @@ function Welcome({
   ];
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black px-5 py-7 text-white">
+    <main className="relative min-h-screen overflow-hidden bg-[#e9ecef] px-5 py-7 text-[#171a1d]">
       <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-[#e3fe00]/10 blur-[120px]" />
 
       <header className="relative mx-auto flex max-w-6xl items-center justify-between">
         <Logo />
 
-        <div className="flex items-center gap-2 text-xs text-white/50">
+        <div className="flex items-center gap-2 text-xs text-[#171a1d]/55">
           <ShieldCheck size={15} className="text-[#e3fe00]" />
           توصيل موثوق داخل اليمن
         </div>
@@ -439,7 +434,7 @@ function Welcome({
           <h1 className="mt-6 text-5xl font-black leading-[1.12] tracking-[-.05em] sm:text-7xl">
             طلبك عند بابك،
             <br />
-            <span className="text-[#e3fe00]">بسرعة جَرْمَل.</span>
+            <span className="text-[#4b5d00]">بسرعة جَرْمَل.</span>
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-8 text-white/55">
@@ -847,11 +842,11 @@ function Auth({
   const isAdmin = role === 'admin';
 
   return (
-    <main className="min-h-screen bg-black px-5 py-7 text-white">
+    <main className="min-h-screen bg-[#e9ecef] px-5 py-7 text-[#171a1d]">
       <header className="mx-auto flex max-w-6xl items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-sm text-white/50 hover:text-white"
+          className="flex items-center gap-2 text-sm text-[#171a1d]/55 hover:text-[#171a1d]"
         >
           <ArrowRight size={18} />
           العودة
@@ -2688,11 +2683,14 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('welcome');
   const [role, setRole] = useState<Role>('customer');
   const [session, setSession] = useState<Session | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const savedRole = localStorage.getItem(
       'jarmal_test_role'
     ) as Role | null;
+
+    const timer = window.setTimeout(() => setShowSplash(false), 1500);
 
     supabase.auth.getSession().then(({ data }) => {
       if (data.session && savedRole) {
@@ -2706,7 +2704,26 @@ export default function App() {
         }
       }
     });
+
+    return () => window.clearTimeout(timer);
   }, []);
+
+  if (showSplash) {
+    return (
+      <main className="flex min-h-screen items-center justify-center overflow-hidden bg-[#e9ecef] px-6">
+        <div className="relative flex flex-col items-center">
+          <div className="absolute h-64 w-64 rounded-full bg-[#e3fe00]/30 blur-[90px]" />
+          <Logo size="lg" />
+          <p className="mt-5 text-sm font-bold tracking-[.08em] text-[#171a1d]/55">
+            جَرْمَل — توصيل أسهل
+          </p>
+          <div className="mt-6 h-1 w-20 overflow-hidden rounded-full bg-black/10">
+            <div className="h-full w-1/2 animate-pulse rounded-full bg-[#e3fe00]" />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const handleLogout = () => {
     void supabase.auth.signOut();
