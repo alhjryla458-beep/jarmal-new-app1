@@ -677,7 +677,6 @@ function Auth({
             merchant_id: userId,
             name: form.storeName.trim(),
             store_type: form.category,
-            description: 'متجر جديد على جَرْمَل',
             is_open: true
           });
 
