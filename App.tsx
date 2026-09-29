@@ -2536,7 +2536,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const isOwner = !memberContext || memberContext.member_role === 'owner';
   const canManageOrders = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'orders_employee';
   const canManageInventory = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'warehouse_employee';
-  const canManageProducts = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'warehouse_employee';
+  const canManageProducts = isOwner || memberContext?.member_role === 'manager';
 
   const loadAll = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -2614,9 +2614,12 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     setAddError('');
     if (!newName.trim() || !newPrice) { setAddError('أدخل اسم المنتج والسعر'); return; }
     setBusy(true);
-    const { error } = await supabase.from('products').insert({
-      store_id: store.id, name: newName.trim(), description: newDesc.trim() || null,
-      price: Number(newPrice), image_url: newImage.trim() || null, is_available: true
+    const { error } = await supabase.rpc('merchant_create_product', {
+      p_store_id: store.id,
+      p_name: newName.trim(),
+      p_description: newDesc.trim() || null,
+      p_price: Number(newPrice),
+      p_image_url: newImage.trim() || null
     });
     setBusy(false);
     if (error) { setAddError('تعذر إضافة المنتج'); return; }
@@ -2626,7 +2629,10 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
 
   const toggleProductAvailable = async (productId: string, current: boolean) => {
     if (!canManageProducts) return;
-    await supabase.from('products').update({ is_available: !current }).eq('id', productId);
+    await supabase.rpc('merchant_set_product_available', {
+      p_product_id: productId,
+      p_is_available: !current
+    });
     loadAll();
   };
 
