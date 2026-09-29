@@ -660,7 +660,8 @@ function Auth({
           .from('driver_access_codes')
           .update({
             is_used: true,
-            assigned_to_phone: `+967${form.phone}`
+            assigned_to_phone: `+967${form.phone}`,
+            used_by: userId
           })
           .eq('code', normalizedCode)
           .eq('is_used', false);
