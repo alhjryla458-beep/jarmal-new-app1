@@ -518,6 +518,7 @@ function Auth({
   onSuccess: (session: Session, role: Role) => void;
 }) {
   const [mode, setMode] = useState<AuthMode>('signup');
+  const [inviteMode, setInviteMode] = useState(false);
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -593,6 +594,41 @@ function Auth({
     }
   };
 
+  const resolveUiRole = async (userId: string, fallbackRole: Role): Promise<Role> => {
+    const { data: membership } = await supabase
+      .from('store_members')
+      .select('store_id')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle();
+
+    return membership ? 'merchant' : fallbackRole;
+  };
+
+  const sendInviteOtp = async () => {
+    setError('');
+    if (form.phone.length !== 9) {
+      setError('أدخل رقم هاتف يمني صحيح مكوناً من 9 أرقام');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        phone: `+967${form.phone}`
+      });
+      if (otpError) throw otpError;
+      setOtpSent(true);
+      setOtpVerified(false);
+      setStep(2);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر إرسال رمز التحقق');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const verifyPhoneOtp = async () => {
     setError('');
     if (form.otp.length !== 6) {
@@ -612,6 +648,11 @@ function Auth({
 
       setOtpVerified(true);
 
+      if (inviteMode) {
+        setStep(3);
+        return;
+      }
+
       if (mode === 'login') {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -623,10 +664,12 @@ function Auth({
         const savedRole = profile?.role as Role | undefined;
         if (!savedRole) throw new Error('لم يتم العثور على ملف الحساب بعد التحقق');
 
-        localStorage.setItem('jarmal_test_role', savedRole);
+        const resolvedRole = await resolveUiRole(data.session.user.id, savedRole);
+
+        localStorage.setItem('jarmal_test_role', resolvedRole);
         localStorage.setItem('jarmal_test_name', profile?.full_name || '');
         localStorage.setItem('jarmal_test_phone', profile?.phone_number || `+967${form.phone}`);
-        onSuccess(data.session, savedRole);
+        onSuccess(data.session, resolvedRole);
         return;
       }
 
@@ -637,6 +680,39 @@ function Auth({
       }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'رمز التحقق غير صحيح أو انتهت صلاحيته');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const acceptInvitation = async () => {
+    setError('');
+    if (!otpVerified) {
+      setError('يجب تأكيد رقم الهاتف أولاً');
+      return;
+    }
+    if (form.accessCode.trim().length < 6) {
+      setError('أدخل رمز الدعوة');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { data, error: rpcError } = await supabase.rpc(
+        'accept_store_member_invitation',
+        { p_invitation_code: form.accessCode.trim() }
+      );
+      if (rpcError) throw rpcError;
+
+      const result = data as { success?: boolean; member_role?: string } | null;
+      if (!result?.success) throw new Error('تعذر قبول الدعوة');
+
+      localStorage.setItem('jarmal_test_role', 'merchant');
+      localStorage.setItem('jarmal_test_name', form.name.trim() || 'موظف');
+      localStorage.setItem('jarmal_test_phone', `+967${form.phone}`);
+      onSuccess((await supabase.auth.getSession()).data.session || (() => { throw new Error('انتهت جلسة الدخول'); })(), 'merchant');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر قبول دعوة المتجر');
     } finally {
       setBusy(false);
     }
@@ -743,10 +819,12 @@ function Auth({
       const savedRole = profile?.role as Role | undefined;
       if (!savedRole) throw new Error('لم يتم العثور على حساب بهذا الرقم');
 
-      localStorage.setItem('jarmal_test_role', savedRole);
+      const resolvedRole = await resolveUiRole(data.session.user.id, savedRole);
+
+      localStorage.setItem('jarmal_test_role', resolvedRole);
       localStorage.setItem('jarmal_test_name', profile?.full_name || '');
       localStorage.setItem('jarmal_test_phone', profile?.phone_number || `+967${form.phone}`);
-      onSuccess(data.session, savedRole);
+      onSuccess(data.session, resolvedRole);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'رمز التحقق غير صحيح أو انتهت صلاحيته');
     } finally {
@@ -1042,18 +1120,8 @@ function Auth({
 
                 <p className="mt-2 text-sm leading-6 text-white/45">
                   {otpSent
-                    ? `تم إرسال رمز التحقق تجريبياً إلى +967 ${form.phone}`
+                    ? `تم إرسال رمز التحقق إلى +967 ${form.phone}`
                     : `أدخل رمز التحقق إلى +967 ${form.phone}`}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-[#e3fe00]/30 bg-[#e3fe00]/10 px-4 py-4 text-center">
-                <p className="text-xs text-white/50">
-                  رمز SMS التجريبي
-                </p>
-
-                <p className="mt-1 text-2xl font-black tracking-[.3em] text-[#e3fe00]">
-                  123456
                 </p>
               </div>
 
