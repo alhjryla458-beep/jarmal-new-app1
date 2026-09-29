@@ -272,6 +272,18 @@ type MerchantProductRow = {
   image_url: string | null;
   is_available: boolean;
 };
+type InventoryRow = {
+  id: string;
+  store_id: string;
+  product_id: string;
+  variant_id: string | null;
+  quantity_on_hand: number;
+  quantity_reserved: number;
+  reorder_level: number;
+  unit_label: string;
+  updated_at: string;
+};
+
 type CartLine = {
   key: string;
   product_id?: string;
@@ -1647,12 +1659,14 @@ function SideNav({
   role,
   active,
   onActive,
-  merchantCanManageTeam = false
+  merchantCanManageTeam = false,
+  merchantCanManageInventory = false
 }: {
   role: Role;
   active: string;
   onActive: (value: string) => void;
   merchantCanManageTeam?: boolean;
+  merchantCanManageInventory?: boolean;
 }) {
   const items: [string, string, React.ElementType][] =
     role === 'customer'
@@ -1675,6 +1689,7 @@ function SideNav({
             ['dashboard', 'نظرة عامة', BarChart3],
             ['incoming', 'الطلبات الواردة', ClipboardList],
             ['products', 'إدارة المنتجات', ShoppingBag],
+            ...(merchantCanManageInventory ? [['inventory', 'المخزون', Boxes] as [string, string, React.ElementType]] : []),
             ['wallet', 'محفظتي', WalletCards],
             ['settings', 'إعدادات المتجر', Settings2],
             ...(merchantCanManageTeam ? [['team', 'فريق المتجر', UserRound] as [string, string, React.ElementType]] : [])
@@ -2532,6 +2547,10 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const [newImage, setNewImage] = useState('');
   const [addError, setAddError] = useState('');
   const [memberContext, setMemberContext] = useState<StoreMemberContext | null>(null);
+  const [inventoryRows, setInventoryRows] = useState<InventoryRow[]>([]);
+  const [inventoryQty, setInventoryQty] = useState('1');
+  const [inventoryReason, setInventoryReason] = useState('');
+  const [inventoryError, setInventoryError] = useState('');
 
   const isOwner = !memberContext || memberContext.member_role === 'owner';
   const canManageOrders = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'orders_employee';
@@ -2581,6 +2600,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           }
         });
         supabase.from('products').select('id, store_id, name, description, price, image_url, is_available').eq('store_id', row.id).then(({ data: prods }) => { if (prods) setMyProducts(prods as MerchantProductRow[]); });
+        supabase.from('product_inventory').select('id, store_id, product_id, variant_id, quantity_on_hand, quantity_reserved, reorder_level, unit_label, updated_at').eq('store_id', row.id).then(({ data: inventory }) => { if (inventory) setInventoryRows(inventory as InventoryRow[]); });
     }
     supabase.from('merchant_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
   };
@@ -2635,12 +2655,39 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     });
     loadAll();
   };
+  const adjustInventory = async (productId: string, direction: 'in' | 'out') => {
+    if (!store || !canManageInventory) return;
+    const qty = Number(inventoryQty);
+    if (!Number.isFinite(qty) || qty <= 0) {
+      setInventoryError('أدخل كمية صحيحة أكبر من صفر');
+      return;
+    }
+    setInventoryError('');
+    setBusy(true);
+    const { error } = await supabase.rpc('adjust_product_inventory', {
+      p_store_id: store.id,
+      p_product_id: productId,
+      p_variant_id: null,
+      p_quantity: qty,
+      p_movement_type: direction === 'in' ? 'purchase_in' : 'adjustment_out',
+      p_reason: inventoryReason.trim() || (direction === 'in' ? 'إضافة مخزون' : 'خصم من المخزون'),
+      p_unit_label: 'قطعة',
+      p_reorder_level: 0
+    });
+    setBusy(false);
+    if (error) {
+      setInventoryError(error.message || 'تعذر تحديث المخزون');
+      return;
+    }
+    setInventoryReason('');
+    loadAll();
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
       <Topbar role="merchant" title="مساحة التاجر" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
-        <SideNav role="merchant" active={active} onActive={setActive} merchantCanManageTeam={isOwner} />
+        <SideNav role="merchant" active={active} onActive={setActive} merchantCanManageTeam={isOwner} merchantCanManageInventory={canManageInventory} />
         <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'dashboard' && (
             <div>
@@ -2698,6 +2745,44 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                   );
                 })}
                 {incoming.length === 0 && <p className="text-sm text-white/40">لا توجد طلبات واردة حالياً</p>}
+              </div>
+            </div>
+          )}
+
+          {active === 'inventory' && canManageInventory && (
+            <div>
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div><p className="text-sm text-white/40">إدارة الكميات وحركة المخزون</p><h2 className="mt-1 text-2xl font-black">المخزون</h2></div>
+                <div className="flex flex-wrap gap-2">
+                  <input value={inventoryQty} onChange={(e) => setInventoryQty(e.target.value)} inputMode="decimal" className="w-24 rounded-xl border border-white/10 bg-[#0d0d0d] px-3 py-3 text-center text-sm outline-none focus:border-[#e3fe00]" placeholder="الكمية" />
+                  <input value={inventoryReason} onChange={(e) => setInventoryReason(e.target.value)} className="w-48 rounded-xl border border-white/10 bg-[#0d0d0d] px-3 py-3 text-sm outline-none focus:border-[#e3fe00]" placeholder="سبب الحركة (اختياري)" />
+                </div>
+              </div>
+              {inventoryError && <p className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm text-red-300">{inventoryError}</p>}
+              <div className="mt-7 grid gap-4 md:grid-cols-2">
+                {myProducts.map((product) => {
+                  const inv = inventoryRows.find((row) => row.product_id === product.id && row.variant_id === null);
+                  const available = (inv?.quantity_on_hand ?? 0) - (inv?.quantity_reserved ?? 0);
+                  const low = available <= (inv?.reorder_level ?? 0) && available > 0;
+                  return (
+                    <div key={product.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0"><h3 className="truncate font-black">{product.name}</h3><p className="mt-1 text-xs text-white/40">{product.price.toLocaleString('ar-YE')} {CURRENCY}</p></div>
+                        <div className="text-left"><p className="text-2xl font-black text-[#e3fe00]">{available.toLocaleString('ar-YE')}</p><p className="text-[11px] text-white/35">{inv?.unit_label || 'قطعة'} متاحة</p></div>
+                      </div>
+                      <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+                        <div className="rounded-xl bg-white/5 p-3"><p className="text-white/35">الموجود</p><p className="mt-1 font-bold">{(inv?.quantity_on_hand ?? 0).toLocaleString('ar-YE')}</p></div>
+                        <div className="rounded-xl bg-white/5 p-3"><p className="text-white/35">محجوز</p><p className="mt-1 font-bold">{(inv?.quantity_reserved ?? 0).toLocaleString('ar-YE')}</p></div>
+                        <div className="rounded-xl bg-white/5 p-3"><p className="text-white/35">إعادة الطلب</p><p className="mt-1 font-bold">{(inv?.reorder_level ?? 0).toLocaleString('ar-YE')}</p></div>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <button disabled={busy} onClick={() => adjustInventory(product.id, 'in')} className="flex-1 rounded-xl bg-[#e3fe00] py-3 text-sm font-black text-black disabled:opacity-50">+ إضافة</button>
+                        <button disabled={busy || available <= 0} onClick={() => adjustInventory(product.id, 'out')} className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-black text-white/70 disabled:opacity-30">− خصم</button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {myProducts.length === 0 && <p className="text-sm text-white/40">لا توجد منتجات لإدارة مخزونها.</p>}
               </div>
             </div>
           )}
