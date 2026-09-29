@@ -1866,7 +1866,7 @@ function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
         <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: بدون بصل" /></div>
         {error && <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black"><span>الإجمالي</span><span>{(total + deliveryFee).toLocaleString('ar-YE')} {CURRENCY}</span></div>
-        <button disabled={busy || cart.length === 0} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? 'جارٍ الإرسال...' : 'تأكيد الطلب (دفع نقدي)'}</button>
+        <button disabled={busy || cart.length === 0} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? 'جارٍ الإرسال...' : 'تأكيد الطلب (الدفع عند الاستلام)'}</button>
       </div>
     </div>
   );
@@ -2158,7 +2158,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
                         </button>
                       )}
                       {activeOrder.payment_status !== 'paid' && (
-                        <button disabled={busy} onClick={() => confirmCash(activeOrder.id)} className="flex-1 rounded-xl border border-[#e3fe00]/40 py-3 font-black text-[#e3fe00] disabled:opacity-50">تأكيد استلام النقد</button>
+                        <button disabled={busy} onClick={() => confirmCash(activeOrder.id)} className="flex-1 rounded-xl border border-[#e3fe00]/40 py-3 font-black text-[#e3fe00] disabled:opacity-50">تأكيد استلام الدفع</button>
                       )}
                     </div>
                   </div>
