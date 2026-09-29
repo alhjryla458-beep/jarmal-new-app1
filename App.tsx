@@ -246,6 +246,15 @@ type StoreTeamMemberRow = {
   profile?: { full_name: string | null; phone_number: string | null } | null;
 };
 
+type StoreAuditRow = {
+  id: string;
+  action: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
 type StoreInvitationRow = {
   id: string;
   phone_number: string;
@@ -1554,6 +1563,86 @@ function StoreTeamView({ storeId }: { storeId: string }) {
   );
 }
 
+function StoreAuditLogView({ storeId }: { storeId: string }) {
+  const [logs, setLogs] = useState<StoreAuditRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const actionLabel: Record<string, string> = {
+    staff_invitation_created: 'إنشاء دعوة موظف',
+    staff_invitation_accepted: 'قبول دعوة موظف',
+    staff_member_deactivated: 'تعطيل موظف',
+    staff_member_reactivated: 'إعادة تفعيل موظف'
+  };
+
+  const loadLogs = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('store_audit_logs')
+      .select('id, action, entity_type, entity_id, metadata, created_at')
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    setLogs((data as StoreAuditRow[] | null) || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { void loadLogs(); }, [storeId]);
+
+  return (
+    <section className="max-w-5xl">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-white/40">الأمان والشفافية</p>
+          <h2 className="mt-1 text-2xl font-black">سجل نشاط المتجر</h2>
+        </div>
+        <button
+          type="button"
+          onClick={() => void loadLogs()}
+          className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]/30 hover:text-[#e3fe00]"
+        >
+          تحديث السجل
+        </button>
+      </div>
+
+      <div className="mt-7 overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d]">
+        {loading ? (
+          <div className="p-8 text-center text-sm text-white/40">جارٍ تحميل السجل...</div>
+        ) : logs.length === 0 ? (
+          <div className="p-8 text-center text-sm text-white/40">لا توجد عمليات مسجلة حتى الآن.</div>
+        ) : (
+          <div className="divide-y divide-white/5">
+            {logs.map((log) => {
+              const metadata = log.metadata || {};
+              const actorName = typeof metadata.actor_name === 'string' ? metadata.actor_name : 'حساب المستخدم';
+              const phone = typeof metadata.phone_number === 'string' ? metadata.phone_number : '';
+              const memberRole = typeof metadata.member_role === 'string' ? metadata.member_role : '';
+              return (
+                <div key={log.id} className="p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-black">{actionLabel[log.action] || log.action}</p>
+                      <p className="mt-1 text-xs text-white/45">بواسطة: {actorName}</p>
+                    </div>
+                    <time className="text-xs text-white/35" dir="ltr">
+                      {new Date(log.created_at).toLocaleString('ar-YE')}
+                    </time>
+                  </div>
+                  {(phone || memberRole) && (
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                      {phone && <span className="rounded-lg bg-white/5 px-3 py-2 text-white/45" dir="ltr">{phone}</span>}
+                      {memberRole && <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-2 text-[#e3fe00]">{memberRole === 'manager' ? 'مدير المتجر' : memberRole === 'orders_employee' ? 'موظف الطلبات' : 'موظف المخزون'}</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function SideNav({
   role,
   active,
@@ -2661,6 +2750,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
 
           {active === 'team' && store && isOwner && (
             <StoreTeamView storeId={store.id} />
+            <div className="mt-8"><StoreAuditLogView storeId={store.id} /></div>
           )}
 
           {active === 'settings' && store && isOwner && (
