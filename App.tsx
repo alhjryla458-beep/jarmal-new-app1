@@ -2241,7 +2241,6 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
 
     // Resolve the store explicitly. Owners come from stores.merchant_id;
     // staff come from store_members. Never use maybeSingle() on public stores.
-    let memberContext: StoreMemberContext | null = null;
     const { data: membership } = await supabase
       .from('store_members')
       .select('store_id, member_role')
@@ -2251,24 +2250,18 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
       .limit(1)
       .maybeSingle();
 
-    if (membership) {
-      memberContext = membership as StoreMemberContext;
-      setMemberContext(memberContext);
-    } else {
-      setMemberContext(null);
-    }
+    const resolvedMemberContext = membership
+      ? (membership as StoreMemberContext)
+      : null;
+    setMemberContext(resolvedMemberContext);
 
-    let storeQuery = supabase
+    const storeBaseQuery = supabase
       .from('stores')
       .select('id, name, is_open, rating, commission_rate');
 
-    if (memberContext) {
-      storeQuery = storeQuery.eq('id', memberContext.store_id);
-    } else {
-      storeQuery = storeQuery.eq('merchant_id', userId);
-    }
-
-    const { data } = await storeQuery.maybeSingle();
+    const { data } = resolvedMemberContext
+      ? await storeBaseQuery.eq('id', resolvedMemberContext.store_id).maybeSingle()
+      : await storeBaseQuery.eq('merchant_id', userId).maybeSingle();
 
     if (data) {
       const row = data as MyStoreRow;
