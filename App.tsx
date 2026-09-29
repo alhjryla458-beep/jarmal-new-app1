@@ -235,6 +235,11 @@ type MyStoreRow = {
   rating: number | null;
   commission_rate: number | null;
 };
+
+type StoreMemberContext = {
+  member_role: 'owner' | 'manager' | 'orders_employee' | 'warehouse_employee';
+  store_id: string;
+};
 type MerchantProductRow = {
   id: string;
   store_id: string;
@@ -2186,7 +2191,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
 
-          {active === 'wallet' && (
+          {active === 'wallet' && isOwner && (
             <section>
               <p className="text-sm text-white/40">أموالك بين يديك</p>
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
@@ -2222,13 +2227,53 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const [newPrice, setNewPrice] = useState('');
   const [newImage, setNewImage] = useState('');
   const [addError, setAddError] = useState('');
+  const [memberContext, setMemberContext] = useState<StoreMemberContext | null>(null);
 
-  const loadAll = () => {
-    supabase.from('stores').select('id, name, is_open, rating, commission_rate').maybeSingle().then(({ data }) => {
-      if (data) {
-        const row = data as MyStoreRow;
-        setStore(row);
-        supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').eq('store_id', row.id).in('status', ['pending', 'accepted', 'preparing']).order('created_at', { ascending: false }).then(async ({ data: orders }) => {
+  const isOwner = !memberContext || memberContext.member_role === 'owner';
+  const canManageOrders = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'orders_employee';
+  const canManageInventory = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'warehouse_employee';
+  const canManageProducts = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'warehouse_employee';
+
+  const loadAll = async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return;
+
+    // Resolve the store explicitly. Owners come from stores.merchant_id;
+    // staff come from store_members. Never use maybeSingle() on public stores.
+    let memberContext: StoreMemberContext | null = null;
+    const { data: membership } = await supabase
+      .from('store_members')
+      .select('store_id, member_role')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (membership) {
+      memberContext = membership as StoreMemberContext;
+      setMemberContext(memberContext);
+    } else {
+      setMemberContext(null);
+    }
+
+    let storeQuery = supabase
+      .from('stores')
+      .select('id, name, is_open, rating, commission_rate');
+
+    if (memberContext) {
+      storeQuery = storeQuery.eq('id', memberContext.store_id);
+    } else {
+      storeQuery = storeQuery.eq('merchant_id', userId);
+    }
+
+    const { data } = await storeQuery.maybeSingle();
+
+    if (data) {
+      const row = data as MyStoreRow;
+      setStore(row);
+      supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').eq('store_id', row.id).in('status', ['pending', 'accepted', 'preparing']).order('created_at', { ascending: false }).then(async ({ data: orders }) => {
           const list = (orders as FullOrderRow[]) || [];
           setIncoming(list);
           if (list.length > 0) {
@@ -2247,12 +2292,13 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   useEffect(() => { loadAll(); }, []);
 
   const toggleOpen = async () => {
-    if (!store) return;
+    if (!store || !isOwner) return;
     await supabase.from('stores').update({ is_open: !store.is_open }).eq('id', store.id);
     loadAll();
   };
 
   const respond = async (orderId: string, accept: boolean) => {
+    if (!canManageOrders) return;
     setBusy(true);
     await supabase.rpc('merchant_respond_to_order', { p_order_id: orderId, p_accept: accept, p_reject_reason: accept ? null : 'غير متوفر حالياً' });
     setBusy(false);
@@ -2260,6 +2306,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   };
 
   const advance = async (orderId: string) => {
+    if (!canManageOrders && !canManageInventory) return;
     setBusy(true);
     await supabase.rpc('merchant_update_order_status', { p_order_id: orderId, p_status: 'ready_for_pickup' });
     setBusy(false);
@@ -2267,7 +2314,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   };
 
   const addProduct = async () => {
-    if (!store) return;
+    if (!store || !canManageProducts) return;
     setAddError('');
     if (!newName.trim() || !newPrice) { setAddError('أدخل اسم المنتج والسعر'); return; }
     setBusy(true);
@@ -2282,6 +2329,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   };
 
   const toggleProductAvailable = async (productId: string, current: boolean) => {
+    if (!canManageProducts) return;
     await supabase.from('products').update({ is_available: !current }).eq('id', productId);
     loadAll();
   };
@@ -2295,8 +2343,15 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           {active === 'dashboard' && (
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <h2 className="text-2xl font-black">نظرة عامة</h2>
-                {store && (
+                <div>
+                  <h2 className="text-2xl font-black">نظرة عامة</h2>
+                  {memberContext && (
+                    <p className="mt-1 text-xs text-white/40">
+                      {memberContext.member_role === 'manager' ? 'مدير المتجر' : memberContext.member_role === 'orders_employee' ? 'موظف الطلبات' : 'موظف المخزون'}
+                    </p>
+                  )}
+                </div>
+                {store && isOwner && (
                   <button onClick={toggleOpen} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-white/50'}`}>
                     <span className={`h-3 w-3 rounded-full ${store.is_open ? 'bg-black' : 'bg-white/30'}`} />
                     المتجر {store.is_open ? 'مفتوح' : 'مغلق'}
@@ -2311,7 +2366,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
 
-          {active === 'incoming' && (
+          {active === 'incoming' && canManageOrders && (
             <div>
               <h2 className="mb-5 text-2xl font-black">الطلبات الواردة</h2>
               <div className="space-y-4">
@@ -2345,7 +2400,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
 
-          {active === 'products' && (
+          {active === 'products' && canManageProducts && (
             <div>
               <div className="flex items-end justify-between">
                 <h2 className="text-2xl font-black">إدارة المنتجات</h2>
@@ -2397,7 +2452,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
             </section>
           )}
 
-          {active === 'settings' && store && (
+          {active === 'settings' && store && isOwner && (
             <div className="max-w-md space-y-4">
               <h2 className="text-2xl font-black">إعدادات المتجر</h2>
               <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
