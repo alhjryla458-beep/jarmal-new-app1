@@ -2749,8 +2749,10 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           )}
 
           {active === 'team' && store && isOwner && (
-            <StoreTeamView storeId={store.id} />
-            <div className="mt-8"><StoreAuditLogView storeId={store.id} /></div>
+            <>
+              <StoreTeamView storeId={store.id} />
+              <div className="mt-8"><StoreAuditLogView storeId={store.id} /></div>
+            </>
           )}
 
           {active === 'settings' && store && isOwner && (
