@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="شعار جَرْمَل">
+<rect x="32" y="32" width="448" height="448" rx="72" fill="none" stroke="#F4FF00" stroke-width="10"/>
+<path d="M246 92V286H356V165H270" fill="none" stroke="#F4FF00" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M246 286V348C246 395 216 421 170 421C135 421 108 404 92 378" fill="none" stroke="#F4FF00" stroke-width="26" stroke-linecap="round"/>
+<path d="M270 286H365C409 286 421 262 421 225V104" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M366 286H304C304 329 282 356 248 370C218 383 180 384 146 373" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round"/>
+<path d="M93 338h48M87 369h38M105 400h31" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+<path d="M340 335l25-25 25 25-25 25z" fill="#F4FF00"/>
+<path d="M341 335h38" stroke="#F4FF00" stroke-width="8" stroke-linecap="round"/>
+</svg>
