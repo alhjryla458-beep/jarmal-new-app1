@@ -2277,8 +2277,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           }
         });
         supabase.from('products').select('id, store_id, name, description, price, image_url, is_available').eq('store_id', row.id).then(({ data: prods }) => { if (prods) setMyProducts(prods as MerchantProductRow[]); });
-      }
-    });
+    }
     supabase.from('merchant_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
   };
 
