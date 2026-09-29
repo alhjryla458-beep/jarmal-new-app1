@@ -1465,11 +1465,11 @@ function StoreTeamView({ storeId }: { storeId: string }) {
 
   const toggleMember = async (member: StoreTeamMemberRow) => {
     setError('');
-    const { error: updateError } = await supabase
-      .from('store_members')
-      .update({ is_active: !member.is_active })
-      .eq('id', member.id);
-    if (updateError) setError(updateError.message || 'تعذر تحديث الموظف');
+    const { error: rpcError } = await supabase.rpc('set_store_member_active', {
+      p_member_id: member.id,
+      p_is_active: !member.is_active
+    });
+    if (rpcError) setError(rpcError.message || 'تعذر تحديث الموظف');
     else void loadTeam();
   };
 
