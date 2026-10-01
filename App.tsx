@@ -867,7 +867,7 @@ function Auth({
       <header className="mx-auto flex max-w-6xl items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-sm text-[#171a1d]/55 hover:text-[#171a1d]"
+          className="flex items-center gap-2 text-sm text-white/55 hover:text-[#171a1d]"
         >
           <ArrowRight size={18} />
           العودة
@@ -2893,7 +2893,7 @@ export default function App() {
 
   if (showSplash) {
     return (
-      <main className="flex min-h-screen items-center justify-center overflow-hidden bg-[#e9ecef] px-6">
+      <main className="flex min-h-screen items-center justify-center overflow-hidden bg-black px-6">
         <div className="relative flex flex-col items-center">
           <div className="absolute h-64 w-64 rounded-full bg-[#e3fe00]/30 blur-[90px]" />
           <Logo size="lg" />
