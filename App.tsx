@@ -310,7 +310,7 @@ const statusLabels: Record<string, string> = {
 function Logo({ dark = false, size = 'sm' }: { dark?: boolean; size?: 'sm' | 'lg' }) {
   return (
     <img
-      src="/jarmal-logo.svg"
+      src={size === "lg" ? "/jarmal-logo-full.svg" : "/jarmal-logo.svg"}
       alt="جَرْمَل"
       className={`${size === 'lg' ? 'h-40 w-40 sm:h-52 sm:w-52' : 'h-12 w-12'} object-contain drop-shadow-[0_10px_30px_rgba(244,255,0,.16)]`}
     />
@@ -436,13 +436,13 @@ function Welcome({
   ];
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#e9ecef] px-5 py-7 text-[#171a1d]">
+    <main className="relative min-h-screen overflow-hidden bg-black px-5 py-7 text-white">
       <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-[#e3fe00]/10 blur-[120px]" />
 
       <header className="relative mx-auto flex max-w-6xl items-center justify-between">
         <Logo />
 
-        <div className="flex items-center gap-2 text-xs text-[#171a1d]/55">
+        <div className="flex items-center gap-2 text-xs text-white/55">
           <ShieldCheck size={15} className="text-[#e3fe00]" />
           توصيل موثوق داخل اليمن
         </div>
@@ -455,7 +455,7 @@ function Welcome({
           <h1 className="mt-6 text-5xl font-black leading-[1.12] tracking-[-.05em] sm:text-7xl">
             طلبك عند بابك،
             <br />
-            <span className="text-[#4b5d00]">بسرعة جَرْمَل.</span>
+            <span className="text-[#e3fe00]">بسرعة جَرْمَل.</span>
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-8 text-white/55">
