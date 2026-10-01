@@ -310,9 +310,9 @@ const statusLabels: Record<string, string> = {
 function Logo({ dark = false, size = 'sm' }: { dark?: boolean; size?: 'sm' | 'lg' }) {
   return (
     <img
-      src={size === "lg" ? "/jarmal-logo-full.svg" : "/jarmal-logo.svg"}
+      src="/jarmal-logo-full.svg"
       alt="جَرْمَل"
-      className={`${size === 'lg' ? 'h-40 w-40 sm:h-52 sm:w-52' : 'h-12 w-12'} object-contain drop-shadow-[0_10px_30px_rgba(244,255,0,.16)]`}
+      className={`${size === 'lg' ? 'h-40 w-40 sm:h-52 sm:w-52' : 'h-16 w-16'} object-contain drop-shadow-[0_10px_30px_rgba(244,255,0,.16)]`}
     />
   );
 }
@@ -863,11 +863,11 @@ function Auth({
   const isAdmin = role === 'admin';
 
   return (
-    <main className="min-h-screen bg-[#e9ecef] px-5 py-7 text-[#171a1d]">
+    <main className="min-h-screen bg-black px-5 py-7 text-white">
       <header className="mx-auto flex max-w-6xl items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-sm text-white/55 hover:text-[#171a1d]"
+          className="flex items-center gap-2 text-sm text-white/55 hover:text-white"
         >
           <ArrowRight size={18} />
           العودة
@@ -2897,10 +2897,10 @@ export default function App() {
         <div className="relative flex flex-col items-center">
           <div className="absolute h-64 w-64 rounded-full bg-[#e3fe00]/30 blur-[90px]" />
           <Logo size="lg" />
-          <p className="mt-5 text-sm font-bold tracking-[.08em] text-[#171a1d]/55">
+          <p className="mt-5 text-sm font-bold tracking-[.08em] text-white/55">
             جَرْمَل — توصيل أسهل
           </p>
-          <div className="mt-6 h-1 w-20 overflow-hidden rounded-full bg-black/10">
+          <div className="mt-6 h-1 w-20 overflow-hidden rounded-full bg-white/10">
             <div className="h-full w-1/2 animate-pulse rounded-full bg-[#e3fe00]" />
           </div>
         </div>
