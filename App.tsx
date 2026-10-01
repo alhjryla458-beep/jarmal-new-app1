@@ -284,6 +284,17 @@ type InventoryRow = {
   updated_at: string;
 };
 
+type InventoryMovementRow = {
+  id: string;
+  product_id: string;
+  movement_type: string;
+  quantity: number;
+  quantity_before: number;
+  quantity_after: number;
+  reason: string | null;
+  created_at: string;
+};
+
 type CartLine = {
   key: string;
   product_id?: string;
@@ -2548,6 +2559,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const [addError, setAddError] = useState('');
   const [memberContext, setMemberContext] = useState<StoreMemberContext | null>(null);
   const [inventoryRows, setInventoryRows] = useState<InventoryRow[]>([]);
+  const [inventoryMovements, setInventoryMovements] = useState<InventoryMovementRow[]>([]);
   const [inventoryQty, setInventoryQty] = useState('1');
   const [inventoryReason, setInventoryReason] = useState('');
   const [inventoryError, setInventoryError] = useState('');
@@ -2601,6 +2613,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
         });
         supabase.from('products').select('id, store_id, name, description, price, image_url, is_available').eq('store_id', row.id).then(({ data: prods }) => { if (prods) setMyProducts(prods as MerchantProductRow[]); });
         supabase.from('product_inventory').select('id, store_id, product_id, variant_id, quantity_on_hand, quantity_reserved, reorder_level, unit_label, updated_at').eq('store_id', row.id).then(({ data: inventory }) => { if (inventory) setInventoryRows(inventory as InventoryRow[]); });
+        supabase.from('inventory_movements').select('id, product_id, movement_type, quantity, quantity_before, quantity_after, reason, created_at').eq('store_id', row.id).order('created_at', { ascending: false }).limit(50).then(({ data: movements }) => { if (movements) setInventoryMovements(movements as InventoryMovementRow[]); });
     }
     supabase.from('merchant_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
   };
@@ -2783,6 +2796,47 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                   );
                 })}
                 {myProducts.length === 0 && <p className="text-sm text-white/40">لا توجد منتجات لإدارة مخزونها.</p>}
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-white/40">آخر 50 حركة</p>
+                    <h3 className="mt-1 text-xl font-black">سجل حركة المخزون</h3>
+                  </div>
+                  <span className="rounded-lg bg-white/5 px-3 py-2 text-xs text-white/40">{inventoryMovements.length} حركة</span>
+                </div>
+
+                <div className="mt-5 space-y-2">
+                  {inventoryMovements.map((movement) => {
+                    const product = myProducts.find((item) => item.id === movement.product_id);
+                    const isIn = ['purchase_in', 'reservation_release'].includes(movement.movement_type);
+                    const isReservation = movement.movement_type === 'reservation';
+                    const label =
+                      movement.movement_type === 'purchase_in' ? 'إضافة شراء' :
+                      movement.movement_type === 'adjustment_out' ? 'خصم يدوي' :
+                      movement.movement_type === 'reservation' ? 'حجز طلب' :
+                      movement.movement_type === 'reservation_release' ? 'تحرير حجز' :
+                      movement.movement_type === 'sale_out' ? 'صرف بيع' :
+                      movement.movement_type;
+                    return (
+                      <div key={movement.id} className="grid gap-2 rounded-xl border border-white/5 bg-black/30 p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold">{product?.name || 'منتج'}</p>
+                          <p className="mt-1 text-xs text-white/35">{label}{movement.reason ? ' • ' + movement.reason : ''}</p>
+                        </div>
+                        <div className={isIn ? 'text-[#e3fe00]' : isReservation ? 'text-amber-300' : 'text-red-300'}>
+                          {isIn ? '+' : isReservation ? 'حجز ' : '−'}{Math.abs(movement.quantity).toLocaleString('ar-YE')}
+                        </div>
+                        <div className="text-left text-[11px] text-white/35">
+                          <div>{movement.quantity_before.toLocaleString('ar-YE')} ← {movement.quantity_after.toLocaleString('ar-YE')}</div>
+                          <div className="mt-1">{new Date(movement.created_at).toLocaleString('ar-YE')}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {inventoryMovements.length === 0 && <p className="py-5 text-sm text-white/40">لا توجد حركات مخزون بعد.</p>}
+                </div>
               </div>
             </div>
           )}
