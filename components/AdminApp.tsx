@@ -211,8 +211,8 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-black/90 px-5 py-4 backdrop-blur-xl">
+    <div className="jarmal-admin min-h-screen">
+      <header className="sticky top-0 z-20 border-b px-5 py-3.5 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e3fe00] text-black">
@@ -239,7 +239,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       </header>
 
       <div className="mx-auto flex max-w-7xl">
-        <aside className="hidden w-60 shrink-0 border-l border-white/10 bg-[#080808] p-4 lg:block">
+        <aside className="hidden w-60 shrink-0 border-l p-4 lg:block">
           <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">أقسام الإدارة</p>
           <nav className="space-y-1">
             {navItems.map(([id, label, Icon]) => (
