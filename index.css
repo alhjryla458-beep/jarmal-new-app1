@@ -5,3 +5,177 @@
 body {
   font-family: 'Tajawal', 'Cairo', system-ui, sans-serif;
 }
+
+
+/* ===== JARMAL 2.0 UI SYSTEM ===== */
+:root {
+  --jarmal-lime: #dfff00;
+  --jarmal-ink: #171a16;
+  --jarmal-muted: #6b7169;
+  --jarmal-bg: #f5f6f3;
+  --jarmal-surface: #ffffff;
+  --jarmal-border: #e5e8e2;
+}
+
+html { background: var(--jarmal-bg); }
+body {
+  margin: 0;
+  background: var(--jarmal-bg);
+  color: var(--jarmal-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.jarmal-app {
+  min-height: 100vh;
+  background: var(--jarmal-bg) !important;
+  color: var(--jarmal-ink) !important;
+}
+
+.jarmal-app header {
+  background: rgba(255,255,255,.94) !important;
+  border-color: var(--jarmal-border) !important;
+  color: var(--jarmal-ink) !important;
+}
+
+.jarmal-app aside {
+  background: #fbfcfa !important;
+  border-color: var(--jarmal-border) !important;
+}
+
+.jarmal-app main {
+  background: transparent !important;
+}
+
+.jarmal-app [class~="bg-black"],
+.jarmal-app [class~="bg-[#080808]"],
+.jarmal-app [class~="bg-[#0d0d0d]"],
+.jarmal-app [class~="bg-[#111]"] {
+  background-color: var(--jarmal-surface) !important;
+}
+
+.jarmal-app [class~="border-white/10"] {
+  border-color: var(--jarmal-border) !important;
+}
+
+.jarmal-app [class~="text-white"] {
+  color: var(--jarmal-ink) !important;
+}
+
+.jarmal-app [class~="text-white/90"],
+.jarmal-app [class~="text-white/80"],
+.jarmal-app [class~="text-white/70"],
+.jarmal-app [class~="text-white/60"],
+.jarmal-app [class~="text-white/50"],
+.jarmal-app [class~="text-white/45"],
+.jarmal-app [class~="text-white/40"],
+.jarmal-app [class~="text-white/30"],
+.jarmal-app [class~="text-white/25"],
+.jarmal-app [class~="text-white/20"] {
+  color: var(--jarmal-muted) !important;
+}
+
+.jarmal-app [class~="hover:bg-white/5"]:hover {
+  background-color: #f0f2ed !important;
+}
+
+.jarmal-app [class~="hover:text-white"]:hover {
+  color: var(--jarmal-ink) !important;
+}
+
+.jarmal-app input,
+.jarmal-app textarea,
+.jarmal-app select {
+  background: #f9faf8 !important;
+  border-color: var(--jarmal-border) !important;
+  color: var(--jarmal-ink) !important;
+}
+
+.jarmal-app input::placeholder,
+.jarmal-app textarea::placeholder {
+  color: #9aa097 !important;
+}
+
+.jarmal-app .map-grid {
+  background:
+    linear-gradient(28deg, transparent 47%, #dfe4da 48%, #dfe4da 51%, transparent 52%),
+    linear-gradient(-18deg, transparent 48%, #e6e9e2 49%, #e6e9e2 51%, transparent 52%),
+    #edf0eb !important;
+  border-color: var(--jarmal-border) !important;
+}
+
+.jarmal-app .map-grid [class*="bg-black"] {
+  background: rgba(255,255,255,.94) !important;
+  color: var(--jarmal-ink) !important;
+  border-color: var(--jarmal-border) !important;
+}
+
+.jarmal-app .map-grid [class*="text-white"] {
+  color: var(--jarmal-muted) !important;
+}
+
+.jarmal-app button {
+  transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, border-color .16s ease;
+}
+
+.jarmal-app button:hover {
+  transform: translateY(-1px);
+}
+
+.jarmal-app nav.fixed {
+  background: rgba(255,255,255,.96) !important;
+  border-color: var(--jarmal-border) !important;
+}
+
+.jarmal-app nav.fixed [class*="text-white"] {
+  color: var(--jarmal-muted) !important;
+}
+
+.jarmal-app nav.fixed .text-[#e3fe00] {
+  color: #7e8f00 !important;
+}
+
+.jarmal-app nav.fixed button[class*="bg-[#e3fe00]"],
+.jarmal-app aside button[class*="bg-[#e3fe00]"] {
+  box-shadow: 0 8px 22px rgba(110,125,0,.12);
+}
+
+.jarmal-admin {
+  min-height: 100vh;
+  background: var(--jarmal-bg) !important;
+  color: var(--jarmal-ink) !important;
+}
+
+.jarmal-admin header {
+  background: rgba(255,255,255,.94) !important;
+  border-color: var(--jarmal-border) !important;
+  color: var(--jarmal-ink) !important;
+}
+
+.jarmal-admin aside {
+  background: #fbfcfa !important;
+  border-color: var(--jarmal-border) !important;
+}
+
+.jarmal-admin [class~="bg-[#0d0d0d]"] {
+  background: #fff !important;
+}
+
+.jarmal-admin [class~="border-white/10"] {
+  border-color: var(--jarmal-border) !important;
+}
+
+.jarmal-admin [class~="text-white"],
+.jarmal-admin [class~="text-white/90"] {
+  color: var(--jarmal-ink) !important;
+}
+
+.jarmal-admin [class~="text-white/45"],
+.jarmal-admin [class~="text-white/40"],
+.jarmal-admin [class~="text-white/30"],
+.jarmal-admin [class~="text-white/25"] {
+  color: var(--jarmal-muted) !important;
+}
+
+.jarmal-admin [class~="bg-black"] {
+  background: #fff !important;
+}
