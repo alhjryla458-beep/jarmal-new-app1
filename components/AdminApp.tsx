@@ -204,7 +204,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+      <div className="jarmal-admin flex min-h-screen items-center justify-center">
         <div className="animate-pulse text-white/40">جارٍ تحميل لوحة الإدارة...</div>
       </div>
     );
