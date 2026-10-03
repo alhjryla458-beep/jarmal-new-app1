@@ -280,3 +280,12 @@ body {
     line-height: 1.2;
   }
 }
+
+/* JARMAL 2.2 customer home */
+.jarmal-app .jarmal-hero {
+  background: linear-gradient(135deg, #dfff00 0%, #ecf6a8 100%);
+  color: #171a16;
+  box-shadow: 0 14px 34px rgba(110,125,0,.10);
+}
+.jarmal-app .jarmal-hero p { color: rgba(23,26,22,.62); }
+.jarmal-app .jarmal-hero button { color: #171a16; }
