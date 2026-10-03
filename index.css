@@ -179,3 +179,104 @@ body {
 .jarmal-admin [class~="bg-black"] {
   background: #fff !important;
 }
+
+
+/* ===== JARMAL 2.1 REFINED LAYOUT ===== */
+.jarmal-app,
+.jarmal-admin {
+  --jarmal-shadow: 0 10px 30px rgba(23,26,22,.06);
+  --jarmal-shadow-lg: 0 18px 50px rgba(23,26,22,.09);
+}
+
+.jarmal-app main > div > h1,
+.jarmal-app main > div > h2,
+.jarmal-admin main > div > h1,
+.jarmal-admin main > div > h2 {
+  letter-spacing: -.025em;
+}
+
+.jarmal-app [class~="rounded-2xl"][class~="bg-[#0d0d0d]"],
+.jarmal-app [class~="rounded-2xl"][class~="bg-white/[.02]"],
+.jarmal-app [class~="rounded-3xl"][class~="bg-[#0d0d0d]"],
+.jarmal-admin [class~="rounded-2xl"][class~="bg-[#0d0d0d]"],
+.jarmal-admin [class~="rounded-2xl"][class~="bg-white/[.02]"] {
+  box-shadow: var(--jarmal-shadow);
+  border-color: #e2e6df !important;
+}
+
+.jarmal-app [class~="rounded-2xl"],
+.jarmal-admin [class~="rounded-2xl"] {
+  border-radius: 18px;
+}
+
+.jarmal-app [class~="rounded-3xl"],
+.jarmal-admin [class~="rounded-3xl"] {
+  border-radius: 22px;
+}
+
+.jarmal-app button[class*="bg-[#e3fe00]"],
+.jarmal-admin button[class*="bg-[#e3fe00]"] {
+  box-shadow: 0 8px 20px rgba(110,125,0,.14);
+  font-weight: 800;
+}
+
+.jarmal-app button[class*="border-white/10"],
+.jarmal-admin button[class*="border-white/10"] {
+  background: #fff;
+  border-color: #dfe4db !important;
+}
+
+.jarmal-app nav.fixed {
+  box-shadow: 0 -8px 28px rgba(23,26,22,.06);
+}
+
+.jarmal-app aside {
+  box-shadow: inset -1px 0 0 #e7eae4;
+}
+
+.jarmal-admin aside {
+  box-shadow: inset -1px 0 0 #e7eae4;
+}
+
+.jarmal-app header,
+.jarmal-admin header {
+  box-shadow: 0 4px 18px rgba(23,26,22,.035);
+}
+
+.jarmal-app input,
+.jarmal-app textarea,
+.jarmal-app select,
+.jarmal-admin input,
+.jarmal-admin textarea,
+.jarmal-admin select {
+  min-height: 44px;
+  border-radius: 12px !important;
+}
+
+.jarmal-app input:focus,
+.jarmal-app textarea:focus,
+.jarmal-app select:focus,
+.jarmal-admin input:focus,
+.jarmal-admin textarea:focus,
+.jarmal-admin select:focus {
+  box-shadow: 0 0 0 3px rgba(223,255,0,.16);
+}
+
+.jarmal-app .animate-slide-up {
+  animation-duration: .35s;
+}
+
+@media (max-width: 640px) {
+  .jarmal-app main,
+  .jarmal-admin main {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .jarmal-app h1,
+  .jarmal-app h2,
+  .jarmal-admin h1,
+  .jarmal-admin h2 {
+    line-height: 1.2;
+  }
+}
