@@ -2013,12 +2013,11 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
         <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'home' && !selectedStore && (
             <>
-              <div className="rounded-3xl bg-[#e3fe00] p-7 text-black sm:p-10">
-                <Pill dark>مرحباً بك في جَرْمَل</Pill>
-                <h1 className="mt-5 text-3xl font-black leading-tight sm:text-4xl">نقوم بتوصيل طلبكم<br />بكل حماس وفاعلية.</h1>
+              <div className="jarmal-hero rounded-3xl p-6 sm:p-8">
+                <div className="flex items-start justify-between gap-4"><div><Pill dark>مرحباً بك في جَرْمَل</Pill><h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">قطعك وخدماتك<br />أقرب إليك.</h1><p className="mt-2 max-w-md text-sm opacity-70">ابحث عن المتجر أو القطعة التي تحتاجها واطلبها بسهولة.</p></div><div className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-black/10 sm:flex"><ShoppingBag size={28} /></div></div>
               </div>
               <section className="mt-10">
-                <h2 className="text-2xl font-black">متاجرنا</h2>
+                <div className="flex items-end justify-between gap-3"><div><h2 className="text-xl font-black">متاجر جَرْمَل</h2><p className="mt-1 text-sm text-black/45">اختر المتجر ثم تصفح المنتجات</p></div></div>
                 <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
                   <button onClick={() => setStoreCategory('الكل')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${storeCategory === 'الكل' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>الكل</button>
                   {Array.from(new Set(storesReal.map((s) => s.store_type))).map((type) => (
@@ -2027,8 +2026,8 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
                 </div>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {storesReal.filter((s) => storeCategory === 'الكل' || s.store_type === storeCategory).map((store) => (
-                    <button key={store.id} disabled={!store.is_open} onClick={() => setSelectedStore(store)} className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d] text-right transition hover:-translate-y-1 hover:border-[#e3fe00]/50 disabled:cursor-not-allowed disabled:opacity-60">
-                      <div className="flex h-28 items-center justify-center bg-white/[.03]"><Store size={40} className="text-[#e3fe00]" /></div>
+                    <button key={store.id} disabled={!store.is_open} onClick={() => setSelectedStore(store)} className="group overflow-hidden rounded-2xl border border-[#e5e8e2] bg-white text-right shadow-[0_8px_24px_rgba(23,26,22,.05)] transition hover:-translate-y-0.5 hover:border-[#d5dc00] disabled:cursor-not-allowed disabled:opacity-60">
+                      <div className="flex h-24 items-center justify-center bg-[#f5f6f3]"><Store size={40} className="text-[#e3fe00]" /></div>
                       <div className="p-4">
                         <div className="flex items-start justify-between">
                           <div><h3 className="font-black">{store.name}</h3><p className="mt-1 text-xs text-white/40">{store.address_description}</p></div>
@@ -2058,7 +2057,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} />}
           {active === 'services' && <ServicesView providers={providers} packages={packages} onRefresh={loadAll} />}
           {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
-          {active === 'map' && (<div><h2 className="mb-5 text-2xl font-black">تتبع الطلب</h2><MapCard /></div>)}
+          {active === 'map' && (<div><h2 className="mb-5 text-xl font-black">تتبع الطلب</h2><MapCard /></div>)}
           {active === 'profile' && (
             <div className="mx-auto max-w-md space-y-4">
               <h2 className="text-2xl font-black">حسابي</h2>
