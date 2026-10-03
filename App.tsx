@@ -1379,7 +1379,7 @@ function Topbar({
   title: string;
 }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-black/90 px-5 py-4 backdrop-blur-xl">
+    <header className="sticky top-0 z-20 border-b px-5 py-3.5 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center gap-4">
           <Logo />
@@ -1708,7 +1708,7 @@ function SideNav({
 
   return (
     <>
-      <aside className="hidden w-60 shrink-0 border-l border-white/10 bg-[#080808] p-4 lg:block">
+      <aside className="hidden w-60 shrink-0 border-l p-4 lg:block">
         <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">
           القائمة الرئيسية
         </p>
@@ -1731,7 +1731,7 @@ function SideNav({
         </nav>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-white/10 bg-[#080808]/95 backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {items.map(([id, label, Icon]) => (
           <button
             key={id}
@@ -2006,7 +2006,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const cartTotal = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="jarmal-app min-h-screen">
       <Topbar role="customer" title="مساحة العميل" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="customer" active={active} onActive={setActive} />
@@ -2467,7 +2467,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="jarmal-app min-h-screen">
       <Topbar role="driver" title="مساحة المندوب" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="driver" active={active} onActive={setActive} />
@@ -2721,7 +2721,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="jarmal-app min-h-screen">
       <Topbar role="merchant" title="مساحة التاجر" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="merchant" active={active} onActive={setActive} merchantCanManageTeam={isOwner} merchantCanManageInventory={canManageInventory} />
