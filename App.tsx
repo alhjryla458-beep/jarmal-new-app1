@@ -1379,16 +1379,17 @@ function Topbar({
   title: string;
 }) {
   return (
-    <header className="sticky top-0 z-20 border-b px-5 py-3.5 backdrop-blur-xl">
+    <header className="jarmal-topbar sticky top-0 z-20 border-b px-5 py-3.5 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center gap-4">
           <Logo />
 
           <span className="hidden h-5 w-px bg-white/20 sm:block" />
 
-          <span className="hidden text-sm text-white/45 sm:block">
-            {title}
-          </span>
+          <div className="hidden sm:block">
+            <span className="text-sm font-black">{title}</span>
+            <span className="mt-0.5 block text-[10px] font-medium text-white/35">منصة جَرْمَل</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -1708,10 +1709,11 @@ function SideNav({
 
   return (
     <>
-      <aside className="hidden w-60 shrink-0 border-l p-4 lg:block">
-        <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">
-          القائمة الرئيسية
-        </p>
+      <aside className="jarmal-sidenav hidden w-60 shrink-0 border-l p-4 lg:block">
+        <div className="jarmal-nav-heading mb-4 px-3">
+          <p className="text-[10px] font-black uppercase tracking-[.16em] text-white/30">جَرْمَل</p>
+          <p className="mt-1 text-xs font-bold text-white/45">القائمة الرئيسية</p>
+        </div>
 
         <nav className="space-y-1">
           {items.map(([id, label, Icon]) => (
@@ -1731,7 +1733,7 @@ function SideNav({
         </nav>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <nav className="jarmal-bottom-nav fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {items.map(([id, label, Icon]) => (
           <button
             key={id}
@@ -1851,7 +1853,7 @@ function Wallet({
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+        <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
             إجمالي الأرباح
           </p>
@@ -1864,7 +1866,7 @@ function Wallet({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+        <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
             عمولات هذا الشهر
           </p>
@@ -1874,7 +1876,7 @@ function Wallet({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+        <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
           <p className="text-xs text-white/40">
             آخر سحب
           </p>
@@ -2010,7 +2012,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
       <Topbar role="customer" title="مساحة العميل" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="customer" active={active} onActive={setActive} />
-        <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
+        <main className="jarmal-page min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'home' && !selectedStore && (
             <>
               <div className="jarmal-hero rounded-3xl p-6 sm:p-8">
@@ -2061,8 +2063,8 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           {active === 'profile' && (
             <div className="mx-auto max-w-md space-y-4">
               <h2 className="text-2xl font-black">حسابي</h2>
-              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">الاسم</p><p className="mt-1 font-bold">{localStorage.getItem('jarmal_test_name') || '—'}</p></div>
-              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{localStorage.getItem('jarmal_test_phone') || '—'}</p></div>
+              <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">الاسم</p><p className="mt-1 font-bold">{localStorage.getItem('jarmal_test_name') || '—'}</p></div>
+              <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{localStorage.getItem('jarmal_test_phone') || '—'}</p></div>
               <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"><LogOut size={18} />تسجيل الخروج</button>
             </div>
           )}
@@ -2368,7 +2370,7 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
     <section>
       <h1 className="text-3xl font-black">محفظتي</h1>
       <div className="mt-7 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-3xl bg-[#e3fe00] p-7 text-black">
+        <div className="jarmal-balance-card rounded-3xl bg-[#e3fe00] p-7 text-black">
           <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
           <p className="mt-4 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
           <button onClick={() => setShow(true)} className="mt-6 rounded-xl bg-black px-5 py-3 text-sm font-black text-white">شحن المحفظة</button>
@@ -2470,7 +2472,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
       <Topbar role="driver" title="مساحة المندوب" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="driver" active={active} onActive={setActive} />
-        <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
+        <main className="jarmal-page min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'available' && (
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -2554,8 +2556,8 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
               </div>
               {profile && (
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">التقييم</p><p className="mt-2 text-xl font-black text-[#e3fe00]">★ {profile.rating ?? '—'}</p></div>
-                  <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
+                  <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">التقييم</p><p className="mt-2 text-xl font-black text-[#e3fe00]">★ {profile.rating ?? '—'}</p></div>
+                  <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
                 </div>
               )}
             </section>
@@ -2724,7 +2726,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
       <Topbar role="merchant" title="مساحة التاجر" onLogout={onLogout} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="merchant" active={active} onActive={setActive} merchantCanManageTeam={isOwner} merchantCanManageInventory={canManageInventory} />
-        <main className="min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
+        <main className="jarmal-page min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'dashboard' && (
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -2744,9 +2746,9 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                 )}
               </div>
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">طلبات قيد الانتظار</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">{incoming.length}</p></div>
-                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">نسبة عمولة جَرْمَل</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">{store?.commission_rate ? `${(store.commission_rate * 100).toFixed(0)}%` : '—'}</p></div>
-                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">تقييم المتجر</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">★ {store?.rating ?? '—'}</p></div>
+                <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">طلبات قيد الانتظار</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">{incoming.length}</p></div>
+                <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">نسبة عمولة جَرْمَل</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">{store?.commission_rate ? `${(store.commission_rate * 100).toFixed(0)}%` : '—'}</p></div>
+                <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">تقييم المتجر</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">★ {store?.rating ?? '—'}</p></div>
               </div>
             </div>
           )}
@@ -2926,7 +2928,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           {active === 'settings' && store && isOwner && (
             <div className="max-w-md space-y-4">
               <h2 className="text-2xl font-black">إعدادات المتجر</h2>
-              <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+              <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
                 <p className="text-sm text-white/40">اسم المتجر</p>
                 <p className="mt-1 font-bold">{store.name}</p>
               </div>
