@@ -447,7 +447,7 @@ function Welcome({
   ];
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black px-5 py-7 text-white">
+    <main className="jarmal-app relative min-h-screen overflow-hidden px-5 py-7">
       <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-[#e3fe00]/10 blur-[120px]" />
 
       <header className="relative mx-auto flex max-w-6xl items-center justify-between">
@@ -874,7 +874,7 @@ function Auth({
   const isAdmin = role === 'admin';
 
   return (
-    <main className="min-h-screen bg-black px-5 py-7 text-white">
+    <main className="jarmal-app min-h-screen px-5 py-7">
       <header className="mx-auto flex max-w-6xl items-center justify-between">
         <button
           onClick={onBack}
@@ -2971,7 +2971,7 @@ export default function App() {
 
   if (showSplash) {
     return (
-      <main className="flex min-h-screen items-center justify-center overflow-hidden bg-black px-6">
+      <main className="jarmal-app flex min-h-screen items-center justify-center overflow-hidden px-6">
         <div className="relative flex flex-col items-center">
           <div className="absolute h-64 w-64 rounded-full bg-[#e3fe00]/30 blur-[90px]" />
           <Logo size="lg" />
