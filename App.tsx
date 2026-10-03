@@ -2226,6 +2226,21 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
     onRefresh();
   };
 
+  const cancelOrder = async (orderId: string) => {
+    if (!window.confirm('هل تريد إلغاء هذا الطلب؟')) return;
+    setBusy(true);
+    const { error } = await supabase.rpc('cancel_customer_order', {
+      p_order_id: orderId,
+      p_reason: 'إلغاء الطلب من العميل'
+    });
+    setBusy(false);
+    if (error) {
+      window.alert(error.message);
+      return;
+    }
+    onRefresh();
+  };
+
   if (orders.length === 0) {
     return (<div className="flex flex-col items-center justify-center py-24 text-center"><ClipboardList size={40} className="text-white/20" /><p className="mt-4 text-white/40">لا توجد طلبات حتى الآن</p></div>);
   }
@@ -2241,6 +2256,15 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
               <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#e3fe00]">{statusLabels[order.status] || order.status}</span>
             </div>
             <p className="mt-2 text-xs text-white/40">{new Date(order.created_at).toLocaleString('ar-YE')} • {order.fulfillment_type === 'pickup' ? 'استلام بنفسك' : 'توصيل'}</p>
+            {['pending', 'accepted', 'preparing', 'ready_for_pickup'].includes(order.status) && (
+              <button
+                disabled={busy}
+                onClick={() => cancelOrder(order.id)}
+                className="mt-3 rounded-lg border border-red-500/30 px-3 py-2 text-xs font-bold text-red-300 hover:border-red-400 disabled:opacity-50"
+              >
+                إلغاء الطلب
+              </button>
+            )}
             {order.status === 'delivered' && (
               <div className="mt-3 flex gap-2">
                 <button onClick={() => setRatingFor(order.id)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]">قيّم الطلب</button>
