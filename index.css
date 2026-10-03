@@ -289,3 +289,112 @@ body {
 }
 .jarmal-app .jarmal-hero p { color: rgba(23,26,22,.62); }
 .jarmal-app .jarmal-hero button { color: #171a16; }
+
+
+/* ===== JARMAL 2.3 ROLE LAYOUT ===== */
+.jarmal-topbar {
+  min-height: 68px;
+}
+.jarmal-topbar > div {
+  min-height: 40px;
+}
+.jarmal-sidenav {
+  position: sticky;
+  top: 68px;
+  height: calc(100vh - 68px);
+  align-self: flex-start;
+  padding-top: 22px !important;
+}
+.jarmal-sidenav nav {
+  display: grid;
+  gap: 5px;
+}
+.jarmal-sidenav nav button {
+  min-height: 46px;
+  border: 1px solid transparent;
+  border-radius: 13px !important;
+}
+.jarmal-sidenav nav button:not([class*="bg-[#e3fe00]"]) {
+  color: #697068 !important;
+}
+.jarmal-sidenav nav button[class*="bg-[#e3fe00]"] {
+  box-shadow: 0 8px 20px rgba(110,125,0,.13);
+}
+.jarmal-card {
+  background: #fff !important;
+  border-color: #e2e6df !important;
+  box-shadow: 0 8px 26px rgba(23,26,22,.045);
+}
+.jarmal-card:hover {
+  box-shadow: 0 12px 32px rgba(23,26,22,.07);
+}
+.jarmal-balance-card {
+  box-shadow: 0 16px 38px rgba(110,125,0,.11);
+}
+.jarmal-page {
+  max-width: 1180px;
+}
+.jarmal-page > section,
+.jarmal-page > div {
+  max-width: 1100px;
+}
+.jarmal-bottom-nav {
+  min-height: 64px;
+}
+.jarmal-bottom-nav button {
+  min-width: 58px;
+  color: #7b827a !important;
+}
+.jarmal-bottom-nav button[class*="text-[#e3fe00]"] {
+  color: #6f7e00 !important;
+}
+.jarmal-app .jarmal-card button {
+  transform: none;
+}
+.jarmal-app .jarmal-card button:hover {
+  transform: translateY(-1px);
+}
+.jarmal-app .jarmal-hero {
+  position: relative;
+  overflow: hidden;
+}
+.jarmal-app .jarmal-hero::after {
+  content: "";
+  position: absolute;
+  left: -35px;
+  bottom: -55px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  border: 1px solid rgba(23,26,22,.08);
+  box-shadow: 0 0 0 28px rgba(23,26,22,.025), 0 0 0 56px rgba(23,26,22,.018);
+}
+.jarmal-app .jarmal-hero > * {
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 1023px) {
+  .jarmal-page {
+    max-width: none;
+  }
+}
+@media (max-width: 640px) {
+  .jarmal-topbar {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+  .jarmal-topbar img {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  .jarmal-sidenav {
+    display: none;
+  }
+  .jarmal-page {
+    padding-top: 18px !important;
+    padding-bottom: 88px !important;
+  }
+  .jarmal-bottom-nav {
+    min-height: 62px;
+  }
+}
