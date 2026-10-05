@@ -2135,22 +2135,22 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
           const productVariants = variants.filter((v) => v.product_id === product.id && v.is_available);
           const isFav = favorites.includes(product.id);
           return (
-            <div key={product.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-4">
+            <div key={product.id} className="rounded-2xl border border-[#e1e5de] bg-white p-4 shadow-[0_8px_24px_rgba(23,26,22,.045)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,26,22,.07)]">
               <div className="flex items-start justify-between gap-3">
-                <div><p className="font-bold">{product.name}</p><p className="mt-1 text-xs text-white/40">{product.description}</p></div>
-                <button onClick={() => onToggleFavorite(product.id)} className={isFav ? 'text-[#e3fe00]' : 'text-white/25'}><Sparkles size={18} /></button>
+                <div className="min-w-0"><p className="font-black text-[#171a16]">{product.name}</p><p className="mt-1 line-clamp-2 text-xs leading-5 text-[#747b72]">{product.description || 'منتج من متجر جَرْمَل'}</p></div>
+                <button aria-label="إضافة للمفضلة" onClick={() => onToggleFavorite(product.id)} className={isFav ? 'rounded-xl bg-[#f1f5df] p-2 text-[#718000]' : 'rounded-xl bg-[#f4f6f1] p-2 text-[#a0a69e]'}><Sparkles size={18} /></button>
               </div>
               {productVariants.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {productVariants.map((v) => (
-                    <button key={v.id} onClick={() => onAdd({ product_id: product.id, variant_id: v.id, name: `${product.name} - ${v.variant_name}`, price: v.price })} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/70 hover:border-[#e3fe00]">
+                    <button key={v.id} onClick={() => onAdd({ product_id: product.id, variant_id: v.id, name: `${product.name} - ${v.variant_name}`, price: v.price })} className="rounded-xl border border-[#e2e6df] bg-[#f8faf7] px-3 py-2 text-xs font-bold text-[#596159] hover:border-[#b8c400] hover:bg-[#f1f5df]">
                       {v.variant_name} • {v.price.toLocaleString('ar-YE')} {CURRENCY}
                     </button>
                   ))}
                 </div>
               ) : (
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="font-black text-[#e3fe00]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</span>
+                  <span className="font-black text-[#687500]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</span>
                   <button onClick={() => onAdd({ product_id: product.id, name: product.name, price: product.price })} className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white">إضافة</button>
                 </div>
               )}
