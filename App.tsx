@@ -2556,6 +2556,8 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
 
+          {active === 'settings' && <SettingsView role="driver" />}
+
           {active === 'history' && (
             <div>
               <h2 className="mb-5 text-2xl font-black">سجل التوصيلات</h2>
