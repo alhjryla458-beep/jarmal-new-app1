@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeft, BarChart3, Check, ClipboardList, Landmark, Lock,
-  Package, ShieldCheck, Truck, UserRound, Users, WalletCards, X, Zap,
+  Package, ShieldCheck, Truck, UserRound, Users, WalletCards, X, Zap, Settings2, Save, Eye, EyeOff,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
 const CURRENCY = 'ر.ي';
 
-type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'users' | 'orders';
+type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'payment_settings' | 'users' | 'orders';
 
 type ProfileRow = {
   id: string;
@@ -36,6 +36,15 @@ type PaymentReceiptRow = {
   reference_number: string | null;
   status: string;
   created_at: string;
+};
+
+type PaymentMethodRow = {
+  id: string;
+  name: string;
+  code: string | null;
+  account_number: string | null;
+  instructions: string | null;
+  is_active: boolean;
 };
 
 type MerchantWithdrawalRow = {
@@ -114,6 +123,8 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [merchantWithdrawals, setMerchantWithdrawals] = useState<MerchantWithdrawalRow[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
+  const [paymentDrafts, setPaymentDrafts] = useState<Record<string, { account_number: string; instructions: string; is_active: boolean }>>({});
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const loadStats = useCallback(async () => {
@@ -171,6 +182,41 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     setPaymentReceipts((data || []) as PaymentReceiptRow[]);
   }, []);
 
+  const loadPaymentMethods = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('payment_methods')
+      .select('id, name, code, account_number, instructions, is_active')
+      .order('name');
+    if (err) { setError('تعذر تحميل إعدادات الدفع'); return; }
+    const rows = (data || []) as PaymentMethodRow[];
+    setPaymentMethods(rows);
+    setPaymentDrafts(Object.fromEntries(rows.map((m) => [
+      m.id,
+      { account_number: m.account_number || '', instructions: m.instructions || '', is_active: Boolean(m.is_active) }
+    ])));
+  }, []);
+
+  const handlePaymentMethodSave = async (methodId: string) => {
+    const draft = paymentDrafts[methodId];
+    if (!draft) return;
+    setActionLoading('payment-method-' + methodId);
+    setError('');
+    try {
+      const { data, error: err } = await supabase.rpc('admin_update_payment_method', {
+        p_payment_method_id: methodId,
+        p_account_number: draft.account_number,
+        p_instructions: draft.instructions,
+        p_is_active: draft.is_active,
+      });
+      if (err) throw err;
+      setPaymentMethods((prev) => prev.map((m) => m.id === methodId ? data as PaymentMethodRow : m));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر حفظ إعدادات طريقة الدفع');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const loadMerchantWithdrawals = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('merchant_withdrawal_requests')
@@ -197,14 +243,14 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadOrders()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadPaymentMethods(), loadOrders()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
         setLoading(false);
       }
     })();
-  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadOrders]);
+  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadPaymentMethods, loadOrders]);
 
   const handleTxAction = async (txId: string, action: 'confirm' | 'reject') => {
     setActionLoading(txId + action);
@@ -282,6 +328,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     ['wallets', 'عمليات المحافظ', WalletCards],
     ['payment_receipts', 'إيصالات الدفع', WalletCards],
     ['merchant_withdrawals', 'سحوبات التجار', WalletCards],
+    ['payment_settings', 'إعدادات الدفع', Settings2],
     ['users', 'إدارة الحسابات', Users],
     ['orders', 'متابعة الطلبات', ClipboardList],
   ];
@@ -485,6 +532,69 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                   ))}
                 </div>
               )}
+            </>
+          )}
+
+          {tab === 'payment_settings' && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-white/40">إدارة أرقام التحويل وتعليمات الدفع الإلكتروني</p>
+                <h2 className="mt-1 text-3xl font-black">إعدادات الدفع</h2>
+              </div>
+              <div className="mt-7 space-y-4">
+                {paymentMethods.filter((m) => m.code !== 'cash').map((method) => {
+                  const draft = paymentDrafts[method.id];
+                  if (!draft) return null;
+                  return (
+                    <div key={method.id} className="rounded-2xl border border-white/5 bg-white/[.02] p-5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h3 className="font-black">{method.name}</h3>
+                          <p className="mt-1 text-xs text-white/35" dir="ltr">{method.code || '—'}</p>
+                        </div>
+                        <label className="flex cursor-pointer items-center gap-2 text-sm font-bold">
+                          <input
+                            type="checkbox"
+                            checked={draft.is_active}
+                            onChange={(e) => setPaymentDrafts((prev) => ({ ...prev, [method.id]: { ...prev[method.id], is_active: e.target.checked } }))}
+                            className="h-4 w-4 accent-[#e3fe00]"
+                          />
+                          {draft.is_active ? 'مفعّلة' : 'معطّلة'}
+                        </label>
+                      </div>
+                      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                        <label className="block">
+                          <span className="text-xs font-bold text-white/50">رقم الحساب / المحفظة</span>
+                          <input
+                            value={draft.account_number}
+                            onChange={(e) => setPaymentDrafts((prev) => ({ ...prev, [method.id]: { ...prev[method.id], account_number: e.target.value } }))}
+                            placeholder="أدخل الرقم الحقيقي للحساب"
+                            dir="ltr"
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-[#e3fe00]/50"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-bold text-white/50">تعليمات التحويل</span>
+                          <textarea
+                            value={draft.instructions}
+                            onChange={(e) => setPaymentDrafts((prev) => ({ ...prev, [method.id]: { ...prev[method.id], instructions: e.target.value } }))}
+                            placeholder="اكتب تعليمات التحويل التي ستظهر للعميل"
+                            rows={3}
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-[#e3fe00]/50"
+                          />
+                        </label>
+                      </div>
+                      <button
+                        onClick={() => handlePaymentMethodSave(method.id)}
+                        disabled={actionLoading === 'payment-method-' + method.id}
+                        className="mt-4 flex items-center gap-2 rounded-xl bg-[#e3fe00] px-4 py-3 text-sm font-black text-black disabled:opacity-50"
+                      >
+                        <Save size={16} /> حفظ الإعدادات
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </>
           )}
 
