@@ -1667,6 +1667,30 @@ function StoreAuditLogView({ storeId }: { storeId: string }) {
   );
 }
 
+function SettingsView({ role }: { role: 'customer' | 'driver' | 'merchant' }) {
+  const roleLabel = role === 'customer' ? 'العميل' : role === 'driver' ? 'المندوب' : 'التاجر';
+  const [notifications, setNotifications] = useState(true);
+  return (
+    <section className="space-y-6">
+      <div><p className="text-sm text-white/40">تخصيص تجربتك في جَرْمَل</p><h1 className="mt-1 text-3xl font-black">الإعدادات</h1></div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="jarmal-card rounded-2xl border p-5">
+          <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e3fe00]/15 text-[#6f7e00]"><UserRound size={20}/></div><div><p className="font-black">الحساب</p><p className="text-xs text-white/40">نوع الحساب: {roleLabel}</p></div></div>
+          <div className="mt-5 rounded-xl bg-[#f4f6f1] p-4"><p className="text-xs text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{localStorage.getItem('jarmal_test_phone') || 'غير متوفر'}</p></div>
+        </div>
+        <div className="jarmal-card rounded-2xl border p-5">
+          <p className="font-black">التفضيلات</p>
+          <div className="mt-4 flex items-center justify-between border-t border-[#e5e8e2] py-4"><div><p className="font-bold">إشعارات الطلبات</p><p className="mt-1 text-xs text-white/40">تنبيهات حالة الطلب والتحديثات المهمة</p></div>
+            <button type="button" aria-label="تفعيل إشعارات الطلبات" onClick={() => setNotifications(v => !v)} className={`relative h-7 w-12 rounded-full ${notifications ? 'bg-[#dfff00]' : 'bg-[#dfe4db]'}`}><span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow ${notifications ? 'right-1' : 'left-1'}`} /></button>
+          </div>
+          <div className="flex items-center justify-between border-t border-[#e5e8e2] py-4"><div><p className="font-bold">اللغة</p><p className="mt-1 text-xs text-white/40">لغة واجهة جَرْمَل</p></div><span className="rounded-lg bg-[#f4f6f1] px-3 py-2 text-xs font-bold">العربية</span></div>
+        </div>
+      </div>
+      <div className="rounded-2xl border border-[#dfe4db] bg-white p-5"><div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 text-[#7e8f00]" size={20}/><div><p className="font-black">الخصوصية والأمان</p><p className="mt-1 text-sm text-[#70776f]">تسجيل الدخول يعتمد على رقم الهاتف ورمز تحقق SMS، ولا نعرض بيانات حساسة داخل الواجهة.</p></div></div></div>
+    </section>
+  );
+}
+
 function SideNav({
   role,
   active,
@@ -1688,14 +1712,16 @@ function SideNav({
           ['services', 'الخدمات', Zap],
           ['wallet', 'محفظتي', WalletCards],
           ['map', 'تتبع الطلب', Navigation],
-          ['profile', 'حسابي', UserRound]
+          ['profile', 'حسابي', UserRound],
+          ['settings', 'الإعدادات', Settings2]
         ]
       : role === 'driver'
         ? [
             ['available', 'الطلبات القريبة', Navigation],
             ['active', 'الطلب الحالي', Truck],
             ['history', 'سجل التوصيلات', ClipboardList],
-            ['wallet', 'محفظتي', WalletCards]
+            ['wallet', 'محفظتي', WalletCards],
+            ['settings', 'الإعدادات', Settings2]
           ]
         : [
             ['dashboard', 'نظرة عامة', BarChart3],
@@ -2060,6 +2086,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           {active === 'services' && <ServicesView providers={providers} packages={packages} onRefresh={loadAll} />}
           {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
           {active === 'map' && (<div><h2 className="mb-5 text-xl font-black">تتبع الطلب</h2><MapCard /></div>)}
+          {active === 'settings' && <SettingsView role="customer" />}
           {active === 'profile' && (
             <div className="mx-auto max-w-md space-y-4">
               <h2 className="text-2xl font-black">حسابي</h2>
@@ -2545,6 +2572,8 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
               </div>
             </div>
           )}
+
+          {active === 'settings' && <SettingsView role="merchant" />}
 
           {active === 'wallet' && isOwner && (
             <section>
