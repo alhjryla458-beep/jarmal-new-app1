@@ -2591,8 +2591,6 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
 
-          {active === 'settings' && <SettingsView role="merchant" />}
-
           {active === 'wallet' && isOwner && (
             <section>
               <p className="text-sm text-[#747b72]">أموالك بين يديك</p>
@@ -2780,22 +2778,22 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                 <div>
                   <h2 className="text-2xl font-black">نظرة عامة</h2>
                   {memberContext && (
-                    <p className="mt-1 text-xs text-white/40">
+                    <p className="mt-1 text-xs text-[#747b72]">
                       {memberContext.member_role === 'manager' ? 'مدير المتجر' : memberContext.member_role === 'orders_employee' ? 'موظف الطلبات' : 'موظف المخزون'}
                     </p>
                   )}
                 </div>
                 {store && isOwner && (
-                  <button onClick={toggleOpen} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-white/50'}`}>
+                  <button onClick={toggleOpen} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-[#697068]'}`}>
                     <span className={`h-3 w-3 rounded-full ${store.is_open ? 'bg-black' : 'bg-white/30'}`} />
                     المتجر {store.is_open ? 'مفتوح' : 'مغلق'}
                   </button>
                 )}
               </div>
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">طلبات قيد الانتظار</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">{incoming.length}</p></div>
-                <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">نسبة عمولة جَرْمَل</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">{store?.commission_rate ? `${(store.commission_rate * 100).toFixed(0)}%` : '—'}</p></div>
-                <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">تقييم المتجر</p><p className="mt-2 text-3xl font-black text-[#e3fe00]">★ {store?.rating ?? '—'}</p></div>
+                <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">طلبات قيد الانتظار</p><p className="mt-2 text-3xl font-black text-[#687500]">{incoming.length}</p></div>
+                <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">نسبة عمولة جَرْمَل</p><p className="mt-2 text-3xl font-black text-[#687500]">{store?.commission_rate ? `${(store.commission_rate * 100).toFixed(0)}%` : '—'}</p></div>
+                <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">تقييم المتجر</p><p className="mt-2 text-3xl font-black text-[#687500]">★ {store?.rating ?? '—'}</p></div>
               </div>
             </div>
           )}
@@ -2808,15 +2806,15 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                   const items = orderItems[order.id] || [];
                   const commission = store?.commission_rate ? order.total_amount * store.commission_rate : 0;
                   return (
-                    <div key={order.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                    <div key={order.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5">
                       <div className="flex items-center justify-between">
                         <span className="font-black">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
-                        <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#e3fe00]">{statusLabels[order.status] || order.status}</span>
+                        <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#687500]">{statusLabels[order.status] || order.status}</span>
                       </div>
-                      <div className="mt-3 space-y-1 text-sm text-white/60">
+                      <div className="mt-3 space-y-1 text-sm text-[#667067]">
                         {items.map((item) => (<p key={item.id}>{item.custom_name || 'منتج'} × {item.quantity}</p>))}
                       </div>
-                      <p className="mt-2 text-xs text-white/35">عمولة جَرْمَل التقديرية: {commission.toLocaleString('ar-YE')} {CURRENCY}</p>
+                      <p className="mt-2 text-xs text-[#7f867d]">عمولة جَرْمَل التقديرية: {commission.toLocaleString('ar-YE')} {CURRENCY}</p>
                       {order.status === 'pending' && (
                         <div className="mt-4 flex gap-2">
                           <button disabled={busy} onClick={() => respond(order.id, true)} className="flex-1 rounded-xl bg-[#e3fe00] py-3 text-sm font-black text-black disabled:opacity-50">قبول</button>
@@ -2824,12 +2822,12 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                         </div>
                       )}
                       {(order.status === 'accepted' || order.status === 'preparing') && (
-                        <button disabled={busy} onClick={() => advance(order.id)} className="mt-4 w-full rounded-xl border border-[#e3fe00]/40 py-3 text-sm font-black text-[#e3fe00] disabled:opacity-50">جاهز للاستلام</button>
+                        <button disabled={busy} onClick={() => advance(order.id)} className="mt-4 w-full rounded-xl border border-[#e3fe00]/40 py-3 text-sm font-black text-[#687500] disabled:opacity-50">جاهز للاستلام</button>
                       )}
                     </div>
                   );
                 })}
-                {incoming.length === 0 && <p className="text-sm text-white/40">لا توجد طلبات واردة حالياً</p>}
+                {incoming.length === 0 && <p className="text-sm text-[#747b72]">لا توجد طلبات واردة حالياً</p>}
               </div>
             </div>
           )}
@@ -2837,10 +2835,10 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           {active === 'inventory' && canManageInventory && (
             <div>
               <div className="flex flex-wrap items-end justify-between gap-4">
-                <div><p className="text-sm text-white/40">إدارة الكميات وحركة المخزون</p><h2 className="mt-1 text-2xl font-black">المخزون</h2></div>
+                <div><p className="text-sm text-[#747b72]">إدارة الكميات وحركة المخزون</p><h2 className="mt-1 text-2xl font-black">المخزون</h2></div>
                 <div className="flex flex-wrap gap-2">
-                  <input value={inventoryQty} onChange={(e) => setInventoryQty(e.target.value)} inputMode="decimal" className="w-24 rounded-xl border border-white/10 bg-[#0d0d0d] px-3 py-3 text-center text-sm outline-none focus:border-[#e3fe00]" placeholder="الكمية" />
-                  <input value={inventoryReason} onChange={(e) => setInventoryReason(e.target.value)} className="w-48 rounded-xl border border-white/10 bg-[#0d0d0d] px-3 py-3 text-sm outline-none focus:border-[#e3fe00]" placeholder="سبب الحركة (اختياري)" />
+                  <input value={inventoryQty} onChange={(e) => setInventoryQty(e.target.value)} inputMode="decimal" className="w-24 rounded-xl border border-[#e1e5de] bg-white px-3 py-3 text-center text-sm outline-none focus:border-[#e3fe00]" placeholder="الكمية" />
+                  <input value={inventoryReason} onChange={(e) => setInventoryReason(e.target.value)} className="w-48 rounded-xl border border-[#e1e5de] bg-white px-3 py-3 text-sm outline-none focus:border-[#e3fe00]" placeholder="سبب الحركة (اختياري)" />
                 </div>
               </div>
               {inventoryError && <p className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm text-red-300">{inventoryError}</p>}
@@ -2850,33 +2848,33 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                   const available = (inv?.quantity_on_hand ?? 0) - (inv?.quantity_reserved ?? 0);
                   const low = available <= (inv?.reorder_level ?? 0) && available > 0;
                   return (
-                    <div key={product.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                    <div key={product.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5">
                       <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0"><h3 className="truncate font-black">{product.name}</h3><p className="mt-1 text-xs text-white/40">{product.price.toLocaleString('ar-YE')} {CURRENCY}</p></div>
-                        <div className="text-left"><p className="text-2xl font-black text-[#e3fe00]">{available.toLocaleString('ar-YE')}</p><p className="text-[11px] text-white/35">{inv?.unit_label || 'قطعة'} متاحة</p></div>
+                        <div className="min-w-0"><h3 className="truncate font-black">{product.name}</h3><p className="mt-1 text-xs text-[#747b72]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</p></div>
+                        <div className="text-left"><p className="text-2xl font-black text-[#687500]">{available.toLocaleString('ar-YE')}</p><p className="text-[11px] text-[#7f867d]">{inv?.unit_label || 'قطعة'} متاحة</p></div>
                       </div>
                       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-                        <div className="rounded-xl bg-white/5 p-3"><p className="text-white/35">الموجود</p><p className="mt-1 font-bold">{(inv?.quantity_on_hand ?? 0).toLocaleString('ar-YE')}</p></div>
-                        <div className="rounded-xl bg-white/5 p-3"><p className="text-white/35">محجوز</p><p className="mt-1 font-bold">{(inv?.quantity_reserved ?? 0).toLocaleString('ar-YE')}</p></div>
-                        <div className="rounded-xl bg-white/5 p-3"><p className="text-white/35">إعادة الطلب</p><p className="mt-1 font-bold">{(inv?.reorder_level ?? 0).toLocaleString('ar-YE')}</p></div>
+                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">الموجود</p><p className="mt-1 font-bold">{(inv?.quantity_on_hand ?? 0).toLocaleString('ar-YE')}</p></div>
+                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">محجوز</p><p className="mt-1 font-bold">{(inv?.quantity_reserved ?? 0).toLocaleString('ar-YE')}</p></div>
+                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">إعادة الطلب</p><p className="mt-1 font-bold">{(inv?.reorder_level ?? 0).toLocaleString('ar-YE')}</p></div>
                       </div>
                       <div className="mt-4 flex gap-2">
                         <button disabled={busy} onClick={() => adjustInventory(product.id, 'in')} className="flex-1 rounded-xl bg-[#e3fe00] py-3 text-sm font-black text-black disabled:opacity-50">+ إضافة</button>
-                        <button disabled={busy || available <= 0} onClick={() => adjustInventory(product.id, 'out')} className="flex-1 rounded-xl border border-white/10 py-3 text-sm font-black text-white/70 disabled:opacity-30">− خصم</button>
+                        <button disabled={busy || available <= 0} onClick={() => adjustInventory(product.id, 'out')} className="flex-1 rounded-xl border border-[#e1e5de] py-3 text-sm font-black text-[#596159] disabled:opacity-30">− خصم</button>
                       </div>
                     </div>
                   );
                 })}
-                {myProducts.length === 0 && <p className="text-sm text-white/40">لا توجد منتجات لإدارة مخزونها.</p>}
+                {myProducts.length === 0 && <p className="text-sm text-[#747b72]">لا توجد منتجات لإدارة مخزونها.</p>}
               </div>
 
-              <div className="mt-8 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+              <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs text-white/40">آخر 50 حركة</p>
+                    <p className="text-xs text-[#747b72]">آخر 50 حركة</p>
                     <h3 className="mt-1 text-xl font-black">سجل حركة المخزون</h3>
                   </div>
-                  <span className="rounded-lg bg-white/5 px-3 py-2 text-xs text-white/40">{inventoryMovements.length} حركة</span>
+                  <span className="rounded-lg bg-[#f4f6f1] px-3 py-2 text-xs text-[#747b72]">{inventoryMovements.length} حركة</span>
                 </div>
 
                 <div className="mt-5 space-y-2">
@@ -2892,22 +2890,22 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                       movement.movement_type === 'sale_out' ? 'صرف بيع' :
                       movement.movement_type;
                     return (
-                      <div key={movement.id} className="grid gap-2 rounded-xl border border-white/5 bg-black/30 p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+                      <div key={movement.id} className="grid gap-2 rounded-xl border border-[#edf0eb] bg-[#fafbf9] p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-bold">{product?.name || 'منتج'}</p>
-                          <p className="mt-1 text-xs text-white/35">{label}{movement.reason ? ' • ' + movement.reason : ''}</p>
+                          <p className="mt-1 text-xs text-[#7f867d]">{label}{movement.reason ? ' • ' + movement.reason : ''}</p>
                         </div>
-                        <div className={isIn ? 'text-[#e3fe00]' : isReservation ? 'text-amber-300' : 'text-red-300'}>
+                        <div className={isIn ? 'text-[#687500]' : isReservation ? 'text-amber-300' : 'text-red-300'}>
                           {isIn ? '+' : isReservation ? 'حجز ' : '−'}{Math.abs(movement.quantity).toLocaleString('ar-YE')}
                         </div>
-                        <div className="text-left text-[11px] text-white/35">
+                        <div className="text-left text-[11px] text-[#7f867d]">
                           <div>{movement.quantity_before.toLocaleString('ar-YE')} ← {movement.quantity_after.toLocaleString('ar-YE')}</div>
                           <div className="mt-1">{new Date(movement.created_at).toLocaleString('ar-YE')}</div>
                         </div>
                       </div>
                     );
                   })}
-                  {inventoryMovements.length === 0 && <p className="py-5 text-sm text-white/40">لا توجد حركات مخزون بعد.</p>}
+                  {inventoryMovements.length === 0 && <p className="py-5 text-sm text-[#747b72]">لا توجد حركات مخزون بعد.</p>}
                 </div>
               </div>
             </div>
@@ -2916,30 +2914,30 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           {active === 'products' && canManageProducts && (
             <div>
               <div className="flex items-end justify-between">
-                <h2 className="text-2xl font-black">إدارة المنتجات</h2>
+                <div><p className="text-sm text-[#747b72]">أضف منتجاتك وتحكم في توفرها</p><h2 className="mt-1 text-2xl font-black">إدارة المنتجات</h2></div>
                 <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 rounded-xl bg-[#e3fe00] px-4 py-3 text-sm font-black text-black"><Plus size={17} />إضافة منتج</button>
               </div>
               <div className="mt-7 grid gap-4 sm:grid-cols-2">
                 {myProducts.map((product) => (
-                  <div key={product.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-4">
+                  <div key={product.id} className="rounded-2xl border border-[#e1e5de] bg-white p-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/5">
-                        {product.image_url ? <img src={product.image_url} className="h-full w-full object-cover" /> : <ShoppingBag size={22} className="text-[#e3fe00]" />}
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#f4f6f1]">
+                        {product.image_url ? <img src={product.image_url} className="h-full w-full object-cover" /> : <ShoppingBag size={22} className="text-[#687500]" />}
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate font-bold">{product.name}</h3>
-                        <p className="mt-1 text-xs text-white/40">{product.price.toLocaleString('ar-YE')} {CURRENCY}</p>
+                        <p className="mt-1 text-xs text-[#747b72]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</p>
                       </div>
                     </div>
-                    <button onClick={() => toggleProductAvailable(product.id, product.is_available)} className={`mt-4 w-full rounded-lg py-2 text-xs font-bold ${product.is_available ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-white/10 text-white/40'}`}>{product.is_available ? 'متوفر — اضغط للإخفاء' : 'غير متوفر — اضغط للإظهار'}</button>
+                    <button onClick={() => toggleProductAvailable(product.id, product.is_available)} className={`mt-4 w-full rounded-lg py-2 text-xs font-bold ${product.is_available ? 'bg-[#e3fe00]/10 text-[#687500]' : 'bg-white/10 text-[#747b72]'}`}>{product.is_available ? 'متوفر — اضغط للإخفاء' : 'غير متوفر — اضغط للإظهار'}</button>
                   </div>
                 ))}
-                {myProducts.length === 0 && <p className="text-sm text-white/40">لا توجد منتجات بعد</p>}
+                {myProducts.length === 0 && <p className="text-sm text-[#747b72]">لا توجد منتجات بعد</p>}
               </div>
               {showAdd && (
                 <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-5 backdrop-blur">
-                  <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111] p-6">
-                    <div className="flex items-center justify-between"><h2 className="text-xl font-black">إضافة منتج جديد</h2><button onClick={() => setShowAdd(false)}><X size={20} className="text-white/40" /></button></div>
+                  <div className="w-full max-w-md rounded-3xl border border-[#e1e5de] bg-white p-6">
+                    <div className="flex items-center justify-between"><h2 className="text-xl font-black">إضافة منتج جديد</h2><button onClick={() => setShowAdd(false)}><X size={20} className="text-[#747b72]" /></button></div>
                     <div className="mt-6 space-y-4">
                       <Field label="اسم المنتج" value={newName} onChange={setNewName} placeholder="مثال: وجبة اليوم" icon={<ShoppingBag size={17} />} />
                       <Field label="وصف المنتج" value={newDesc} onChange={setNewDesc} placeholder="اكتب وصفاً مختصراً" icon={<FileText size={17} />} />
@@ -2956,7 +2954,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
 
           {active === 'wallet' && (
             <section>
-              <p className="text-sm text-white/40">أموالك بين يديك</p>
+              <p className="text-sm text-[#747b72]">أموالك بين يديك</p>
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
               <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
                 <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
@@ -2975,11 +2973,11 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           {active === 'settings' && store && isOwner && (
             <div className="max-w-md space-y-4">
               <h2 className="text-2xl font-black">إعدادات المتجر</h2>
-              <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
-                <p className="text-sm text-white/40">اسم المتجر</p>
+              <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <p className="text-sm text-[#747b72]">اسم المتجر</p>
                 <p className="mt-1 font-bold">{store.name}</p>
               </div>
-              <button onClick={toggleOpen} className={`w-full rounded-xl py-4 font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-white/50'}`}>{store.is_open ? 'إغلاق المتجر مؤقتاً' : 'فتح المتجر'}</button>
+              <button onClick={toggleOpen} className={`w-full rounded-xl py-4 font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-[#697068]'}`}>{store.is_open ? 'إغلاق المتجر مؤقتاً' : 'فتح المتجر'}</button>
             </div>
           )}
         </main>
