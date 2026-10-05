@@ -70,6 +70,19 @@ type DriverCashSettlementRow = {
   processed_at: string | null;
 };
 
+type DriverWithdrawalRow = {
+  id: string;
+  driver_id: string;
+  amount: number;
+  payment_method_code: string;
+  account_number: string;
+  status: string;
+  note: string | null;
+  admin_note: string | null;
+  created_at: string;
+  processed_at: string | null;
+};
+
 type OrderRow = {
   id: string;
   customer_id: string;
@@ -134,6 +147,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [merchantWithdrawals, setMerchantWithdrawals] = useState<MerchantWithdrawalRow[]>([]);
   const [driverCashSettlements, setDriverCashSettlements] = useState<DriverCashSettlementRow[]>([]);
+  const [driverWithdrawals, setDriverWithdrawals] = useState<DriverWithdrawalRow[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
   const [paymentDrafts, setPaymentDrafts] = useState<Record<string, { account_number: string; instructions: string; is_active: boolean }>>({});
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -248,6 +262,16 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     setMerchantWithdrawals((data || []) as MerchantWithdrawalRow[]);
   }, []);
 
+  const loadDriverWithdrawals = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('driver_withdrawal_requests')
+      .select('id, driver_id, amount, payment_method_code, account_number, status, note, admin_note, created_at, processed_at')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (err) { setError('تعذر تحميل سحوبات المندوبين'); return; }
+    setDriverWithdrawals((data || []) as DriverWithdrawalRow[]);
+  }, []);
+
   const loadOrders = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('orders')
@@ -264,14 +288,14 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadPaymentMethods(), loadOrders()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadOrders()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
         setLoading(false);
       }
     })();
-  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadPaymentMethods, loadOrders]);
+  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadOrders]);
 
   const handleTxAction = async (txId: string, action: 'confirm' | 'reject') => {
     setActionLoading(txId + action);
@@ -342,7 +366,23 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     } finally {
       setActionLoading(null);
     }
+  };  const handleDriverWithdrawal = async (requestId: string, action: 'approve' | 'reject') => {
+    setActionLoading(requestId + action);
+    setError('');
+    try {
+      const { error: err } = await supabase.rpc('admin_process_driver_wallet_withdrawal', {
+        p_request_id: requestId,
+        p_action: action,
+        p_admin_note: action === 'reject' ? 'تم رفض طلب السحب من الإدارة' : null,
+      });
+      if (err) throw err;
+      await loadDriverWithdrawals();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر معالجة سحب المندوب');
+    } finally { setActionLoading(null); }
   };
+
+
 
   const toggleUserActive = async (userId: string, currentActive: boolean) => {
     setActionLoading(userId);
@@ -368,6 +408,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     ['payment_receipts', 'إيصالات الدفع', WalletCards],
     ['merchant_withdrawals', 'سحوبات التجار', WalletCards],
     ['driver_cash_settlements', 'تسويات المندوبين', Truck],
+    ['driver_withdrawals', 'سحوبات المندوبين', WalletCards],
     ['payment_settings', 'إعدادات الدفع', Settings2],
     ['users', 'إدارة الحسابات', Users],
     ['orders', 'متابعة الطلبات', ClipboardList],
@@ -614,6 +655,48 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                   })}
                 </div>
               )}
+            </>
+          )}
+
+          {tab === 'driver_withdrawals' && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-white/40">طلبات سحب رصيد محافظ المندوبين</p>
+                <h2 className="mt-1 text-3xl font-black">سحوبات المندوبين</h2>
+              </div>
+              <div className="mt-7 space-y-3">
+                {driverWithdrawals.map((item) => {
+                  const profile = profiles.find((p) => p.id === item.driver_id);
+                  const statusText = item.status === 'approved' ? 'تمت الموافقة' : item.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة';
+                  return (
+                    <div key={item.id} className="rounded-2xl border border-white/5 bg-white/[.02] p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <p className="font-black">{profile?.full_name || 'مندوب'}</p>
+                          <p className="mt-1 text-xs text-white/40">{profile?.phone_number || item.driver_id.slice(0, 8)}</p>
+                          <p className="mt-3 text-2xl font-black text-[#e3fe00]">{Number(item.amount || 0).toLocaleString('ar-YE')} {CURRENCY}</p>
+                        </div>
+                        <span className="rounded-lg bg-white/5 px-3 py-2 text-xs font-black">{statusText}</span>
+                      </div>
+                      <div className="mt-4 grid gap-2 text-xs text-white/45 sm:grid-cols-2">
+                        <p>طريقة السحب: {item.payment_method_code}</p>
+                        <p>الحساب: {item.account_number}</p>
+                        <p>تاريخ الطلب: {item.created_at ? new Date(item.created_at).toLocaleString('ar-YE') : '—'}</p>
+                        <p>المعالجة: {item.processed_at ? new Date(item.processed_at).toLocaleString('ar-YE') : 'لم تتم بعد'}</p>
+                      </div>
+                      {item.note && <p className="mt-3 rounded-lg bg-white/5 p-3 text-xs text-white/55">ملاحظة المندوب: {item.note}</p>}
+                      {item.admin_note && <p className="mt-2 rounded-lg bg-white/5 p-3 text-xs text-white/55">ملاحظة الإدارة: {item.admin_note}</p>}
+                      {item.status === 'pending' && (
+                        <div className="mt-4 flex gap-2">
+                          <button disabled={actionLoading === item.id + 'approve'} onClick={() => handleDriverWithdrawal(item.id, 'approve')} className="flex-1 rounded-xl bg-[#e3fe00] px-4 py-3 text-sm font-black text-black disabled:opacity-50">تأكيد السحب</button>
+                          <button disabled={actionLoading === item.id + 'reject'} onClick={() => handleDriverWithdrawal(item.id, 'reject')} className="flex-1 rounded-xl border border-red-500/30 px-4 py-3 text-sm font-black text-red-400 disabled:opacity-50">رفض</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {driverWithdrawals.length === 0 && <p className="py-8 text-center text-sm text-white/40">لا توجد طلبات سحب حتى الآن</p>}
+              </div>
             </>
           )}
 
