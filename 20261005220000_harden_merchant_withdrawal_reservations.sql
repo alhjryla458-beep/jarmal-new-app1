@@ -78,3 +78,6 @@ revoke all on function public.admin_approve_merchant_withdrawal(uuid,text) from 
 grant execute on function public.admin_approve_merchant_withdrawal(uuid,text) to authenticated;
 revoke all on function public.admin_process_merchant_withdrawal(uuid,text,text) from public;
 grant execute on function public.admin_process_merchant_withdrawal(uuid,text,text) to authenticated;
+revoke execute on function public.admin_approve_merchant_withdrawal(uuid,text) from anon;
+revoke execute on function public.admin_process_merchant_withdrawal(uuid,text,text) from anon;
+revoke execute on function public.request_merchant_withdrawal(numeric,text,text,text) from anon;
