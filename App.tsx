@@ -2520,7 +2520,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <h2 className="text-2xl font-black">الطلبات القريبة</h2>
-                <button onClick={toggleAvailability} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black ${profile?.is_available ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-white/50'}`}>
+                <button onClick={toggleAvailability} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black ${profile?.is_available ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-[#667067]'}`}>
                   <span className={`h-3 w-3 rounded-full ${profile?.is_available ? 'bg-black' : 'bg-white/30'}`} />
                   {profile?.is_available ? 'متصل الآن' : 'غير متصل'}
                 </button>
@@ -2528,16 +2528,16 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
               {error && <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
               <div className="mt-7 space-y-3">
                 {available.map((order) => (
-                  <div key={order.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                  <div key={order.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5">
                     <div className="flex items-center justify-between">
                       <span className="font-black">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
-                      <span className="text-xs text-white/40">{order.courier_distance ? `${order.courier_distance} كم` : ''}</span>
+                      <span className="text-xs text-[#747b72]">{order.courier_distance ? `${order.courier_distance} كم` : ''}</span>
                     </div>
-                    <p className="mt-2 text-xs text-white/40">{order.fulfillment_type === 'pickup' ? 'استلام من المتجر فقط' : order.delivery_address}</p>
+                    <p className="mt-2 text-xs text-[#747b72]">{order.fulfillment_type === 'pickup' ? 'استلام من المتجر فقط' : order.delivery_address}</p>
                     <button disabled={busy} onClick={() => acceptOrder(order.id)} className="mt-4 w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black hover:bg-white disabled:opacity-50">قبول الطلب</button>
                   </div>
                 ))}
-                {available.length === 0 && <p className="text-sm text-white/40">لا توجد طلبات جاهزة للاستلام حالياً</p>}
+                {available.length === 0 && <p className="text-sm text-[#747b72]">لا توجد طلبات جاهزة للاستلام حالياً</p>}
               </div>
             </div>
           )}
@@ -2548,12 +2548,12 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
               {activeOrder ? (
                 <>
                   <MapCard driver />
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                  <div className="mt-6 rounded-2xl border border-[#e1e5de] bg-white p-5">
                     <div className="flex items-center justify-between">
                       <span className="font-black">{activeOrder.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
-                      <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#e3fe00]">{statusLabels[activeOrder.status] || activeOrder.status}</span>
+                      <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#687500]">{statusLabels[activeOrder.status] || activeOrder.status}</span>
                     </div>
-                    <p className="mt-2 text-sm text-white/50">{activeOrder.delivery_address}</p>
+                    <p className="mt-2 text-sm text-[#667067]">{activeOrder.delivery_address}</p>
                     <div className="mt-5 flex gap-3">
                       {nextStatus(activeOrder.status) && (
                         <button disabled={busy} onClick={() => advance(activeOrder.id, activeOrder.status)} className="flex-1 rounded-xl bg-[#e3fe00] py-3 font-black text-black disabled:opacity-50">
@@ -2561,13 +2561,13 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
                         </button>
                       )}
                       {activeOrder.payment_status !== 'paid' && (
-                        <button disabled={busy} onClick={() => confirmCash(activeOrder.id)} className="flex-1 rounded-xl border border-[#e3fe00]/40 py-3 font-black text-[#e3fe00] disabled:opacity-50">تأكيد استلام الدفع</button>
+                        <button disabled={busy} onClick={() => confirmCash(activeOrder.id)} className="flex-1 rounded-xl border border-[#e3fe00]/40 py-3 font-black text-[#687500] disabled:opacity-50">تأكيد استلام الدفع</button>
                       )}
                     </div>
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-white/40">لا يوجد طلب نشط حالياً</p>
+                <p className="text-sm text-[#747b72]">لا يوجد طلب نشط حالياً</p>
               )}
             </div>
           )}
@@ -2579,14 +2579,14 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
               <h2 className="mb-5 text-2xl font-black">سجل التوصيلات</h2>
               <div className="space-y-3">
                 {history.map((order) => (
-                  <div key={order.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-4">
+                  <div key={order.id} className="rounded-2xl border border-[#e1e5de] bg-white p-4">
                     <div className="flex items-center justify-between">
                       <span className="font-bold">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
-                      <span className="text-xs text-white/40">{new Date(order.created_at).toLocaleDateString('ar-YE')}</span>
+                      <span className="text-xs text-[#747b72]">{new Date(order.created_at).toLocaleDateString('ar-YE')}</span>
                     </div>
                   </div>
                 ))}
-                {history.length === 0 && <p className="text-sm text-white/40">لا يوجد سجل توصيلات بعد</p>}
+                {history.length === 0 && <p className="text-sm text-[#747b72]">لا يوجد سجل توصيلات بعد</p>}
               </div>
             </div>
           )}
@@ -2595,7 +2595,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
 
           {active === 'wallet' && isOwner && (
             <section>
-              <p className="text-sm text-white/40">أموالك بين يديك</p>
+              <p className="text-sm text-[#747b72]">أموالك بين يديك</p>
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
               <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
                 <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
@@ -2603,8 +2603,8 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
               </div>
               {profile && (
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">التقييم</p><p className="mt-2 text-xl font-black text-[#e3fe00]">★ {profile.rating ?? '—'}</p></div>
-                  <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-xs text-white/40">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
+                  <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">التقييم</p><p className="mt-2 text-xl font-black text-[#687500]">★ {profile.rating ?? '—'}</p></div>
+                  <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
                 </div>
               )}
             </section>
