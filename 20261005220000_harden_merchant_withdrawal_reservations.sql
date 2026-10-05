@@ -44,6 +44,8 @@ begin
  if coalesce(v_wallet.balance,0)<v_request.amount then raise exception 'balance insufficient'; end if;
  update public.merchant_wallets set balance=balance-v_request.amount,reserved_balance=reserved_balance-v_request.amount where id=v_wallet.id;
  update public.merchant_withdrawal_requests set status='approved',admin_note=nullif(trim(p_admin_note),''),processed_at=now() where id=v_request.id returning * into v_request;
+ insert into public.wallet_transactions(user_id,wallet_type,transaction_type,amount,channel,account_reference,status)
+ values(v_request.merchant_id,'merchant','withdrawal',v_request.amount,v_request.payment_method_code,v_request.id::text,'completed');
  return v_request;
 end; $function$;
 
@@ -64,6 +66,8 @@ begin
    if coalesce(v_wallet.balance,0)<v_request.amount then raise exception 'balance insufficient'; end if;
    update public.merchant_wallets set balance=balance-v_request.amount,reserved_balance=reserved_balance-v_request.amount where id=v_wallet.id;
    update public.merchant_withdrawal_requests set status='approved',admin_note=nullif(trim(p_admin_note),''),processed_at=now() where id=v_request.id;
+   insert into public.wallet_transactions(user_id,wallet_type,transaction_type,amount,channel,account_reference,status)
+   values(v_request.merchant_id,'merchant','withdrawal',v_request.amount,v_request.payment_method_code,v_request.id::text,'completed');
  else
    update public.merchant_wallets set reserved_balance=reserved_balance-v_request.amount where id=v_wallet.id;
    update public.merchant_withdrawal_requests set status='rejected',admin_note=nullif(trim(p_admin_note),''),processed_at=now() where id=v_request.id;
