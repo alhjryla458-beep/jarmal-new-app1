@@ -2658,6 +2658,12 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [withdrawalNote, setWithdrawalNote] = useState('');
   const [withdrawalBusy, setWithdrawalBusy] = useState(false);
   const [withdrawalError, setWithdrawalError] = useState('');
+  const [topupAmount, setTopupAmount] = useState('');
+  const [topupMethod, setTopupMethod] = useState('');
+  const [topupReference, setTopupReference] = useState('');
+  const [topupBusy, setTopupBusy] = useState(false);
+  const [topupError, setTopupError] = useState('');
+  const [driverWalletTransactions, setDriverWalletTransactions] = useState<any[]>([]);
   const [available, setAvailable] = useState<FullOrderRow[]>([]);
   const [activeOrder, setActiveOrder] = useState<FullOrderRow | null>(null);
   const [history, setHistory] = useState<FullOrderRow[]>([]);
@@ -2682,6 +2688,9 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
     });
     supabase.from('driver_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, admin_note, created_at, processed_at').order('created_at', { ascending: false }).limit(30).then(({ data }) => {
       if (data) setDriverWithdrawals(data || []);
+    });
+    supabase.from('wallet_transactions').select('id, transaction_type, amount, payment_method, transaction_status').in('transaction_type', ['topup', 'withdrawal', 'earning']).order('id', { ascending: false }).limit(50).then(({ data }) => {
+      if (data) setDriverWalletTransactions(data || []);
     });
     Promise.all([
       supabase.from('driver_cash_collections').select('amount, settled_amount, status').eq('status', 'open'),
@@ -2783,6 +2792,20 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
     } catch (caught) {
       setWithdrawalError(caught instanceof Error ? caught.message : 'تعذر إرسال طلب السحب');
     } finally { setWithdrawalBusy(false); }
+  };  const requestDriverTopup = async () => {
+    const amount = Number(topupAmount);
+    if (!Number.isFinite(amount) || amount <= 0) { setTopupError('أدخل مبلغ شحن صحيح'); return; }
+    if (!topupMethod) { setTopupError('اختر طريقة الشحن'); return; }
+    setTopupBusy(true); setTopupError('');
+    try {
+      const { error: rpcError } = await supabase.rpc('request_driver_wallet_topup', {
+        p_amount: amount, p_payment_method_code: topupMethod, p_reference_number: topupReference.trim() || null,
+      });
+      if (rpcError) throw rpcError;
+      setTopupAmount(''); setTopupReference(''); loadAll();
+    } catch (caught) {
+      setTopupError(caught instanceof Error ? caught.message : 'تعذر إرسال طلب الشحن');
+    } finally { setTopupBusy(false); }
   };
 
   return (
@@ -2882,6 +2905,38 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
                   <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
                 </div>
               )}
+
+              <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <p className="text-xs text-[#747b72]">إضافة رصيد للمحفظة</p>
+                <h2 className="mt-1 text-xl font-black">شحن المحفظة</h2>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <input value={topupAmount} onChange={(e) => setTopupAmount(e.target.value.replace(/[^0-9.]/g, ''))} inputMode="decimal" placeholder="مبلغ الشحن" dir="ltr" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm font-bold outline-none focus:border-[#b7c800]" />
+                  <select value={topupMethod} onChange={(e) => setTopupMethod(e.target.value)} className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm font-bold outline-none">
+                    <option value="">طريقة الشحن</option>
+                    {driverPaymentMethods.map((method) => <option key={method.code} value={method.code}>{method.name}</option>)}
+                  </select>
+                  <input value={topupReference} onChange={(e) => setTopupReference(e.target.value)} placeholder="رقم العملية/المرجع (اختياري)" dir="ltr" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm outline-none focus:border-[#b7c800]" />
+                </div>
+                <button onClick={requestDriverTopup} disabled={topupBusy} className="mt-3 w-full rounded-xl bg-[#e3fe00] py-3 text-sm font-black text-black disabled:opacity-50">{topupBusy ? 'جارٍ الإرسال...' : 'إرسال طلب الشحن'}</button>
+                {topupError && <p className="mt-3 rounded-lg bg-red-500/10 p-3 text-xs font-bold text-red-600">{topupError}</p>}
+                <p className="mt-3 text-xs text-[#747b72]">سيبقى الطلب قيد المراجعة حتى تؤكده الإدارة.</p>
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <p className="text-xs text-[#747b72]">حركات المحفظة</p>
+                <h2 className="mt-1 text-xl font-black">السجل المالي</h2>
+                <div className="mt-5 space-y-2">
+                  {driverWalletTransactions.map((tx) => {
+                    const type = tx.transaction_type === 'topup' ? 'شحن' : tx.transaction_type === 'earning' ? 'أرباح' : tx.transaction_type === 'withdrawal' ? 'سحب' : tx.transaction_type;
+                    const status = tx.transaction_status === 'completed' ? 'مكتملة' : tx.transaction_status === 'rejected' ? 'مرفوضة' : 'قيد المراجعة';
+                    return <div key={tx.id} className="flex items-center justify-between rounded-xl border border-[#edf0eb] bg-[#fafbf9] px-4 py-3">
+                      <div><p className="text-sm font-black">{type}</p><p className="mt-1 text-xs text-[#747b72]">{tx.payment_method || '—'} • {status}</p></div>
+                      <p className="font-black">{Number(tx.amount || 0).toLocaleString('ar-YE')} {CURRENCY}</p>
+                    </div>;
+                  })}
+                  {driverWalletTransactions.length === 0 && <p className="py-4 text-center text-sm text-[#747b72]">لا توجد حركات مالية حتى الآن</p>}
+                </div>
+              </div>
 
               <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
