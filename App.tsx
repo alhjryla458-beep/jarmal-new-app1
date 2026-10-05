@@ -2206,12 +2206,12 @@ function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
-      <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[#0d0d0d] p-6 sm:rounded-3xl">
-        <div className="mb-5 flex items-center justify-between"><h3 className="text-xl font-black">سلة الطلبات</h3><button onClick={onClose}><X size={20} className="text-white/50" /></button></div>
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/35 p-0 backdrop-blur-sm sm:items-center sm:p-5">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-[#e1e5de] bg-white p-5 shadow-[0_24px_70px_rgba(23,26,22,.16)] sm:rounded-3xl sm:p-6">
+        <div className="mb-5 flex items-start justify-between gap-4"><div><p className="text-xs font-bold text-[#7a8178]">مراجعة الطلب</p><h3 className="mt-1 text-xl font-black text-[#171a16]">سلة الطلبات</h3></div><button onClick={onClose} className="rounded-xl bg-[#f4f6f1] p-2 text-[#687067]" aria-label="إغلاق السلة"><X size={20} /></button></div>
         <div className="space-y-3">
           {cart.map((item) => (
-            <div key={item.key} className="flex items-center justify-between rounded-xl border border-white/10 p-3">
+            <div key={item.key} className="flex items-center justify-between gap-3 rounded-2xl border border-[#e4e8e1] bg-[#fafbf9] p-3.5">
               <div><p className="font-bold">{item.name}</p><p className="text-xs text-white/40">{item.price.toLocaleString('ar-YE')} {CURRENCY} × {item.quantity}</p></div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setCart((c) => c.map((x) => x.key === item.key ? { ...x, quantity: x.quantity - 1 } : x).filter((x) => x.quantity > 0))} className="h-7 w-7 rounded-lg bg-white/10 font-black">−</button>
@@ -2226,10 +2226,10 @@ function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
           <button onClick={() => setFulfillment('pickup')} className={`flex-1 rounded-xl py-3 text-sm font-bold ${fulfillment === 'pickup' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/50'}`}>استلام بنفسك</button>
         </div>
         {fulfillment === 'delivery' && <div className="mt-3"><Field label="عنوان التوصيل" value={address} onChange={setAddress} placeholder="الحي، الشارع، أقرب معلم" /></div>}
-        <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: بدون بصل" /></div>
+        <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: اتصل بي عند الوصول" /></div>
         {error && <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black"><span>الإجمالي</span><span>{(total + deliveryFee).toLocaleString('ar-YE')} {CURRENCY}</span></div>
-        <button disabled={busy || cart.length === 0} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? 'جارٍ الإرسال...' : 'تأكيد الطلب (الدفع عند الاستلام)'}</button>
+        <button disabled={busy || cart.length === 0} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? 'جارٍ إرسال الطلب...' : 'تأكيد الطلب'}</button>
       </div>
     </div>
   );
