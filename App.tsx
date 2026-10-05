@@ -2046,7 +2046,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
               </div>
               <section className="mt-10">
                 <div className="flex items-end justify-between gap-3"><div><h2 className="text-xl font-black">متاجر جَرْمَل</h2><p className="mt-1 text-sm text-black/45">اختر المتجر ثم تصفح المنتجات</p></div></div>
-                <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
+                <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto rounded-2xl border border-[#e3e7e0] bg-[#f7f9f5] p-2 pb-2">
                   <button onClick={() => setStoreCategory('الكل')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${storeCategory === 'الكل' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>الكل</button>
                   {Array.from(new Set(storesReal.map((s) => s.store_type))).map((type) => (
                     <button key={type} onClick={() => setStoreCategory(type)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${storeCategory === type ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>{type}</button>
@@ -2122,10 +2122,8 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
 
   return (
     <div>
-      <button onClick={onBack} className="mb-5 flex items-center gap-2 text-sm font-bold text-white/50 hover:text-white"><ArrowRight size={16} />رجوع للمتاجر</button>
-      <div className="flex h-32 items-center justify-center rounded-3xl bg-white/[.03]"><Store size={48} className="text-[#e3fe00]" /></div>
-      <h2 className="mt-5 text-2xl font-black">{store.name}</h2>
-      <p className="mt-1 text-sm text-white/40">{store.address_description}</p>
+      <button onClick={onBack} className="mb-4 flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-bold text-[#697068] hover:bg-[#f4f6f1]"><ArrowRight size={16} />رجوع للمتاجر</button>
+      <div className="rounded-3xl border border-[#e1e5de] bg-white p-5 shadow-[0_10px_30px_rgba(23,26,22,.05)]"><div className="flex items-center gap-4"><div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#f1f5df]"><Store size={30} className="text-[#7e8f00]" /></div><div className="min-w-0"><h2 className="text-xl font-black text-[#171a16]">{store.name}</h2><p className="mt-1 text-sm text-[#70776f]">{store.address_description}</p></div></div></div>
       {categories.length > 0 && (
         <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
           <button onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>الكل</button>
