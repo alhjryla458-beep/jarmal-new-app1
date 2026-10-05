@@ -213,6 +213,8 @@ type FullOrderRow = {
   store_id: string | null;
   driver_id: string | null;
   delivery_address: string | null;
+  delivery_latitude: number | null;
+  delivery_longitude: number | null;
   notes: string | null;
   courier_distance: number | null;
   fulfillment_type: string;
@@ -2174,12 +2176,140 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
   );
 }
 
+function LocationMap({
+  latitude,
+  longitude,
+  onChange,
+  interactive = true,
+  title = 'موقع التسليم'
+}: {
+  latitude: number | null;
+  longitude: number | null;
+  onChange?: (latitude: number, longitude: number) => void;
+  interactive?: boolean;
+  title?: string;
+}) {
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const [locating, setLocating] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadLeaflet = async () => {
+      if (document.getElementById('jarmal-leaflet-css') === null) {
+        const link = document.createElement('link');
+        link.id = 'jarmal-leaflet-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+      }
+      if (!(window as any).L) {
+        await new Promise<void>((resolve, reject) => {
+          const existing = document.getElementById('jarmal-leaflet-js');
+          if (existing) {
+            existing.addEventListener('load', () => resolve(), { once: true });
+            existing.addEventListener('error', () => reject(new Error('تعذر تحميل الخريطة')), { once: true });
+            return;
+          }
+          const script = document.createElement('script');
+          script.id = 'jarmal-leaflet-js';
+          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('تعذر تحميل الخريطة'));
+          document.body.appendChild(script);
+        });
+      }
+      if (cancelled || !mapRef.current || !(window as any).L) return;
+      const L = (window as any).L;
+      const center: [number, number] = latitude !== null && longitude !== null ? [latitude, longitude] : [0, 0];
+      const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false }).setView(center, latitude !== null && longitude !== null ? 16 : 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19
+      }).addTo(map);
+      mapInstanceRef.current = map;
+      if (latitude !== null && longitude !== null) {
+        markerRef.current = L.marker([latitude, longitude]).addTo(map);
+      }
+      if (interactive && onChange) {
+        map.on('click', (event: any) => {
+          const lat = Number(event.latlng.lat.toFixed(7));
+          const lng = Number(event.latlng.lng.toFixed(7));
+          if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
+          else markerRef.current = L.marker([lat, lng]).addTo(map);
+          onChange(lat, lng);
+        });
+      }
+      setMapReady(true);
+      setTimeout(() => map.invalidateSize(), 50);
+    };
+    void loadLeaflet().catch(() => undefined);
+    return () => {
+      cancelled = true;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !mapReady || latitude === null || longitude === null) return;
+    const map = mapInstanceRef.current;
+    if (markerRef.current) markerRef.current.setLatLng([latitude, longitude]);
+    else markerRef.current = (window as any).L.marker([latitude, longitude]).addTo(map);
+    map.setView([latitude, longitude], Math.max(map.getZoom(), 16));
+  }, [latitude, longitude, mapReady]);
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        onChange?.(Number(position.coords.latitude.toFixed(7)), Number(position.coords.longitude.toFixed(7)));
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
+
+  return (
+    <div className="mt-3 overflow-hidden rounded-2xl border border-[#e1e5de] bg-[#f5f6f3]">
+      <div className="flex items-center justify-between gap-3 border-b border-[#e1e5de] bg-white px-4 py-3">
+        <div>
+          <p className="text-sm font-black">{title}</p>
+          <p className="mt-1 text-[11px] text-[#747b72]">
+            {interactive ? 'اضغط على الخريطة لتحديد نقطة التسليم' : 'موقع العميل المحدد للطلب'}
+          </p>
+        </div>
+        {interactive && (
+          <button type="button" onClick={useCurrentLocation} disabled={locating} className="shrink-0 rounded-xl bg-[#e3fe00] px-3 py-2 text-xs font-black text-black disabled:opacity-50">
+            {locating ? 'جارٍ تحديد الموقع...' : 'موقعي الحالي'}
+          </button>
+        )}
+      </div>
+      <div ref={mapRef} className="h-64 w-full" />
+      {latitude !== null && longitude !== null && (
+        <div className="border-t border-[#e1e5de] bg-white px-4 py-2 text-[11px] text-[#747b72]" dir="ltr">
+          {latitude.toFixed(7)}, {longitude.toFixed(7)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
   cart: CartLine[]; setCart: React.Dispatch<React.SetStateAction<CartLine[]>>; total: number; storeId: string;
   onClose: () => void; onOrdered: () => void;
 }) {
   const [fulfillment, setFulfillment] = useState<'delivery' | 'pickup'>('delivery');
   const [address, setAddress] = useState('');
+  const [deliveryLatitude, setDeliveryLatitude] = useState<number | null>(null);
+  const [deliveryLongitude, setDeliveryLongitude] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -2188,12 +2318,13 @@ function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
   const confirmOrder = async () => {
     setError(''); setBusy(true);
     try {
-      if (fulfillment === 'delivery' && !address.trim()) throw new Error('أدخل عنوان التوصيل');
+      if (fulfillment === 'delivery' && !address.trim()) throw new Error('أدخل وصف موقع التوصيل');
+      if (fulfillment === 'delivery' && (deliveryLatitude === null || deliveryLongitude === null)) throw new Error('حدد موقعك على الخريطة أو اضغط «موقعي الحالي»');
       const items = cart.map((c) => c.custom_name ? { custom_name: c.custom_name, custom_price: c.custom_price, quantity: c.quantity } : { product_id: c.product_id, ...(c.variant_id ? { variant_id: c.variant_id } : {}), quantity: c.quantity });
       const { error: rpcError } = await supabase.rpc('create_cash_order', {
         p_store_id: storeId, p_items: items, p_delivery_fee: deliveryFee,
         p_delivery_address: fulfillment === 'delivery' ? address.trim() : null,
-        p_delivery_latitude: null, p_delivery_longitude: null,
+        p_delivery_latitude: fulfillment === 'delivery' ? deliveryLatitude : null, p_delivery_longitude: fulfillment === 'delivery' ? deliveryLongitude : null,
         p_fulfillment_type: fulfillment, p_notes: notes.trim() || null
       });
       if (rpcError) throw rpcError;
@@ -2223,7 +2354,10 @@ function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
           <button onClick={() => setFulfillment('delivery')} className={`flex-1 rounded-xl py-3 text-sm font-bold ${fulfillment === 'delivery' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/50'}`}>توصيل للمنزل</button>
           <button onClick={() => setFulfillment('pickup')} className={`flex-1 rounded-xl py-3 text-sm font-bold ${fulfillment === 'pickup' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/50'}`}>استلام بنفسك</button>
         </div>
-        {fulfillment === 'delivery' && <div className="mt-3"><Field label="عنوان التوصيل" value={address} onChange={setAddress} placeholder="الحي، الشارع، أقرب معلم" /></div>}
+        {fulfillment === 'delivery' && <>
+          <Field label="وصف موقع التوصيل" value={address} onChange={setAddress} placeholder="الحي، الشارع، أقرب معلم" />
+          <LocationMap latitude={deliveryLatitude} longitude={deliveryLongitude} onChange={(lat, lng) => { setDeliveryLatitude(lat); setDeliveryLongitude(lng); }} />
+        </>}
         <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: اتصل بي عند الوصول" /></div>
         {error && <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black"><span>الإجمالي</span><span>{(total + deliveryFee).toLocaleString('ar-YE')} {CURRENCY}</span></div>
@@ -2461,12 +2595,12 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const loadAll = () => {
     supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating').maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
     supabase.from('driver_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
-    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'ready_for_pickup').is('driver_id', null).then(({ data }) => { if (data) setAvailable(data as FullOrderRow[]); });
-    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').not('status', 'in', '(delivered,cancelled,pending)').then(({ data }) => {
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'ready_for_pickup').is('driver_id', null).then(({ data }) => { if (data) setAvailable(data as FullOrderRow[]); });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').not('status', 'in', '(delivered,cancelled,pending)').then(({ data }) => {
       const mine = (data as FullOrderRow[] | null)?.find((o) => o.driver_id) || null;
       setActiveOrder(mine);
     });
-    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'delivered').order('created_at', { ascending: false }).then(({ data }) => { if (data) setHistory(data as FullOrderRow[]); });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'delivered').order('created_at', { ascending: false }).then(({ data }) => { if (data) setHistory(data as FullOrderRow[]); });
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -2547,13 +2681,13 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
               <h2 className="mb-5 text-2xl font-black">الطلب الحالي</h2>
               {activeOrder ? (
                 <>
-                  <MapCard driver />
+                  <LocationMap latitude={activeOrder.delivery_latitude} longitude={activeOrder.delivery_longitude} interactive={false} title="موقع العميل" />
                   <div className="mt-6 rounded-2xl border border-[#e1e5de] bg-white p-5">
                     <div className="flex items-center justify-between">
                       <span className="font-black">{activeOrder.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
                       <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#687500]">{statusLabels[activeOrder.status] || activeOrder.status}</span>
                     </div>
-                    <p className="mt-2 text-sm text-[#667067]">{activeOrder.delivery_address}</p>
+                    <p className="mt-2 text-sm text-[#667067]">{activeOrder.delivery_address || 'لا يوجد وصف نصي للموقع'}</p>
                     <div className="mt-5 flex gap-3">
                       {nextStatus(activeOrder.status) && (
                         <button disabled={busy} onClick={() => advance(activeOrder.id, activeOrder.status)} className="flex-1 rounded-xl bg-[#e3fe00] py-3 font-black text-black disabled:opacity-50">
@@ -2679,7 +2813,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     if (data) {
       const row = data as MyStoreRow;
       setStore(row);
-      supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, notes, courier_distance, fulfillment_type, payment_status').eq('store_id', row.id).in('status', ['pending', 'accepted', 'preparing']).order('created_at', { ascending: false }).then(async ({ data: orders }) => {
+      supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('store_id', row.id).in('status', ['pending', 'accepted', 'preparing']).order('created_at', { ascending: false }).then(async ({ data: orders }) => {
           const list = (orders as FullOrderRow[]) || [];
           setIncoming(list);
           if (list.length > 0) {
