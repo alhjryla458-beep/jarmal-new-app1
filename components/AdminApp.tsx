@@ -8,7 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 
 const CURRENCY = 'ر.ي';
 
-type AdminTab = 'stats' | 'wallets' | 'users' | 'orders';
+type AdminTab = 'stats' | 'wallets' | 'merchant_withdrawals' | 'users' | 'orders';
 
 type ProfileRow = {
   id: string;
@@ -25,6 +25,19 @@ type TxRow = {
   amount: number;
   payment_method: string | null;
   transaction_status: string;
+};
+
+type MerchantWithdrawalRow = {
+  id: string;
+  merchant_id: string;
+  amount: number;
+  payment_method_code: string;
+  account_number: string;
+  status: string;
+  note: string | null;
+  admin_note: string | null;
+  created_at: string;
+  processed_at: string | null;
 };
 
 type OrderRow = {
@@ -88,6 +101,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [transactions, setTransactions] = useState<TxRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [merchantWithdrawals, setMerchantWithdrawals] = useState<MerchantWithdrawalRow[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const loadStats = useCallback(async () => {
@@ -135,6 +149,16 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     setProfiles((data || []) as ProfileRow[]);
   }, []);
 
+  const loadMerchantWithdrawals = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('merchant_withdrawal_requests')
+      .select('id, merchant_id, amount, payment_method_code, account_number, status, note, admin_note, created_at, processed_at')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (err) { setError('تعذر تحميل طلبات سحب التجار'); return; }
+    setMerchantWithdrawals((data || []) as MerchantWithdrawalRow[]);
+  }, []);
+
   const loadOrders = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('orders')
@@ -151,14 +175,14 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadProfiles(), loadOrders()]);
+        await Promise.all([loadStats(), loadTransactions(), loadProfiles(), loadMerchantWithdrawals(), loadOrders()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
         setLoading(false);
       }
     })();
-  }, [loadStats, loadTransactions, loadProfiles, loadOrders]);
+  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadOrders]);
 
   const handleTxAction = async (txId: string, action: 'confirm' | 'reject') => {
     setActionLoading(txId + action);
@@ -172,6 +196,24 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       await Promise.all([loadTransactions(), loadStats()]);
     } catch {
       setError(action === 'confirm' ? 'تعذر تأكيد العملية' : 'تعذر رفض العملية');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleMerchantWithdrawal = async (requestId: string, action: 'approve' | 'reject') => {
+    setActionLoading(requestId + action);
+    setError('');
+    try {
+      const { error: err } = await supabase.rpc('admin_process_merchant_withdrawal', {
+        p_request_id: requestId,
+        p_action: action,
+        p_admin_note: action === 'reject' ? 'تم رفض الطلب من الإدارة' : null,
+      });
+      if (err) throw err;
+      await loadMerchantWithdrawals();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر معالجة طلب السحب');
     } finally {
       setActionLoading(null);
     }
@@ -198,6 +240,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const navItems: [AdminTab, string, React.ElementType][] = [
     ['stats', 'الإحصائيات', BarChart3],
     ['wallets', 'عمليات المحافظ', WalletCards],
+    ['merchant_withdrawals', 'سحوبات التجار', WalletCards],
     ['users', 'إدارة الحسابات', Users],
     ['orders', 'متابعة الطلبات', ClipboardList],
   ];
@@ -360,6 +403,44 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                           </button>
                         </div>
                       ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {tab === 'merchant_withdrawals' && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-white/40">طلبات تحويل رصيد التجار إلى المحافظ والحسابات المحلية</p>
+                <h2 className="mt-1 text-3xl font-black">سحوبات التجار</h2>
+              </div>
+              {merchantWithdrawals.length === 0 ? (
+                <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
+                  <WalletCards size={42} className="text-white/20" />
+                  <h3 className="mt-4 font-bold">لا توجد طلبات سحب</h3>
+                </div>
+              ) : (
+                <div className="mt-7 space-y-3">
+                  {merchantWithdrawals.map((w) => (
+                    <div key={w.id} className="rounded-2xl border border-white/5 bg-white/[.02] p-4">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <div className="min-w-[140px] flex-1">
+                          <p className="text-sm font-black">{Number(w.amount).toLocaleString('ar-YE')} {CURRENCY}</p>
+                          <p className="mt-1 text-xs text-white/35">التاجر: {w.merchant_id.slice(0, 8)} • {w.payment_method_code} • {w.account_number}</p>
+                          <p className="mt-1 text-xs text-white/30">{new Date(w.created_at).toLocaleString('ar-YE')}</p>
+                        </div>
+                        <StatusBadge status={w.status} />
+                        {w.status === 'pending' && (
+                          <div className="flex gap-2">
+                            <button onClick={() => handleMerchantWithdrawal(w.id, 'approve')} disabled={actionLoading === w.id + 'approve'} className="rounded-lg bg-[#e3fe00] px-3 py-2 text-xs font-black text-black disabled:opacity-50"><Check size={14} className="mr-1 inline" />تأكيد التحويل</button>
+                            <button onClick={() => handleMerchantWithdrawal(w.id, 'reject')} disabled={actionLoading === w.id + 'reject'} className="rounded-lg border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 disabled:opacity-50"><X size={14} className="mr-1 inline" />رفض</button>
+                          </div>
+                        )}
+                      </div>
+                      {w.note && <p className="mt-3 rounded-lg bg-white/5 p-3 text-xs text-white/45">ملاحظة التاجر: {w.note}</p>}
+                      {w.admin_note && <p className="mt-2 rounded-lg bg-white/5 p-3 text-xs text-white/45">ملاحظة الإدارة: {w.admin_note}</p>}
                     </div>
                   ))}
                 </div>
