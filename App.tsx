@@ -2268,7 +2268,7 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
   };
 
   if (orders.length === 0) {
-    return (<div className="flex flex-col items-center justify-center py-24 text-center"><ClipboardList size={40} className="text-white/20" /><p className="mt-4 text-white/40">لا توجد طلبات حتى الآن</p></div>);
+    return (<div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#dfe4db] bg-white py-24 text-center shadow-[0_8px_24px_rgba(23,26,22,.035)]"><div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#f1f5df]"><ClipboardList size={30} className="text-[#7b8900]" /></div><p className="mt-4 font-black text-[#30362f]">لا توجد طلبات حتى الآن</p><p className="mt-1 text-xs text-[#8a9189]">عندما تنشئ طلبًا سيظهر هنا مع حالته وتفاصيله.</p></div>);
   }
 
   return (
@@ -2276,12 +2276,30 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
       <h2 className="mb-5 text-2xl font-black">طلباتي</h2>
       <div className="space-y-4">
         {orders.map((order) => (
-          <div key={order.id} className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
-            <div className="flex items-center justify-between">
-              <span className="font-black">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
-              <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#e3fe00]">{statusLabels[order.status] || order.status}</span>
+          <div key={order.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5 shadow-[0_8px_24px_rgba(23,26,22,.045)]">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[#8a9189]">طلب #{order.id.slice(0, 8).toUpperCase()}</p>
+                <p className="mt-1 text-xl font-black text-[#171a16]">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-[#f1f5df] px-3 py-1.5 text-xs font-black text-[#667400]">{statusLabels[order.status] || order.status}</span>
             </div>
-            <p className="mt-2 text-xs text-white/40">{new Date(order.created_at).toLocaleString('ar-YE')} • {order.fulfillment_type === 'pickup' ? 'استلام بنفسك' : 'توصيل'}</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-xl bg-[#f7f8f5] px-3 py-2.5">
+                <p className="text-[10px] font-bold text-[#9aa097]">التاريخ</p>
+                <p className="mt-1 text-xs font-bold text-[#596159]">{new Date(order.created_at).toLocaleString('ar-YE')}</p>
+              </div>
+              <div className="rounded-xl bg-[#f7f8f5] px-3 py-2.5">
+                <p className="text-[10px] font-bold text-[#9aa097]">طريقة الاستلام</p>
+                <p className="mt-1 text-xs font-bold text-[#596159]">{order.fulfillment_type === 'pickup' ? 'استلام من المتجر' : 'توصيل إلى العنوان'}</p>
+              </div>
+            </div>
+            {order.fulfillment_type !== 'pickup' && order.delivery_address && (
+              <div className="mt-2 rounded-xl border border-[#e8ebe5] bg-white px-3 py-2.5">
+                <p className="text-[10px] font-bold text-[#9aa097]">عنوان التوصيل</p>
+                <p className="mt-1 text-xs font-bold leading-5 text-[#596159]">{order.delivery_address}</p>
+              </div>
+            )}
             {['pending', 'accepted', 'preparing', 'ready_for_pickup'].includes(order.status) && (
               <button
                 disabled={busy}
