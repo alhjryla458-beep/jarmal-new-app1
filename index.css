@@ -398,3 +398,79 @@ body {
     min-height: 62px;
   }
 }
+
+
+/* ===== JARMAL 2.4 CONTENT POLISH ===== */
+.jarmal-app .jarmal-page h1,
+.jarmal-app .jarmal-page h2 {
+  color: #171a16;
+}
+.jarmal-app .jarmal-page p.text-white\/40,
+.jarmal-app .jarmal-page p.text-white\/45,
+.jarmal-app .jarmal-page p.text-white\/50,
+.jarmal-app .jarmal-page p.text-white\/60 {
+  color: #70776f !important;
+}
+.jarmal-app .jarmal-page [class*="bg-white/5"],
+.jarmal-app .jarmal-page [class*="bg-white/[.05]"] {
+  background: #f4f6f1 !important;
+}
+.jarmal-app .jarmal-page [class*="border-white/10"] {
+  border-color: #e1e5de !important;
+}
+.jarmal-app .jarmal-page [class*="text-white/25"] {
+  color: #a0a69e !important;
+}
+.jarmal-app .jarmal-page [class*="text-white/35"] {
+  color: #858c84 !important;
+}
+.jarmal-app .jarmal-page [class*="text-white/45"] {
+  color: #70776f !important;
+}
+.jarmal-app .jarmal-page [class*="text-white/55"] {
+  color: #656d63 !important;
+}
+.jarmal-app .jarmal-page [class*="bg-[#0d0d0d]"],
+.jarmal-app .jarmal-page [class*="bg-[#111]"] {
+  background: #fff !important;
+  color: #171a16 !important;
+  border-color: #e1e5de !important;
+  box-shadow: 0 8px 24px rgba(23,26,22,.045);
+}
+.jarmal-app .jarmal-page button[class*="border-white/10"] {
+  color: #596159 !important;
+  background: #fff;
+}
+.jarmal-app .jarmal-page button[class*="bg-[#e3fe00]"] {
+  box-shadow: 0 7px 18px rgba(110,125,0,.11);
+}
+.jarmal-app .jarmal-page input,
+.jarmal-app .jarmal-page textarea,
+.jarmal-app .jarmal-page select {
+  color: #171a16 !important;
+  background: #fff !important;
+}
+.jarmal-app .jarmal-page input::placeholder,
+.jarmal-app .jarmal-page textarea::placeholder {
+  color: #9aa097 !important;
+}
+.jarmal-app .jarmal-page .map-grid {
+  min-height: 300px;
+}
+.jarmal-app .jarmal-page .map-grid > div[class*="bg-black"] {
+  background: rgba(255,255,255,.94) !important;
+  border-color: #e1e5de !important;
+  color: #4f574e !important;
+  box-shadow: 0 8px 20px rgba(23,26,22,.06);
+}
+@media (max-width: 640px) {
+  .jarmal-app .jarmal-page [class*="grid-cols-3"] {
+    gap: 6px;
+  }
+  .jarmal-app .jarmal-page [class*="grid-cols-3"] > div {
+    padding: 10px !important;
+  }
+  .jarmal-app .jarmal-page .map-grid {
+    min-height: 270px;
+  }
+}
