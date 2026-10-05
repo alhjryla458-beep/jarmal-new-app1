@@ -2105,7 +2105,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
         </button>
       )}
       {showCart && cartStoreId && (
-        <Cart cart={cart} setCart={setCart} total={cartTotal} storeId={cartStoreId} onClose={() => setShowCart(false)} onOrdered={() => { setCart([]); setCartStoreId(null); setShowCart(false); setActive('orders'); loadAll(); }} />
+        <Cart cart={cart} setCart={setCart} total={cartTotal} storeId={cartStoreId} paymentMethods={paymentMethods} onClose={() => setShowCart(false)} onOrdered={() => { setCart([]); setCartStoreId(null); setShowCart(false); setActive('orders'); loadAll(); }} />
       )}
     </div>
   );
@@ -2330,8 +2330,9 @@ function LocationMap({
   );
 }
 
-function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
+function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdered }: {
   cart: CartLine[]; setCart: React.Dispatch<React.SetStateAction<CartLine[]>>; total: number; storeId: string;
+  paymentMethods: PaymentMethodRow[];
   onClose: () => void; onOrdered: () => void;
 }) {
   const [fulfillment, setFulfillment] = useState<'delivery' | 'pickup'>('delivery');
@@ -2339,6 +2340,8 @@ function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
   const [deliveryLatitude, setDeliveryLatitude] = useState<number | null>(null);
   const [deliveryLongitude, setDeliveryLongitude] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
+  const [paymentCode, setPaymentCode] = useState('cash');
+  const [referenceNumber, setReferenceNumber] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const deliveryFee = fulfillment === 'delivery' ? 500 : 0;
@@ -2349,12 +2352,25 @@ function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
       if (fulfillment === 'delivery' && !address.trim()) throw new Error('أدخل وصف موقع التوصيل');
       if (fulfillment === 'delivery' && (deliveryLatitude === null || deliveryLongitude === null)) throw new Error('حدد موقعك على الخريطة أو اضغط «موقعي الحالي»');
       const items = cart.map((c) => c.custom_name ? { custom_name: c.custom_name, custom_price: c.custom_price, quantity: c.quantity } : { product_id: c.product_id, ...(c.variant_id ? { variant_id: c.variant_id } : {}), quantity: c.quantity });
-      const { error: rpcError } = await supabase.rpc('create_cash_order', {
-        p_store_id: storeId, p_items: items, p_delivery_fee: deliveryFee,
-        p_delivery_address: fulfillment === 'delivery' ? address.trim() : null,
-        p_delivery_latitude: fulfillment === 'delivery' ? deliveryLatitude : null, p_delivery_longitude: fulfillment === 'delivery' ? deliveryLongitude : null,
-        p_fulfillment_type: fulfillment, p_notes: notes.trim() || null
-      });
+      if (paymentCode !== 'cash' && !referenceNumber.trim()) throw new Error('أدخل رقم عملية التحويل بعد إتمام التحويل');
+      const rpcName = paymentCode === 'cash' ? 'create_cash_order' : 'create_electronic_order';
+      const rpcParams = paymentCode === 'cash'
+        ? {
+            p_store_id: storeId, p_items: items, p_delivery_fee: deliveryFee,
+            p_delivery_address: fulfillment === 'delivery' ? address.trim() : null,
+            p_delivery_latitude: fulfillment === 'delivery' ? deliveryLatitude : null,
+            p_delivery_longitude: fulfillment === 'delivery' ? deliveryLongitude : null,
+            p_fulfillment_type: fulfillment, p_notes: notes.trim() || null
+          }
+        : {
+            p_store_id: storeId, p_items: items, p_delivery_fee: deliveryFee,
+            p_delivery_address: fulfillment === 'delivery' ? address.trim() : null,
+            p_delivery_latitude: fulfillment === 'delivery' ? deliveryLatitude : null,
+            p_delivery_longitude: fulfillment === 'delivery' ? deliveryLongitude : null,
+            p_fulfillment_type: fulfillment, p_notes: notes.trim() || null,
+            p_payment_method_code: paymentCode, p_reference_number: referenceNumber.trim()
+          };
+      const { error: rpcError } = await supabase.rpc(rpcName, rpcParams);
       if (rpcError) throw rpcError;
       onOrdered();
     } catch (caught) {
@@ -2386,6 +2402,26 @@ function Cart({ cart, setCart, total, storeId, onClose, onOrdered }: {
           <Field label="وصف موقع التوصيل" value={address} onChange={setAddress} placeholder="الحي، الشارع، أقرب معلم" />
           <LocationMap latitude={deliveryLatitude} longitude={deliveryLongitude} onChange={(lat, lng) => { setDeliveryLatitude(lat); setDeliveryLongitude(lng); }} />
         </>}
+        <div className="mt-4">
+          <label className="mb-2 block text-sm font-black text-[#171a16]">طريقة الدفع</label>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button type="button" onClick={() => { setPaymentCode('cash'); setReferenceNumber(''); }} className={paymentCode === 'cash' ? 'rounded-xl border border-[#e3fe00] bg-[#f1f5df] px-4 py-3 text-right text-sm font-bold text-[#171a16]' : 'rounded-xl border border-[#e1e5de] bg-white px-4 py-3 text-right text-sm font-bold text-[#747b72]'}>الدفع عند الاستلام</button>
+            {paymentMethods.filter((m) => m.code !== 'cash').map((method) => (
+              <button type="button" key={method.id} onClick={() => setPaymentCode(method.code)} className={paymentCode === method.code ? 'rounded-xl border border-[#e3fe00] bg-[#f1f5df] px-4 py-3 text-right text-sm font-bold text-[#171a16]' : 'rounded-xl border border-[#e1e5de] bg-white px-4 py-3 text-right text-sm font-bold text-[#747b72]'}>{method.name}</button>
+            ))}
+          </div>
+        </div>
+        {paymentCode !== 'cash' && (() => {
+          const method = paymentMethods.find((m) => m.code === paymentCode);
+          if (!method) return null;
+          return <div className="mt-3 rounded-2xl border border-[#e1e5de] bg-[#f8faf7] p-4">
+            <p className="text-sm font-black text-[#171a16]">تحويل المبلغ إلى حساب جَرْمَل</p>
+            {method.account_number && <p className="mt-2 text-lg font-black tracking-wide text-[#687500]" dir="ltr">{method.account_number}</p>}
+            {method.instructions && <p className="mt-2 whitespace-pre-wrap text-xs leading-6 text-[#747b72]">{method.instructions}</p>}
+            <p className="mt-3 text-[11px] font-bold text-[#8a9189]">بعد التحويل، أدخل رقم العملية. يبقى الطلب قيد المراجعة حتى تؤكد الإدارة الدفع.</p>
+            <div className="mt-3"><Field label="رقم عملية التحويل" value={referenceNumber} onChange={setReferenceNumber} placeholder="رقم العملية / المرجع" /></div>
+          </div>;
+        })()}
         <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: اتصل بي عند الوصول" /></div>
         {error && <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black"><span>الإجمالي</span><span>{(total + deliveryFee).toLocaleString('ar-YE')} {CURRENCY}</span></div>
