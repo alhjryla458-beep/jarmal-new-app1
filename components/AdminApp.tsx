@@ -8,7 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 
 const CURRENCY = 'ر.ي';
 
-type AdminTab = 'stats' | 'wallets' | 'merchant_withdrawals' | 'users' | 'orders';
+type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'users' | 'orders';
 
 type ProfileRow = {
   id: string;
@@ -25,6 +25,17 @@ type TxRow = {
   amount: number;
   payment_method: string | null;
   transaction_status: string;
+};
+
+type PaymentReceiptRow = {
+  id: string;
+  user_id: string;
+  order_id: string | null;
+  payment_method_code: string | null;
+  amount: number;
+  reference_number: string | null;
+  status: string;
+  created_at: string;
 };
 
 type MerchantWithdrawalRow = {
@@ -99,6 +110,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [error, setError] = useState('');
   const [stats, setStats] = useState<Stats | null>(null);
   const [transactions, setTransactions] = useState<TxRow[]>([]);
+  const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceiptRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [merchantWithdrawals, setMerchantWithdrawals] = useState<MerchantWithdrawalRow[]>([]);
@@ -149,6 +161,16 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     setProfiles((data || []) as ProfileRow[]);
   }, []);
 
+  const loadPaymentReceipts = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('payment_receipts')
+      .select('id, user_id, order_id, payment_method_code, amount, reference_number, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (err) { setError('تعذر تحميل إيصالات الدفع'); return; }
+    setPaymentReceipts((data || []) as PaymentReceiptRow[]);
+  }, []);
+
   const loadMerchantWithdrawals = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('merchant_withdrawal_requests')
@@ -175,7 +197,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadProfiles(), loadMerchantWithdrawals(), loadOrders()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadOrders()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
@@ -196,6 +218,24 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       await Promise.all([loadTransactions(), loadStats()]);
     } catch {
       setError(action === 'confirm' ? 'تعذر تأكيد العملية' : 'تعذر رفض العملية');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handlePaymentReceipt = async (receiptId: string, action: 'confirm' | 'reject') => {
+    setActionLoading(receiptId + action);
+    setError('');
+    try {
+      const { error: err } = await supabase.rpc('admin_process_order_payment_receipt', {
+        p_receipt_id: receiptId,
+        p_action: action,
+        p_note: action === 'reject' ? 'تم رفض إثبات الدفع من الإدارة' : null,
+      });
+      if (err) throw err;
+      await loadPaymentReceipts();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر معالجة إيصال الدفع');
     } finally {
       setActionLoading(null);
     }
@@ -240,6 +280,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const navItems: [AdminTab, string, React.ElementType][] = [
     ['stats', 'الإحصائيات', BarChart3],
     ['wallets', 'عمليات المحافظ', WalletCards],
+    ['payment_receipts', 'إيصالات الدفع', WalletCards],
     ['merchant_withdrawals', 'سحوبات التجار', WalletCards],
     ['users', 'إدارة الحسابات', Users],
     ['orders', 'متابعة الطلبات', ClipboardList],
@@ -403,6 +444,43 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                           </button>
                         </div>
                       ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {tab === 'payment_receipts' && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-white/40">مراجعة إثباتات التحويل الإلكتروني المرتبطة بالطلبات</p>
+                <h2 className="mt-1 text-3xl font-black">إيصالات الدفع</h2>
+              </div>
+              {paymentReceipts.length === 0 ? (
+                <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
+                  <WalletCards size={42} className="text-white/20" />
+                  <h3 className="mt-4 font-bold">لا توجد إيصالات دفع</h3>
+                </div>
+              ) : (
+                <div className="mt-7 space-y-3">
+                  {paymentReceipts.map((receipt) => (
+                    <div key={receipt.id} className="rounded-2xl border border-white/5 bg-white/[.02] p-4">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <div className="min-w-[180px] flex-1">
+                          <p className="text-sm font-black">{Number(receipt.amount).toLocaleString('ar-YE')} {CURRENCY}</p>
+                          <p className="mt-1 text-xs text-white/35">الطلب: {receipt.order_id ? '#' + receipt.order_id.slice(0, 8) : 'غير مرتبط'}</p>
+                          <p className="mt-1 text-xs text-white/35">طريقة الدفع: {receipt.payment_method_code || '—'} • المرجع: {receipt.reference_number || '—'}</p>
+                          <p className="mt-1 text-xs text-white/30">{new Date(receipt.created_at).toLocaleString('ar-YE')}</p>
+                        </div>
+                        <StatusBadge status={receipt.status} />
+                        {receipt.status === 'pending' && (
+                          <div className="flex gap-2">
+                            <button onClick={() => handlePaymentReceipt(receipt.id, 'confirm')} disabled={actionLoading === receipt.id + 'confirm'} className="rounded-lg bg-[#e3fe00] px-3 py-2 text-xs font-black text-black disabled:opacity-50"><Check size={14} className="mr-1 inline" />تأكيد الدفع</button>
+                            <button onClick={() => handlePaymentReceipt(receipt.id, 'reject')} disabled={actionLoading === receipt.id + 'reject'} className="rounded-lg border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 disabled:opacity-50"><X size={14} className="mr-1 inline" />رفض</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
