@@ -8,7 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 
 const CURRENCY = 'ر.ي';
 
-type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'payment_settings' | 'users' | 'orders';
+type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'payment_settings' | 'users' | 'orders';
 
 type ProfileRow = {
   id: string;
@@ -57,6 +57,16 @@ type MerchantWithdrawalRow = {
   note: string | null;
   admin_note: string | null;
   created_at: string;
+  processed_at: string | null;
+};
+
+type DriverCashSettlementRow = {
+  id: string;
+  driver_id: string;
+  amount: number;
+  status: string;
+  note: string | null;
+  requested_at: string;
   processed_at: string | null;
 };
 
@@ -123,6 +133,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [merchantWithdrawals, setMerchantWithdrawals] = useState<MerchantWithdrawalRow[]>([]);
+  const [driverCashSettlements, setDriverCashSettlements] = useState<DriverCashSettlementRow[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
   const [paymentDrafts, setPaymentDrafts] = useState<Record<string, { account_number: string; instructions: string; is_active: boolean }>>({});
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -217,6 +228,16 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     }
   };
 
+  const loadDriverCashSettlements = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('driver_cash_settlements')
+      .select('id, driver_id, amount, status, note, requested_at, processed_at')
+      .order('requested_at', { ascending: false })
+      .limit(100);
+    if (err) { setError('تعذر تحميل تسويات المندوبين'); return; }
+    setDriverCashSettlements((data || []) as DriverCashSettlementRow[]);
+  }, []);
+
   const loadMerchantWithdrawals = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('merchant_withdrawal_requests')
@@ -243,14 +264,14 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadPaymentMethods(), loadOrders()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadPaymentMethods(), loadOrders()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
         setLoading(false);
       }
     })();
-  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadPaymentMethods, loadOrders]);
+  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadPaymentMethods, loadOrders]);
 
   const handleTxAction = async (txId: string, action: 'confirm' | 'reject') => {
     setActionLoading(txId + action);
@@ -282,6 +303,24 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       await loadPaymentReceipts();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'تعذر معالجة إيصال الدفع');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDriverCashSettlement = async (settlementId: string, action: 'confirm' | 'reject') => {
+    setActionLoading(settlementId + action);
+    setError('');
+    try {
+      const { error: err } = await supabase.rpc('admin_process_driver_cash_settlement', {
+        p_settlement_id: settlementId,
+        p_action: action,
+        p_note: action === 'reject' ? 'تم رفض التسوية من الإدارة' : null,
+      });
+      if (err) throw err;
+      await loadDriverCashSettlements();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر معالجة تسوية المندوب');
     } finally {
       setActionLoading(null);
     }
@@ -328,6 +367,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     ['wallets', 'عمليات المحافظ', WalletCards],
     ['payment_receipts', 'إيصالات الدفع', WalletCards],
     ['merchant_withdrawals', 'سحوبات التجار', WalletCards],
+    ['driver_cash_settlements', 'تسويات المندوبين', Truck],
     ['payment_settings', 'إعدادات الدفع', Settings2],
     ['users', 'إدارة الحسابات', Users],
     ['orders', 'متابعة الطلبات', ClipboardList],
@@ -530,6 +570,48 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {tab === 'driver_cash_settlements' && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-white/40">استلام النقد المحصل عند الدفع والاستلام من المندوبين</p>
+                <h2 className="mt-1 text-3xl font-black">تسويات المندوبين</h2>
+              </div>
+              {driverCashSettlements.length === 0 ? (
+                <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
+                  <Truck size={42} className="text-white/20" />
+                  <h3 className="mt-4 font-bold">لا توجد طلبات تسوية</h3>
+                </div>
+              ) : (
+                <div className="mt-7 space-y-3">
+                  {driverCashSettlements.map((s) => {
+                    const driver = profiles.find((p) => p.id === s.driver_id);
+                    const statusText = s.status === 'confirmed' ? 'تم التأكيد' : s.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة';
+                    return (
+                      <div key={s.id} className="rounded-2xl border border-white/5 bg-white/[.02] p-4">
+                        <div className="flex flex-wrap items-center gap-4">
+                          <div className="min-w-[190px] flex-1">
+                            <p className="text-sm font-black">{driver?.full_name || 'مندوب غير مسمى'}</p>
+                            <p className="mt-1 text-xs text-white/35" dir="ltr">{driver?.phone_number || s.driver_id.slice(0, 8)}</p>
+                            <p className="mt-2 text-lg font-black">{Number(s.amount).toLocaleString('ar-YE')} {CURRENCY}</p>
+                            <p className="mt-1 text-xs text-white/30">الطلب: {new Date(s.requested_at).toLocaleString('ar-YE')}{s.processed_at ? ' • المعالجة: ' + new Date(s.processed_at).toLocaleString('ar-YE') : ''}</p>
+                          </div>
+                          <span className={'rounded-full px-3 py-1 text-[10px] font-black ' + (s.status === 'confirmed' ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : s.status === 'rejected' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400')}>{statusText}</span>
+                          {s.status === 'pending' && (
+                            <div className="flex gap-2">
+                              <button onClick={() => handleDriverCashSettlement(s.id, 'confirm')} disabled={actionLoading === s.id + 'confirm'} className="rounded-lg bg-[#e3fe00] px-3 py-2 text-xs font-black text-black disabled:opacity-50"><Check size={14} className="mr-1 inline" />تأكيد الاستلام</button>
+                              <button onClick={() => handleDriverCashSettlement(s.id, 'reject')} disabled={actionLoading === s.id + 'reject'} className="rounded-lg border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 disabled:opacity-50"><X size={14} className="mr-1 inline" />رفض</button>
+                            </div>
+                          )}
+                        </div>
+                        {s.note && <p className="mt-3 rounded-lg bg-white/5 p-3 text-xs text-white/45">ملاحظة المندوب: {s.note}</p>}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </>
