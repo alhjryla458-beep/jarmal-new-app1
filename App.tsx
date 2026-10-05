@@ -2650,6 +2650,14 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('available');
   const [profile, setProfile] = useState<DriverProfileRow | null>(null);
   const [wallet, setWallet] = useState<{ balance: number; reserved_balance: number }>({ balance: 0, reserved_balance: 0 });
+  const [driverPaymentMethods, setDriverPaymentMethods] = useState<PaymentMethodRow[]>([]);
+  const [driverWithdrawals, setDriverWithdrawals] = useState<any[]>([]);
+  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [withdrawalMethod, setWithdrawalMethod] = useState('');
+  const [withdrawalAccount, setWithdrawalAccount] = useState('');
+  const [withdrawalNote, setWithdrawalNote] = useState('');
+  const [withdrawalBusy, setWithdrawalBusy] = useState(false);
+  const [withdrawalError, setWithdrawalError] = useState('');
   const [available, setAvailable] = useState<FullOrderRow[]>([]);
   const [activeOrder, setActiveOrder] = useState<FullOrderRow | null>(null);
   const [history, setHistory] = useState<FullOrderRow[]>([]);
@@ -2665,6 +2673,16 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const loadAll = () => {
     supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating').maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
     supabase.from('driver_wallets').select('balance, reserved_balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
+    supabase.from('payment_methods').select('id, name, code, account_number, instructions').eq('is_active', true).neq('code', 'cash').then(({ data }) => {
+      if (data) {
+        const methods = data as PaymentMethodRow[];
+        setDriverPaymentMethods(methods);
+        setWithdrawalMethod((current) => current || methods[0]?.code || '');
+      }
+    });
+    supabase.from('driver_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, admin_note, created_at, processed_at').order('created_at', { ascending: false }).limit(30).then(({ data }) => {
+      if (data) setDriverWithdrawals(data || []);
+    });
     Promise.all([
       supabase.from('driver_cash_collections').select('amount, settled_amount, status').eq('status', 'open'),
       supabase.from('driver_cash_settlements').select('amount, status').eq('status', 'pending')
@@ -2749,6 +2767,22 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
     } finally {
       setSettlementBusy(false);
     }
+  };  const requestDriverWithdrawal = async () => {
+    const amount = Number(withdrawalAmount);
+    const availableBalance = Math.max(0, Number(wallet.balance || 0) - Number(wallet.reserved_balance || 0));
+    if (!Number.isFinite(amount) || amount <= 0) { setWithdrawalError('أدخل مبلغ سحب صحيح'); return; }
+    if (amount > availableBalance) { setWithdrawalError('المبلغ أكبر من الرصيد المتاح للسحب'); return; }
+    if (!withdrawalMethod || !withdrawalAccount.trim()) { setWithdrawalError('اختر طريقة السحب وأدخل رقم الحساب'); return; }
+    setWithdrawalBusy(true); setWithdrawalError('');
+    try {
+      const { error: rpcError } = await supabase.rpc('request_driver_wallet_withdrawal', {
+        p_amount: amount, p_payment_method_code: withdrawalMethod, p_account_number: withdrawalAccount.trim(), p_note: withdrawalNote.trim() || null,
+      });
+      if (rpcError) throw rpcError;
+      setWithdrawalAmount(''); setWithdrawalAccount(''); setWithdrawalNote(''); loadAll();
+    } catch (caught) {
+      setWithdrawalError(caught instanceof Error ? caught.message : 'تعذر إرسال طلب السحب');
+    } finally { setWithdrawalBusy(false); }
   };
 
   return (
@@ -2848,6 +2882,47 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
                   <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
                 </div>
               )}
+
+              <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-[#747b72]">سحب رصيد المحفظة</p>
+                    <h2 className="mt-1 text-xl font-black">طلب سحب</h2>
+                  </div>
+                  <span className="rounded-lg bg-[#e3fe00]/20 px-3 py-2 text-xs font-black text-[#596159]">المتاح للسحب: {Math.max(0, Number(wallet.balance || 0) - Number(wallet.reserved_balance || 0)).toLocaleString('ar-YE')} {CURRENCY}</span>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <input value={withdrawalAmount} onChange={(e) => setWithdrawalAmount(e.target.value.replace(/[^0-9.]/g, ''))} inputMode="decimal" placeholder="مبلغ السحب" dir="ltr" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm font-bold outline-none focus:border-[#b7c800]" />
+                  <select value={withdrawalMethod} onChange={(e) => setWithdrawalMethod(e.target.value)} className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm font-bold outline-none">
+                    <option value="">طريقة السحب</option>
+                    {driverPaymentMethods.map((method) => <option key={method.code} value={method.code}>{method.name}</option>)}
+                  </select>
+                  <input value={withdrawalAccount} onChange={(e) => setWithdrawalAccount(e.target.value)} placeholder="رقم الحساب/المحفظة" dir="ltr" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm font-bold outline-none focus:border-[#b7c800]" />
+                  <input value={withdrawalNote} onChange={(e) => setWithdrawalNote(e.target.value)} placeholder="ملاحظة اختيارية" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm outline-none focus:border-[#b7c800]" />
+                </div>
+                <button onClick={requestDriverWithdrawal} disabled={withdrawalBusy || Math.max(0, Number(wallet.balance || 0) - Number(wallet.reserved_balance || 0)) <= 0} className="mt-3 w-full rounded-xl bg-[#e3fe00] py-3 text-sm font-black text-black disabled:opacity-50">{withdrawalBusy ? 'جارٍ الإرسال...' : 'إرسال طلب السحب'}</button>
+                {withdrawalError && <p className="mt-3 rounded-lg bg-red-500/10 p-3 text-xs font-bold text-red-600">{withdrawalError}</p>}
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div><p className="text-xs text-[#747b72]">سجل سحوبات المحفظة</p><h2 className="mt-1 text-xl font-black">سحوباتي السابقة</h2></div>
+                  <span className="rounded-lg bg-[#f4f6f1] px-3 py-2 text-xs font-bold text-[#747b72]">{driverWithdrawals.length} طلب</span>
+                </div>
+                <div className="mt-5 space-y-3">
+                  {driverWithdrawals.map((item) => {
+                    const statusText = item.status === 'approved' ? 'تمت الموافقة' : item.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة';
+                    const statusClass = item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-700' : item.status === 'rejected' ? 'bg-red-500/10 text-red-600' : 'bg-amber-500/10 text-amber-700';
+                    return <div key={item.id} className="rounded-xl border border-[#edf0eb] bg-[#fafbf9] p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-lg font-black">{Number(item.amount || 0).toLocaleString('ar-YE')} {CURRENCY}</p><span className={`rounded-lg px-3 py-1 text-xs font-black ${statusClass}`}>{statusText}</span></div>
+                      <p className="mt-2 text-xs text-[#747b72]">{item.payment_method_code} • {item.account_number}</p>
+                      <p className="mt-1 text-xs text-[#747b72]">تاريخ الطلب: {item.created_at ? new Date(item.created_at).toLocaleString('ar-YE') : '—'}</p>
+                      {item.admin_note && <p className="mt-2 rounded-lg bg-white p-3 text-xs text-[#596159]">ملاحظة الإدارة: {item.admin_note}</p>}
+                    </div>;
+                  })}
+                  {driverWithdrawals.length === 0 && <p className="py-4 text-center text-sm text-[#747b72]">لا توجد سحوبات سابقة حتى الآن</p>}
+                </div>
+              </div>
 
               <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
