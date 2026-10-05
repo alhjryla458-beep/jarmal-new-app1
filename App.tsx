@@ -2654,12 +2654,25 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [activeOrder, setActiveOrder] = useState<FullOrderRow | null>(null);
   const [history, setHistory] = useState<FullOrderRow[]>([]);
   const [driverSettlements, setDriverSettlements] = useState<any[]>([]);
+  const [driverCashOutstanding, setDriverCashOutstanding] = useState(0);
+  const [settlementAmount, setSettlementAmount] = useState('');
+  const [settlementNote, setSettlementNote] = useState('');
+  const [settlementBusy, setSettlementBusy] = useState(false);
+  const [settlementError, setSettlementError] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   const loadAll = () => {
     supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating').maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
     supabase.from('driver_wallets').select('balance, reserved_balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
+    Promise.all([
+      supabase.from('driver_cash_collections').select('amount, settled_amount, status').eq('status', 'open'),
+      supabase.from('driver_cash_settlements').select('amount, status').eq('status', 'pending')
+    ]).then(([collectionsRes, settlementsRes]) => {
+      const open = (collectionsRes.data || []).reduce((sum, row) => sum + Number(row.amount || 0) - Number(row.settled_amount || 0), 0);
+      const pending = (settlementsRes.data || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      setDriverCashOutstanding(Math.max(0, open - pending));
+    });
     supabase.from('driver_cash_settlements').select('id, amount, status, note, requested_at, processed_at').order('requested_at', { ascending: false }).limit(30).then(({ data }) => { if (data) setDriverSettlements(data || []); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'ready_for_pickup').is('driver_id', null).then(({ data }) => { if (data) setAvailable(data as FullOrderRow[]); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').not('status', 'in', '(delivered,cancelled,pending)').then(({ data }) => {
@@ -2708,6 +2721,34 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
     await supabase.rpc('confirm_cash_collected', { p_order_id: orderId });
     setBusy(false);
     loadAll();
+  };
+
+  const requestCashSettlement = async () => {
+    const amount = Number(settlementAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setSettlementError('أدخل مبلغ تسوية صحيح');
+      return;
+    }
+    if (amount > driverCashOutstanding) {
+      setSettlementError('المبلغ أكبر من النقد المستحق المتاح للتسوية');
+      return;
+    }
+    setSettlementBusy(true);
+    setSettlementError('');
+    try {
+      const { error: rpcError } = await supabase.rpc('request_driver_cash_settlement', {
+        p_amount: amount,
+        p_note: settlementNote.trim() || null,
+      });
+      if (rpcError) throw rpcError;
+      setSettlementAmount('');
+      setSettlementNote('');
+      loadAll();
+    } catch (caught) {
+      setSettlementError(caught instanceof Error ? caught.message : 'تعذر إرسال طلب التسوية');
+    } finally {
+      setSettlementBusy(false);
+    }
   };
 
   return (
@@ -2807,6 +2848,22 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
                   <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
                 </div>
               )}
+
+              <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-[#747b72]">النقد المحصل من الطلبات عند الاستلام</p>
+                    <h2 className="mt-1 text-xl font-black">طلب تسوية نقدية</h2>
+                  </div>
+                  <span className="rounded-lg bg-[#e3fe00]/20 px-3 py-2 text-xs font-black text-[#596159]">المتاح للتسوية: {driverCashOutstanding.toLocaleString('ar-YE')} {CURRENCY}</span>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+                  <input value={settlementAmount} onChange={(e) => setSettlementAmount(e.target.value.replace(/[^0-9.]/g, ''))} inputMode="decimal" placeholder="مبلغ التسوية" dir="ltr" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm font-bold outline-none focus:border-[#b7c800]" />
+                  <input value={settlementNote} onChange={(e) => setSettlementNote(e.target.value)} placeholder="ملاحظة اختيارية" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3 text-sm outline-none focus:border-[#b7c800]" />
+                  <button onClick={requestCashSettlement} disabled={settlementBusy || driverCashOutstanding <= 0} className="rounded-xl bg-[#e3fe00] px-5 py-3 text-sm font-black text-black disabled:opacity-50">{settlementBusy ? 'جارٍ الإرسال...' : 'إرسال طلب التسوية'}</button>
+                </div>
+                {settlementError && <p className="mt-3 rounded-lg bg-red-500/10 p-3 text-xs font-bold text-red-600">{settlementError}</p>}
+              </div>
 
               <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
                 <div className="flex items-center justify-between gap-3">
