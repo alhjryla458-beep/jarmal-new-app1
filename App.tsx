@@ -2451,7 +2451,7 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
 function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('available');
   const [profile, setProfile] = useState<DriverProfileRow | null>(null);
-  const [wallet, setWallet] = useState<{ balance: number }>({ balance: 0 });
+  const [wallet, setWallet] = useState<{ balance: number; reserved_balance: number }>({ balance: 0, reserved_balance: 0 });
   const [available, setAvailable] = useState<FullOrderRow[]>([]);
   const [activeOrder, setActiveOrder] = useState<FullOrderRow | null>(null);
   const [history, setHistory] = useState<FullOrderRow[]>([]);
@@ -2596,8 +2596,10 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
               <p className="text-sm text-[#747b72]">أموالك بين يديك</p>
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
               <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
-                <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
+                <span className="text-sm font-bold text-black/60">الرصيد الإجمالي</span>
                 <p className="mt-6 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+                <p className="mt-2 text-sm font-bold text-black/60">المحجوز لطلبات السحب: {Number(wallet.reserved_balance || 0).toLocaleString('ar-YE')} {CURRENCY}</p>
+                <p className="mt-1 text-xs text-black/55">المتاح للسحب: {Math.max(0, Number(wallet.balance || 0) - Number(wallet.reserved_balance || 0)).toLocaleString('ar-YE')} {CURRENCY}</p>
               </div>
               {profile && (
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -2691,7 +2693,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
         supabase.from('product_inventory').select('id, store_id, product_id, variant_id, quantity_on_hand, quantity_reserved, reorder_level, unit_label, updated_at').eq('store_id', row.id).then(({ data: inventory }) => { if (inventory) setInventoryRows(inventory as InventoryRow[]); });
         supabase.from('inventory_movements').select('id, product_id, movement_type, quantity, quantity_before, quantity_after, reason, created_at').eq('store_id', row.id).order('created_at', { ascending: false }).limit(50).then(({ data: movements }) => { if (movements) setInventoryMovements(movements as InventoryMovementRow[]); });
     }
-    supabase.from('merchant_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
+    supabase.from('merchant_wallets').select('balance, reserved_balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
     supabase.from('merchant_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, created_at, admin_note').order('created_at', { ascending: false }).limit(10).then(({ data }) => { if (data) setWithdrawals(data || []); });
   };
 
@@ -2750,7 +2752,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     if (!Number.isFinite(amount) || amount <= 0) { setWithdrawError('أدخل مبلغاً صحيحاً'); return; }
     if (!withdrawMethod) { setWithdrawError('اختر وسيلة السحب'); return; }
     if (!withdrawAccount.trim()) { setWithdrawError('أدخل رقم المحفظة أو الحساب'); return; }
-    if (amount > wallet.balance) { setWithdrawError('المبلغ أكبر من الرصيد المتاح'); return; }
+    if (amount > Math.max(0, Number(wallet.balance || 0) - Number(wallet.reserved_balance || 0))) { setWithdrawError('المبلغ أكبر من الرصيد المتاح'); return; }
     setWithdrawError('');
     setBusy(true);
     const { error } = await supabase.rpc('request_merchant_withdrawal', {
@@ -3000,7 +3002,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                   <input value={withdrawNote} onChange={e=>setWithdrawNote(e.target.value)} placeholder="ملاحظة (اختياري)" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]" />
                 </div>
                 {withdrawError && <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-600">{withdrawError}</p>}
-                <button disabled={busy || wallet.balance <= 0} onClick={requestWithdrawal} className="mt-4 w-full rounded-xl bg-[#171a16] py-3.5 font-black text-white disabled:opacity-40">إرسال طلب السحب</button>
+                <button disabled={busy || (Number(wallet.balance || 0) - Number(wallet.reserved_balance || 0)) <= 0} onClick={requestWithdrawal} className="mt-4 w-full rounded-xl bg-[#171a16] py-3.5 font-black text-white disabled:opacity-40">إرسال طلب السحب</button>
               </div>
               <div className="mt-5 rounded-2xl border border-[#e1e5de] bg-white p-5">
                 <h2 className="text-xl font-black">آخر طلبات السحب</h2>
