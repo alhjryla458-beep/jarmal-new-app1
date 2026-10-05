@@ -24,6 +24,7 @@ type TxRow = {
   transaction_type: string;
   amount: number;
   payment_method: string | null;
+  reference_number: string | null;
   transaction_status: string;
 };
 
@@ -179,7 +180,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const loadTransactions = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('wallet_transactions')
-      .select('id, user_id, transaction_type, amount, payment_method, transaction_status')
+      .select('id, user_id, transaction_type, amount, payment_method, reference_number, transaction_status')
       .order('id', { ascending: false })
       .limit(100);
 
@@ -541,15 +542,15 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                   {transactions.map((tx) => (
                     <div key={tx.id} className="flex flex-wrap items-center gap-4 rounded-xl border border-white/5 bg-white/[.02] p-4">
                       <div className="flex min-w-[120px] items-center gap-3">
-                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${tx.transaction_type === 'deposit' ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-blue-500/10 text-blue-400'}`}>
+                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${tx.transaction_type === 'topup' || tx.transaction_type === 'deposit' ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-blue-500/10 text-blue-400'}`}>
                           {tx.transaction_type === 'deposit' ? <ArrowLeft size={17} /> : <ArrowLeft size={17} className="rotate-180" />}
                         </div>
-                        <p className="text-sm font-bold">{tx.transaction_type === 'deposit' ? 'شحن' : 'سحب'}</p>
+                        <p className="text-sm font-bold">{tx.transaction_type === 'topup' || tx.transaction_type === 'deposit' ? 'شحن' : tx.transaction_type === 'earning' ? 'أرباح' : 'سحب'}</p>
                       </div>
 
                       <div className="min-w-[140px] flex-1">
                         <p className="text-sm font-bold">{Number(tx.amount).toLocaleString('ar-YE')} {CURRENCY}</p>
-                        <p className="mt-1 text-xs text-white/35">{tx.payment_method || '—'}</p>
+                        <p className="mt-1 text-xs text-white/35">{tx.payment_method || '—'}{tx.reference_number ? ' • المرجع: ' + tx.reference_number : ''}</p>
                       </div>
 
                       <StatusBadge status={tx.transaction_status} />
