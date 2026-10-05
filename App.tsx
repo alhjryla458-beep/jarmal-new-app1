@@ -2194,6 +2194,7 @@ function LocationMap({
   const markerRef = useRef<any>(null);
   const [locating, setLocating] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -2246,7 +2247,9 @@ function LocationMap({
       setMapReady(true);
       setTimeout(() => map.invalidateSize(), 50);
     };
-    void loadLeaflet().catch(() => undefined);
+    void loadLeaflet().catch((error) => {
+      if (!cancelled) setMapError(error instanceof Error ? error.message : 'تعذر تحميل الخريطة');
+    });
     return () => {
       cancelled = true;
       if (mapInstanceRef.current) {
@@ -2265,14 +2268,21 @@ function LocationMap({
   }, [latitude, longitude, mapReady]);
 
   const useCurrentLocation = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setMapError('المتصفح لا يدعم تحديد الموقع الحالي');
+      return;
+    }
+    setMapError('');
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         onChange?.(Number(position.coords.latitude.toFixed(7)), Number(position.coords.longitude.toFixed(7)));
         setLocating(false);
       },
-      () => setLocating(false),
+      () => {
+        setLocating(false);
+        setMapError('تعذر تحديد موقعك الحالي. يمكنك الضغط على الخريطة لتحديد الموقع يدويًا.');
+      },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
@@ -2292,7 +2302,25 @@ function LocationMap({
           </button>
         )}
       </div>
-      <div ref={mapRef} className="h-64 w-full" />
+      <div className="relative">
+        <div ref={mapRef} className="h-64 w-full" />
+        {mapError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#f5f6f3]/95 p-5 text-center">
+            <div className="max-w-sm">
+              <p className="text-sm font-black text-[#171a16]">{mapError}</p>
+              {interactive && (
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="mt-3 rounded-xl bg-[#e3fe00] px-4 py-2 text-xs font-black text-black"
+                >
+                  إعادة تحميل الخريطة
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
       {latitude !== null && longitude !== null && (
         <div className="border-t border-[#e1e5de] bg-white px-4 py-2 text-[11px] text-[#747b72]" dir="ltr">
           {latitude.toFixed(7)}, {longitude.toFixed(7)}
