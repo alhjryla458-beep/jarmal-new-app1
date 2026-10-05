@@ -474,3 +474,84 @@ body {
     min-height: 270px;
   }
 }
+
+
+/* ===== JARMAL 2.5 INNER SCREENS ===== */
+.jarmal-page > div > h2,
+.jarmal-page > section > h1,
+.jarmal-page > section > h2 {
+  letter-spacing: -.03em;
+}
+
+.jarmal-page .space-y-4 > .rounded-2xl,
+.jarmal-page .space-y-3 > .rounded-2xl {
+  border-color: #e2e6df !important;
+  background: #fff !important;
+  box-shadow: 0 7px 22px rgba(23,26,22,.045);
+}
+
+.jarmal-page .space-y-4 > .rounded-2xl:hover {
+  border-color: #d7dfc7 !important;
+}
+
+.jarmal-page .grid > .rounded-2xl {
+  border-color: #e2e6df !important;
+}
+
+.jarmal-page [class*="bg-black/30"],
+.jarmal-page [class*="bg-black/20"],
+.jarmal-page [class*="bg-white/5"] {
+  background: #f4f6f1 !important;
+}
+
+.jarmal-page [class*="text-white/60"] {
+  color: #5f675d !important;
+}
+.jarmal-page [class*="text-white/50"] {
+  color: #6d756b !important;
+}
+.jarmal-page [class*="text-white/40"] {
+  color: #788078 !important;
+}
+.jarmal-page [class*="text-white/35"] {
+  color: #8a9189 !important;
+}
+.jarmal-page [class*="text-white/30"] {
+  color: #949b93 !important;
+}
+
+.jarmal-page .text-2xl,
+.jarmal-page .text-3xl {
+  line-height: 1.2;
+}
+
+.jarmal-page .rounded-full[class*="bg-[#e3fe00]"] {
+  box-shadow: 0 7px 18px rgba(110,125,0,.10);
+}
+
+.jarmal-page table {
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+
+.jarmal-page table tr {
+  background: #fff;
+}
+
+.jarmal-page table td,
+.jarmal-page table th {
+  border-color: #e5e8e2 !important;
+}
+
+@media (max-width: 640px) {
+  .jarmal-page .space-y-4 > .rounded-2xl,
+  .jarmal-page .space-y-3 > .rounded-2xl {
+    padding: 16px !important;
+  }
+  .jarmal-page .text-2xl {
+    font-size: 1.3rem;
+  }
+  .jarmal-page .text-3xl {
+    font-size: 1.55rem;
+  }
+}
