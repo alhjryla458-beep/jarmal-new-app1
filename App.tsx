@@ -2653,12 +2653,14 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [available, setAvailable] = useState<FullOrderRow[]>([]);
   const [activeOrder, setActiveOrder] = useState<FullOrderRow | null>(null);
   const [history, setHistory] = useState<FullOrderRow[]>([]);
+  const [driverSettlements, setDriverSettlements] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   const loadAll = () => {
     supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating').maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
-    supabase.from('driver_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
+    supabase.from('driver_wallets').select('balance, reserved_balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
+    supabase.from('driver_cash_settlements').select('id, amount, status, note, requested_at, processed_at').order('requested_at', { ascending: false }).limit(30).then(({ data }) => { if (data) setDriverSettlements(data || []); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'ready_for_pickup').is('driver_id', null).then(({ data }) => { if (data) setAvailable(data as FullOrderRow[]); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').not('status', 'in', '(delivered,cancelled,pending)').then(({ data }) => {
       const mine = (data as FullOrderRow[] | null)?.find((o) => o.driver_id) || null;
@@ -2805,6 +2807,44 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
                   <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5"><p className="text-xs text-[#747b72]">المركبة</p><p className="mt-2 text-sm font-bold">{profile.vehicle_type || '—'} • {profile.vehicle_plate_number || '—'}</p></div>
                 </div>
               )}
+
+              <div className="mt-8 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-[#747b72]">طلبات تسوية النقد المحصل</p>
+                    <h2 className="mt-1 text-xl font-black">تسوياتي السابقة</h2>
+                  </div>
+                  <span className="rounded-lg bg-[#f4f6f1] px-3 py-2 text-xs font-bold text-[#747b72]">{driverSettlements.length} طلب</span>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  {driverSettlements.map((settlement) => {
+                    const statusText =
+                      settlement.status === 'confirmed' ? 'تم التأكيد' :
+                      settlement.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة';
+                    const statusClass =
+                      settlement.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-700' :
+                      settlement.status === 'rejected' ? 'bg-red-500/10 text-red-600' :
+                      'bg-amber-500/10 text-amber-700';
+                    return (
+                      <div key={settlement.id} className="rounded-xl border border-[#edf0eb] bg-[#fafbf9] p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-lg font-black">{Number(settlement.amount || 0).toLocaleString('ar-YE')} {CURRENCY}</p>
+                          <span className={`rounded-lg px-3 py-1 text-xs font-black ${statusClass}`}>{statusText}</span>
+                        </div>
+                        <div className="mt-2 grid gap-1 text-xs text-[#747b72] sm:grid-cols-2">
+                          <p>تاريخ الطلب: {settlement.requested_at ? new Date(settlement.requested_at).toLocaleString('ar-YE') : '—'}</p>
+                          <p>تاريخ المعالجة: {settlement.processed_at ? new Date(settlement.processed_at).toLocaleString('ar-YE') : 'لم تتم المعالجة بعد'}</p>
+                        </div>
+                        {settlement.note && <p className="mt-3 rounded-lg bg-white p-3 text-xs text-[#596159]">ملاحظة: {settlement.note}</p>}
+                      </div>
+                    );
+                  })}
+                  {driverSettlements.length === 0 && (
+                    <p className="py-4 text-center text-sm text-[#747b72]">لا توجد تسويات سابقة حتى الآن</p>
+                  )}
+                </div>
+              </div>
             </section>
           )}
         </main>
