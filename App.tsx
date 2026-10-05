@@ -2620,6 +2620,12 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const [orderItems, setOrderItems] = useState<Record<string, OrderItemRow[]>>({});
   const [myProducts, setMyProducts] = useState<MerchantProductRow[]>([]);
   const [wallet, setWallet] = useState<{ balance: number }>({ balance: 0 });
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawMethod, setWithdrawMethod] = useState('');
+  const [withdrawAccount, setWithdrawAccount] = useState('');
+  const [withdrawNote, setWithdrawNote] = useState('');
+  const [withdrawError, setWithdrawError] = useState('');
   const [busy, setBusy] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
@@ -2686,6 +2692,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
         supabase.from('inventory_movements').select('id, product_id, movement_type, quantity, quantity_before, quantity_after, reason, created_at').eq('store_id', row.id).order('created_at', { ascending: false }).limit(50).then(({ data: movements }) => { if (movements) setInventoryMovements(movements as InventoryMovementRow[]); });
     }
     supabase.from('merchant_wallets').select('balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
+    supabase.from('merchant_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, created_at, admin_note').order('created_at', { ascending: false }).limit(10).then(({ data }) => { if (data) setWithdrawals(data || []); });
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -2738,6 +2745,26 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     });
     loadAll();
   };
+  const requestWithdrawal = async () => {
+    const amount = Number(withdrawAmount);
+    if (!Number.isFinite(amount) || amount <= 0) { setWithdrawError('أدخل مبلغاً صحيحاً'); return; }
+    if (!withdrawMethod) { setWithdrawError('اختر وسيلة السحب'); return; }
+    if (!withdrawAccount.trim()) { setWithdrawError('أدخل رقم المحفظة أو الحساب'); return; }
+    if (amount > wallet.balance) { setWithdrawError('المبلغ أكبر من الرصيد المتاح'); return; }
+    setWithdrawError('');
+    setBusy(true);
+    const { error } = await supabase.rpc('request_merchant_withdrawal', {
+      p_amount: amount,
+      p_payment_method_code: withdrawMethod,
+      p_account_number: withdrawAccount.trim(),
+      p_note: withdrawNote.trim() || null
+    });
+    setBusy(false);
+    if (error) { setWithdrawError(error.message || 'تعذر إرسال طلب السحب'); return; }
+    setWithdrawAmount(''); setWithdrawAccount(''); setWithdrawNote('');
+    loadAll();
+  };
+
   const adjustInventory = async (productId: string, direction: 'in' | 'out') => {
     if (!store || !canManageInventory) return;
     const qty = Number(inventoryQty);
@@ -2953,12 +2980,34 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           )}
 
           {active === 'wallet' && (
-            <section>
-              <p className="text-sm text-[#747b72]">أموالك بين يديك</p>
+            <section className="max-w-3xl">
+              <p className="text-sm text-[#747b72]">الرصيد وطلبات التحويل إلى محفظتك المحلية</p>
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
               <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
                 <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
                 <p className="mt-6 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+              </div>
+              <div className="mt-5 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <h2 className="text-xl font-black">طلب سحب</h2>
+                <p className="mt-1 text-xs text-[#747b72]">سيتم إرسال الطلب للمراجعة قبل التحويل الفعلي. الرصيد لا يُخصم عند إنشاء الطلب.</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <input value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder="المبلغ" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]" />
+                  <select value={withdrawMethod} onChange={e=>setWithdrawMethod(e.target.value)} className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]">
+                    <option value="">وسيلة السحب</option>
+                    <option value="onecash">OneCash</option><option value="jawalak">Jawalak</option><option value="flousak">Flousak</option><option value="jeeb">Jeeb</option>
+                  </select>
+                  <input value={withdrawAccount} onChange={e=>setWithdrawAccount(e.target.value)} inputMode="tel" placeholder="رقم المحفظة / الحساب" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]" />
+                  <input value={withdrawNote} onChange={e=>setWithdrawNote(e.target.value)} placeholder="ملاحظة (اختياري)" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]" />
+                </div>
+                {withdrawError && <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-600">{withdrawError}</p>}
+                <button disabled={busy || wallet.balance <= 0} onClick={requestWithdrawal} className="mt-4 w-full rounded-xl bg-[#171a16] py-3.5 font-black text-white disabled:opacity-40">إرسال طلب السحب</button>
+              </div>
+              <div className="mt-5 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                <h2 className="text-xl font-black">آخر طلبات السحب</h2>
+                <div className="mt-4 space-y-2">
+                  {withdrawals.map(w=><div key={w.id} className="flex items-center justify-between rounded-xl bg-[#f4f6f1] p-3"><div><p className="font-bold">{Number(w.amount).toLocaleString('ar-YE')} {CURRENCY}</p><p className="text-xs text-[#747b72]">{w.payment_method_code} • {new Date(w.created_at).toLocaleString('ar-YE')}</p></div><span className="rounded-lg bg-white px-3 py-1 text-xs font-bold">{w.status === 'pending' ? 'قيد المراجعة' : w.status === 'approved' ? 'مقبول' : w.status === 'paid' ? 'تم التحويل' : w.status === 'rejected' ? 'مرفوض' : 'ملغى'}</span></div>)}
+                  {withdrawals.length === 0 && <p className="text-sm text-[#747b72]">لا توجد طلبات سحب بعد.</p>}
+                </div>
               </div>
             </section>
           )}
