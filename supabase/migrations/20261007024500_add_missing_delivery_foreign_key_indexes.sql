@@ -1,0 +1,14 @@
+create index if not exists idx_driver_cash_collections_settled_by on public.driver_cash_collections(settled_by);
+create index if not exists idx_driver_cash_settlements_processed_by on public.driver_cash_settlements(processed_by);
+create index if not exists idx_driver_profiles_verified_by on public.driver_profiles(verified_by);
+create index if not exists idx_driver_withdrawal_requests_processed_by on public.driver_withdrawal_requests(processed_by);
+create index if not exists idx_inventory_movements_actor_user_id on public.inventory_movements(actor_user_id);
+create index if not exists idx_inventory_movements_product_id on public.inventory_movements(product_id);
+create index if not exists idx_inventory_movements_variant_id on public.inventory_movements(variant_id);
+create index if not exists idx_merchant_withdrawal_requests_merchant_id on public.merchant_withdrawal_requests(merchant_id);
+create index if not exists idx_payment_receipts_order_id on public.payment_receipts(order_id);
+create index if not exists idx_product_inventory_variant_id on public.product_inventory(variant_id);
+create index if not exists idx_store_member_invitations_accepted_by on public.store_member_invitations(accepted_by);
+create index if not exists idx_store_member_invitations_invited_by on public.store_member_invitations(invited_by);
+create index if not exists idx_store_members_created_by on public.store_members(created_by);
+create index if not exists idx_stores_reviewed_by on public.stores(reviewed_by);
