@@ -397,8 +397,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   };
 
   const handleDriverCashSettlement = async (settlementId: string, action: 'confirm' | 'reject') => {
-    setActionLoading(settlementId + action);
-    setError('');
+    setActionLoading(settlementId + action);    setError('');
     try {
       const { error: err } = await supabase.rpc('admin_process_driver_cash_settlement', {
         p_settlement_id: settlementId,
@@ -583,26 +582,67 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                 <StatCard label="حجم العمليات" value={`${stats.totalTransactionVolume.toLocaleString('ar-YE')} ${CURRENCY}`} icon={WalletCards} accent />
               </div>
 
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#e3fe00]/20 bg-[#e3fe00]/5 p-5">
-                  <div className="flex items-center gap-3">
-                    <Zap size={20} className="text-[#e3fe00]" />
-                    <p className="font-bold">عمليات بانتظار المراجعة</p>
+              <div className="mt-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <Zap size={18} className="text-[#e3fe00]" />
+                  <div>
+                    <h3 className="font-black">مركز التشغيل</h3>
+                    <p className="text-xs text-white/35">الأعمال التي تحتاج انتباه الإدارة الآن</p>
                   </div>
-                  <p className="mt-4 text-4xl font-black text-[#e3fe00]">{stats.pendingTransactions}</p>
-                  <button onClick={() => setTab('wallets')} className="mt-4 text-sm font-bold text-[#e3fe00] hover:underline">
-                    مراجعة العمليات <ArrowLeft className="mr-1 inline" size={14} />
-                  </button>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">                  <div className="flex items-center gap-3">
-                    <ClipboardList size={20} className="text-white/40" />
-                    <p className="font-bold">آخر الطلبات</p>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {[
+                    { label: 'طلبات نشطة', count: stats.activeOrders, tab: 'orders' as AdminTab, icon: Truck, urgent: stats.activeOrders > 0 },
+                    { label: 'متاجر بانتظار الاعتماد', count: stores.filter((s) => s.approval_status === 'pending').length, tab: 'merchant_stores' as AdminTab, icon: Landmark, urgent: stores.some((s) => s.approval_status === 'pending') },
+                    { label: 'إيصالات دفع معلقة', count: paymentReceipts.filter((r) => r.status === 'pending').length, tab: 'payment_receipts' as AdminTab, icon: WalletCards, urgent: paymentReceipts.some((r) => r.status === 'pending') },
+                    { label: 'سحوبات التجار المعلقة', count: merchantWithdrawals.filter((w) => w.status === 'pending').length, tab: 'merchant_withdrawals' as AdminTab, icon: WalletCards, urgent: merchantWithdrawals.some((w) => w.status === 'pending') },
+                    { label: 'تسويات المندوبين المعلقة', count: driverCashSettlements.filter((s) => s.status === 'pending').length, tab: 'driver_cash_settlements' as AdminTab, icon: Truck, urgent: driverCashSettlements.some((s) => s.status === 'pending') },
+                    { label: 'سحوبات المندوبين المعلقة', count: driverWithdrawals.filter((w) => w.status === 'pending').length, tab: 'driver_withdrawals' as AdminTab, icon: WalletCards, urgent: driverWithdrawals.some((w) => w.status === 'pending') },
+                  ].map(({ label, count, tab: targetTab, icon: Icon, urgent }) => (
+                    <button
+                      key={label}
+                      onClick={() => setTab(targetTab)}
+                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0d0d0d] p-4 text-right transition hover:border-[#e3fe00]/30 hover:bg-white/[.03]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${urgent ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-white/5 text-white/30'}`}>
+                          <Icon size={18} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">{label}</p>
+                          <p className="mt-1 text-xs text-white/35">{urgent ? 'يحتاج متابعة' : 'لا توجد معلّقات'}</p>
+                        </div>
+                      </div>
+                      <span className={`text-2xl font-black ${urgent ? 'text-[#e3fe00]' : 'text-white/35'}`}>{count}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-black">ملخص سريع</p>
+                    <p className="mt-1 text-xs text-white/35">آخر البيانات المحمّلة من لوحة الإدارة</p>
                   </div>
-                  <p className="mt-4 text-4xl font-black">{orders.length}</p>
-                  <button onClick={() => setTab('orders')} className="mt-4 text-sm font-bold text-white/50 hover:text-white">
-                    متابعة الطلبات <ArrowLeft className="mr-1 inline" size={14} />
+                  <button onClick={() => setTab('orders')} className="text-sm font-bold text-white/50 hover:text-white">
+                    فتح الطلبات <ArrowLeft className="mr-1 inline" size={14} />
                   </button>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl bg-white/[.03] p-4">
+                    <p className="text-xs text-white/35">طلبات اليوم</p>
+                    <p className="mt-2 text-2xl font-black">{orders.filter((o) => new Date(o.created_at).toDateString() === new Date().toDateString()).length}</p>
+                  </div>
+                  <div className="rounded-xl bg-white/[.03] p-4">
+                    <p className="text-xs text-white/35">طلبات ملغاة</p>
+                    <p className="mt-2 text-2xl font-black">{orders.filter((o) => o.status === 'cancelled').length}</p>
+                  </div>
+                  <div className="rounded-xl bg-white/[.03] p-4">
+                    <p className="text-xs text-white/35">متاجر مفتوحة</p>
+                    <p className="mt-2 text-2xl font-black">{stores.filter((s) => s.is_open && s.approval_status === 'approved').length}</p>
+                  </div>
                 </div>
               </div>
             </>
@@ -797,8 +837,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                   <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-300">
                     النظام حاليًا {driverEarningSettings.is_active ? 'مفعّل' : 'غير مفعّل'}. لا تفعّله إلا بعد اعتماد سياسة الأجور المالية.
                   </div>
-                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                    <label className="block">
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">                    <label className="block">
                       <span className="text-xs font-bold text-white/50">طريقة الاحتساب</span>
                       <select value={driverEarningSettings.calculation_mode} onChange={(e) => setDriverEarningSettings({...driverEarningSettings, calculation_mode: e.target.value as DriverEarningSettings['calculation_mode']})} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm">
                         <option value="percentage">نسبة من رسوم التوصيل</option>
