@@ -3161,6 +3161,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const [withdrawAccount, setWithdrawAccount] = useState('');
   const [withdrawNote, setWithdrawNote] = useState('');
   const [withdrawError, setWithdrawError] = useState('');
+  const [orderError, setOrderError] = useState('');
   const [busy, setBusy] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
@@ -3254,7 +3255,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     const { error: rpcError } = await supabase.rpc('merchant_update_order_status', { p_order_id: orderId, p_status: nextStatus });
     setBusy(false);
     if (rpcError) {
-      setError(rpcError.message || 'تعذر تحديث حالة الطلب');
+      setOrderError(rpcError.message || 'تعذر تحديث حالة الطلب');
       return;
     }
     loadAll();
@@ -3369,6 +3370,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
           {active === 'incoming' && canManageOrders && (
             <div>
               <h2 className="mb-5 text-2xl font-black">الطلبات الواردة</h2>
+              {orderError && <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600">{orderError}</div>}
               <div className="space-y-4">
                 {incoming.map((order) => {
                   const items = orderItems[order.id] || [];
