@@ -172,6 +172,11 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [driverEarningSettings, setDriverEarningSettings] = useState<DriverEarningSettings | null>(null);
   const [paymentDrafts, setPaymentDrafts] = useState<Record<string, { account_number: string; instructions: string; is_active: boolean }>>({});
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [storeStatusFilter, setStoreStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'suspended'>('all');
+  const [storeSearch, setStoreSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'customer' | 'merchant' | 'driver' | 'admin'>('all');
+  const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [userSearch, setUserSearch] = useState('');
 
   const loadStats = useCallback(async () => {
     const [ordersRes, txRes, profilesRes] = await Promise.all([
@@ -502,6 +507,21 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     delivered: orders.filter((o) => o.status === 'delivered').length,
     cancelled: orders.filter((o) => o.status === 'cancelled').length,
   };
+
+  const filteredStores = stores.filter((store) => {
+    const matchesStatus = storeStatusFilter === 'all' || store.approval_status === storeStatusFilter;
+    const q = storeSearch.trim().toLowerCase();
+    const matchesSearch = !q || [store.name, store.phone, store.merchant_id].filter(Boolean).some((value) => String(value).toLowerCase().includes(q));
+    return matchesStatus && matchesSearch;
+  });
+
+  const filteredProfiles = profiles.filter((p) => {
+    const matchesRole = userRoleFilter === 'all' || p.role === userRoleFilter;
+    const matchesStatus = userStatusFilter === 'all' || (userStatusFilter === 'active' ? p.is_active : !p.is_active);
+    const q = userSearch.trim().toLowerCase();
+    const matchesSearch = !q || [p.full_name, p.phone_number, p.id].filter(Boolean).some((value) => String(value).toLowerCase().includes(q));
+    return matchesRole && matchesStatus && matchesSearch;
+  });
 
   const navGroups: { title: string; items: [AdminTab, string, React.ElementType][] }[] = [
     { title: 'نظرة عامة', items: [['stats', 'لوحة المعلومات', BarChart3], ['orders', 'متابعة الطلبات', ClipboardList]] },
@@ -1000,8 +1020,26 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                 <h2 className="mt-1 text-3xl font-black">إدارة المتاجر والتجار</h2>
               </div>
 
-              <div className="mt-7 space-y-3">
-                {stores.map((store) => (
+              <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_auto]">
+                <input
+                  value={storeSearch}
+                  onChange={(e) => setStoreSearch(e.target.value)}
+                  placeholder="ابحث باسم المتجر أو الهاتف أو معرف التاجر"
+                  className="w-full rounded-xl border border-white/10 bg-white/[.03] px-4 py-3 text-sm outline-none focus:border-[#e3fe00]/40"
+                />
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    ['all', 'الكل'], ['pending', 'بانتظار الاعتماد'], ['approved', 'معتمدة'], ['rejected', 'مرفوضة'], ['suspended', 'موقوفة'],
+                  ] as const).map(([key, label]) => (
+                    <button key={key} onClick={() => setStoreStatusFilter(key)} className={"rounded-xl border px-3 py-2 text-xs font-bold " + (storeStatusFilter === key ? 'border-[#e3fe00]/40 bg-[#e3fe00]/10 text-[#e3fe00]' : 'border-white/5 bg-white/[.02] text-white/50')}>
+                      {label} <span className="mr-1 opacity-70">({stores.filter((s) => key === 'all' ? true : s.approval_status === key).length})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {filteredStores.map((store) => (
                   <div key={store.id} className="rounded-2xl border border-white/5 bg-white/[.02] p-5">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-[220px] flex-1">
@@ -1053,7 +1091,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                     </div>
                   </div>
                 ))}
-                {stores.length === 0 && (
+                {filteredStores.length === 0 && (
                   <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
                     <Landmark size={42} className="text-white/20" />
                     <h3 className="mt-4 font-bold">لا توجد متاجر</h3>
@@ -1070,14 +1108,36 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                 <h2 className="mt-1 text-3xl font-black">إدارة الحسابات</h2>
               </div>
 
-              {profiles.length === 0 ? (
-                <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
-                  <Users size={42} className="text-white/20" />
-                  <h3 className="mt-4 font-bold">لا يوجد مستخدمون</h3>
+              <div className="mt-6 space-y-3">
+                <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
+                  <input
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    placeholder="ابحث بالاسم أو الهاتف أو معرف الحساب"
+                    className="w-full rounded-xl border border-white/10 bg-white/[.03] px-4 py-3 text-sm outline-none focus:border-[#e3fe00]/40"
+                  />
+                  <select value={userRoleFilter} onChange={(e) => setUserRoleFilter(e.target.value as typeof userRoleFilter)} className="rounded-xl border border-white/10 bg-[#111] px-4 py-3 text-sm">
+                    <option value="all">كل الأدوار</option>
+                    <option value="customer">العملاء</option>
+                    <option value="merchant">التجار</option>
+                    <option value="driver">المندوبون</option>
+                    <option value="admin">المديرون</option>
+                  </select>
+                  <select value={userStatusFilter} onChange={(e) => setUserStatusFilter(e.target.value as typeof userStatusFilter)} className="rounded-xl border border-white/10 bg-[#111] px-4 py-3 text-sm">
+                    <option value="all">كل الحالات</option>
+                    <option value="active">نشطة</option>
+                    <option value="inactive">مجمّدة</option>
+                  </select>
                 </div>
-              ) : (
-                <div className="mt-7 space-y-3">
-                  {profiles.map((p) => (
+
+                {filteredProfiles.length === 0 ? (
+                  <div className="mt-8 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
+                    <Users size={42} className="text-white/20" />
+                    <h3 className="mt-4 font-bold">لا توجد حسابات مطابقة</h3>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                  {filteredProfiles.map((p) => (
                     <div key={p.id} className="flex flex-wrap items-center gap-4 rounded-xl border border-white/5 bg-white/[.02] p-4">
                       <div className="flex min-w-[130px] items-center gap-3">
                         <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${p.role === 'driver' ? 'bg-blue-500/10 text-blue-400' : p.role === 'merchant' ? 'bg-purple-500/10 text-purple-400' : 'bg-[#e3fe00]/10 text-[#e3fe00]'}`}>
@@ -1112,8 +1172,8 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                       )}
                     </div>
                   ))}
-                </div>
-              )}
+                  </div>
+                )}
             </>
           )}
 
