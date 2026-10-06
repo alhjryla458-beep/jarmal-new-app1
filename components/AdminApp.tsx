@@ -138,19 +138,20 @@ function StatCard({ label, value, icon: Icon, accent }: { label: string; value: 
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    pending: 'bg-yellow-500/10 text-yellow-400',
-    completed: 'bg-[#e3fe00]/10 text-[#e3fe00]',
-    rejected: 'bg-red-500/10 text-red-400',
-    accepted: 'bg-blue-500/10 text-blue-400',
-    at_store: 'bg-purple-500/10 text-purple-400',
-    picked_up: 'bg-indigo-500/10 text-indigo-400',
-    en_route: 'bg-cyan-500/10 text-cyan-400',
-    delivered: 'bg-[#e3fe00]/10 text-[#e3fe00]',
-    cancelled: 'bg-red-500/10 text-red-400',
+  const labels: Record<string, string> = {
+    pending: 'قيد الانتظار', completed: 'مكتملة', rejected: 'مرفوضة', accepted: 'مقبولة',
+    at_store: 'في المتجر', picked_up: 'تم الاستلام', en_route: 'في الطريق',
+    delivered: 'تم التسليم', cancelled: 'ملغاة', approved: 'معتمد', suspended: 'موقوف',
   };
-
-  return <span className={`rounded-full px-3 py-1 text-[10px] font-black ${map[status] || 'bg-white/10 text-white/50'}`}>{status}</span>;
+  const map: Record<string, string> = {
+    pending: 'bg-yellow-500/10 text-yellow-400', completed: 'bg-[#e3fe00]/10 text-[#e3fe00]',
+    rejected: 'bg-red-500/10 text-red-400', accepted: 'bg-blue-500/10 text-blue-400',
+    at_store: 'bg-purple-500/10 text-purple-400', picked_up: 'bg-indigo-500/10 text-indigo-400',
+    en_route: 'bg-cyan-500/10 text-cyan-400', delivered: 'bg-[#e3fe00]/10 text-[#e3fe00]',
+    cancelled: 'bg-red-500/10 text-red-400', approved: 'bg-[#e3fe00]/10 text-[#e3fe00]',
+    suspended: 'bg-orange-500/10 text-orange-400',
+  };
+  return <span className={`rounded-full px-3 py-1 text-[10px] font-black ${map[status] || 'bg-white/10 text-white/50'}`}>{labels[status] || status}</span>;
 }
 
 export default function AdminApp({ session, onLogout }: { session: Session; onLogout: () => void }) {
@@ -485,18 +486,11 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     }
   };
 
-  const navItems: [AdminTab, string, React.ElementType][] = [
-    ['stats', 'الإحصائيات', BarChart3],
-    ['wallets', 'عمليات المحافظ', WalletCards],
-    ['payment_receipts', 'إيصالات الدفع', WalletCards],
-    ['merchant_withdrawals', 'سحوبات التجار', WalletCards],
-    ['driver_cash_settlements', 'تسويات المندوبين', Truck],
-    ['driver_withdrawals', 'سحوبات المندوبين', WalletCards],
-    ['payment_settings', 'إعدادات الدفع', Settings2],
-    ['driver_earning_settings', 'أجور المندوبين', Settings2],
-    ['merchant_stores', 'إدارة المتاجر', Landmark],
-    ['users', 'إدارة الحسابات', Users],
-    ['orders', 'متابعة الطلبات', ClipboardList],
+  const navGroups: { title: string; items: [AdminTab, string, React.ElementType][] }[] = [
+    { title: 'نظرة عامة', items: [['stats', 'لوحة المعلومات', BarChart3], ['orders', 'متابعة الطلبات', ClipboardList]] },
+    { title: 'التشغيل', items: [['merchant_stores', 'إدارة المتاجر', Landmark], ['users', 'إدارة الحسابات', Users]] },
+    { title: 'المالية', items: [['wallets', 'عمليات المحافظ', WalletCards], ['payment_receipts', 'إيصالات الدفع', WalletCards], ['merchant_withdrawals', 'سحوبات التجار', WalletCards], ['driver_cash_settlements', 'تسويات المندوبين', Truck], ['driver_withdrawals', 'سحوبات المندوبين', WalletCards]] },
+    { title: 'الإعدادات', items: [['payment_settings', 'إعدادات الدفع', Settings2], ['driver_earning_settings', 'أجور المندوبين', Settings2]] },
   ];
 
   if (loading) {
@@ -538,22 +532,30 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       <div className="mx-auto flex max-w-7xl">
         <aside className="hidden w-60 shrink-0 border-l p-4 lg:block">
           <p className="mb-5 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-white/25">أقسام الإدارة</p>
-          <nav className="space-y-1">
-            {navItems.map(([id, label, Icon]) => (
-              <button
-                key={id}
-                onClick={() => { setTab(id); setError(''); }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold transition ${
-                  tab === id ? 'bg-[#e3fe00] text-black' : 'text-white/45 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                <Icon size={18} />
-                {label}
-                {id === 'wallets' && stats && stats.pendingTransactions > 0 && (
-                  <span className="mr-auto rounded-full bg-[#e3fe00] px-2 py-0.5 text-[10px] text-black">{stats.pendingTransactions}</span>
-                )}
-              </button>
+          <nav className="space-y-6">
+            {navGroups.map((group) => (
+              <div key={group.title}>
+                <p className="mb-2 px-3 text-[10px] font-bold text-white/25">{group.title}</p>
+                <div className="space-y-1">
+                  {group.items.map(([id, label, Icon]) => (
+                    <button
+                      key={id}
+                      onClick={() => { setTab(id); setError(''); }}
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold transition ${
+                        tab === id ? 'bg-[#e3fe00] text-black' : 'text-white/45 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <Icon size={18} />
+                      {label}
+                      {id === 'wallets' && stats && stats.pendingTransactions > 0 && (
+                        <span className="mr-auto rounded-full bg-[#e3fe00] px-2 py-0.5 text-[10px] text-black">{stats.pendingTransactions}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
+          </nav>
           </nav>
         </aside>
 
