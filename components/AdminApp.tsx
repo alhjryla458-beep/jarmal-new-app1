@@ -139,13 +139,13 @@ function StatCard({ label, value, icon: Icon, accent }: { label: string; value: 
 
 function StatusBadge({ status }: { status: string }) {
   const labels: Record<string, string> = {
-    pending: 'قيد الانتظار', completed: 'مكتملة', rejected: 'مرفوضة', accepted: 'مقبولة',
+    pending: 'قيد الانتظار', completed: 'مكتملة', rejected: 'مرفوضة', accepted: 'مقبولة', preparing: 'جارٍ التجهيز', ready_for_pickup: 'جاهز للاستلام', on_the_way: 'في الطريق',
     at_store: 'في المتجر', picked_up: 'تم الاستلام', en_route: 'في الطريق',
     delivered: 'تم التسليم', cancelled: 'ملغاة', approved: 'معتمد', suspended: 'موقوف',
   };
   const map: Record<string, string> = {
     pending: 'bg-yellow-500/10 text-yellow-400', completed: 'bg-[#e3fe00]/10 text-[#e3fe00]',
-    rejected: 'bg-red-500/10 text-red-400', accepted: 'bg-blue-500/10 text-blue-400',
+    rejected: 'bg-red-500/10 text-red-400', accepted: 'bg-blue-500/10 text-blue-400', preparing: 'bg-purple-500/10 text-purple-400', ready_for_pickup: 'bg-indigo-500/10 text-indigo-400', on_the_way: 'bg-cyan-500/10 text-cyan-400',
     at_store: 'bg-purple-500/10 text-purple-400', picked_up: 'bg-indigo-500/10 text-indigo-400',
     en_route: 'bg-cyan-500/10 text-cyan-400', delivered: 'bg-[#e3fe00]/10 text-[#e3fe00]',
     cancelled: 'bg-red-500/10 text-red-400', approved: 'bg-[#e3fe00]/10 text-[#e3fe00]',
