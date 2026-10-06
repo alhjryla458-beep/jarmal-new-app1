@@ -8,7 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 
 const CURRENCY = 'ر.ي';
 
-type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'payment_settings' | 'users' | 'orders';
+type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'driver_withdrawals' | 'payment_settings' | 'driver_earning_settings' | 'users' | 'orders';
 
 type ProfileRow = {
   id: string;
@@ -38,6 +38,8 @@ type PaymentReceiptRow = {
   status: string;
   created_at: string;
 };
+
+type DriverEarningSettings = { id: boolean; calculation_mode: 'fixed' | 'percentage' | 'hybrid'; fixed_amount: number; percentage: number; minimum_amount: number; maximum_amount: number | null; is_active: boolean; updated_at: string };
 
 type PaymentMethodRow = {
   id: string;
@@ -150,6 +152,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [driverCashSettlements, setDriverCashSettlements] = useState<DriverCashSettlementRow[]>([]);
   const [driverWithdrawals, setDriverWithdrawals] = useState<DriverWithdrawalRow[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
+  const [driverEarningSettings, setDriverEarningSettings] = useState<DriverEarningSettings | null>(null);
   const [paymentDrafts, setPaymentDrafts] = useState<Record<string, { account_number: string; instructions: string; is_active: boolean }>>({});
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -208,6 +211,16 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     setPaymentReceipts((data || []) as PaymentReceiptRow[]);
   }, []);
 
+  const loadDriverEarningSettings = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('driver_earning_settings')
+      .select('id, calculation_mode, fixed_amount, percentage, minimum_amount, maximum_amount, is_active, updated_at')
+      .eq('id', true)
+      .maybeSingle();
+    if (err) { setError('تعذر تحميل إعدادات أجور المندوبين'); return; }
+    setDriverEarningSettings(data as DriverEarningSettings | null);
+  }, []);
+
   const loadPaymentMethods = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('payment_methods')
@@ -221,6 +234,31 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       { account_number: m.account_number || '', instructions: m.instructions || '', is_active: Boolean(m.is_active) }
     ])));
   }, []);
+
+  const handleDriverEarningSettingsSave = async () => {
+    if (!driverEarningSettings) return;
+    setActionLoading('driver-earning-settings');
+    setError('');
+    try {
+      const { error: err } = await supabase
+        .from('driver_earning_settings')
+        .update({
+          calculation_mode: driverEarningSettings.calculation_mode,
+          fixed_amount: Number(driverEarningSettings.fixed_amount) || 0,
+          percentage: Number(driverEarningSettings.percentage) || 0,
+          minimum_amount: Number(driverEarningSettings.minimum_amount) || 0,
+          maximum_amount: driverEarningSettings.maximum_amount === null || driverEarningSettings.maximum_amount === '' ? null : Number(driverEarningSettings.maximum_amount),
+          is_active: Boolean(driverEarningSettings.is_active),
+        })
+        .eq('id', true);
+      if (err) throw err;
+      await loadDriverEarningSettings();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر حفظ إعدادات أجور المندوبين');
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const handlePaymentMethodSave = async (methodId: string) => {
     const draft = paymentDrafts[methodId];
@@ -289,14 +327,14 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadOrders()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadDriverEarningSettings(), loadOrders()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
         setLoading(false);
       }
     })();
-  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadOrders]);
+  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadDriverEarningSettings, loadOrders]);
 
   const handleTxAction = async (txId: string, action: 'confirm' | 'reject') => {
     setActionLoading(txId + action);
@@ -411,6 +449,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     ['driver_cash_settlements', 'تسويات المندوبين', Truck],
     ['driver_withdrawals', 'سحوبات المندوبين', WalletCards],
     ['payment_settings', 'إعدادات الدفع', Settings2],
+    ['driver_earning_settings', 'أجور المندوبين', Settings2],
     ['users', 'إدارة الحسابات', Users],
     ['orders', 'متابعة الطلبات', ClipboardList],
   ];
@@ -698,6 +737,57 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                 })}
                 {driverWithdrawals.length === 0 && <p className="py-8 text-center text-sm text-white/40">لا توجد طلبات سحب حتى الآن</p>}
               </div>
+            </>
+          )}
+
+          {tab === 'driver_earning_settings' && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-white/40">تحديد طريقة احتساب أجرة المندوب عن التوصيل</p>
+                <h2 className="mt-1 text-3xl font-black">إعدادات أجور المندوبين</h2>
+              </div>
+              {!driverEarningSettings ? (
+                <div className="mt-7 rounded-2xl border border-white/10 bg-white/[.02] p-6 text-sm text-white/50">لا توجد إعدادات أجور محفوظة.</div>
+              ) : (
+                <div className="mt-7 max-w-3xl rounded-2xl border border-white/5 bg-white/[.02] p-5">
+                  <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-300">
+                    النظام حاليًا {driverEarningSettings.is_active ? 'مفعّل' : 'غير مفعّل'}. لا تفعّله إلا بعد اعتماد سياسة الأجور المالية.
+                  </div>
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs font-bold text-white/50">طريقة الاحتساب</span>
+                      <select value={driverEarningSettings.calculation_mode} onChange={(e) => setDriverEarningSettings({...driverEarningSettings, calculation_mode: e.target.value as DriverEarningSettings['calculation_mode']})} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm">
+                        <option value="percentage">نسبة من رسوم التوصيل</option>
+                        <option value="fixed">مبلغ ثابت</option>
+                        <option value="hybrid">ثابت + نسبة</option>
+                      </select>
+                    </label>
+                    <label className="flex items-end gap-3 rounded-xl border border-white/10 p-3">
+                      <input type="checkbox" checked={driverEarningSettings.is_active} onChange={(e) => setDriverEarningSettings({...driverEarningSettings, is_active: e.target.checked})} className="h-5 w-5 accent-[#e3fe00]" />
+                      <span className="text-sm font-bold">تفعيل احتساب أجور المندوبين</span>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold text-white/50">المبلغ الثابت ({CURRENCY})</span>
+                      <input type="number" min="0" value={driverEarningSettings.fixed_amount} onChange={(e) => setDriverEarningSettings({...driverEarningSettings, fixed_amount: Number(e.target.value)})} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm" />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold text-white/50">النسبة %</span>
+                      <input type="number" min="0" max="100" step="0.01" value={driverEarningSettings.percentage} onChange={(e) => setDriverEarningSettings({...driverEarningSettings, percentage: Number(e.target.value)})} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm" />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold text-white/50">الحد الأدنى ({CURRENCY})</span>
+                      <input type="number" min="0" value={driverEarningSettings.minimum_amount} onChange={(e) => setDriverEarningSettings({...driverEarningSettings, minimum_amount: Number(e.target.value)})} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm" />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold text-white/50">الحد الأقصى ({CURRENCY})</span>
+                      <input type="number" min="0" value={driverEarningSettings.maximum_amount ?? ''} onChange={(e) => setDriverEarningSettings({...driverEarningSettings, maximum_amount: e.target.value === '' ? null : Number(e.target.value)})} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm" placeholder="بدون حد أقصى" />
+                    </label>
+                  </div>
+                  <button onClick={handleDriverEarningSettingsSave} disabled={actionLoading === 'driver-earning-settings'} className="mt-5 flex items-center gap-2 rounded-xl bg-[#e3fe00] px-5 py-3 text-sm font-black text-black disabled:opacity-50">
+                    <Save size={16} /> حفظ إعدادات الأجور
+                  </button>
+                </div>
+              )}
             </>
           )}
 
