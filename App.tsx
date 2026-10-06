@@ -2784,21 +2784,21 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
         setWithdrawalMethod((current) => current || methods[0]?.code || '');
       }
     });
-    supabase.from('driver_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, admin_note, created_at, processed_at').order('created_at', { ascending: false }).limit(30).then(({ data }) => {
+    supabase.from('driver_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, admin_note, created_at, processed_at').eq('driver_id', userId).order('created_at', { ascending: false }).limit(30).then(({ data }) => {
       if (data) setDriverWithdrawals(data || []);
     });
-    supabase.from('wallet_transactions').select('id, transaction_type, amount, payment_method, transaction_status').in('transaction_type', ['topup', 'withdrawal', 'earning']).order('id', { ascending: false }).limit(50).then(({ data }) => {
+    supabase.from('wallet_transactions').select('id, transaction_type, amount, payment_method, transaction_status').eq('user_id', userId).in('transaction_type', ['topup', 'withdrawal', 'earning']).order('id', { ascending: false }).limit(50).then(({ data }) => {
       if (data) setDriverWalletTransactions(data || []);
     });
     Promise.all([
-      supabase.from('driver_cash_collections').select('amount, settled_amount, status').eq('status', 'open'),
-      supabase.from('driver_cash_settlements').select('amount, status').eq('status', 'pending')
+      supabase.from('driver_cash_collections').select('amount, settled_amount, status').eq('driver_id', userId).eq('status', 'open'),
+      supabase.from('driver_cash_settlements').select('amount, status').eq('driver_id', userId).eq('status', 'pending')
     ]).then(([collectionsRes, settlementsRes]) => {
       const open = (collectionsRes.data || []).reduce((sum, row) => sum + Number(row.amount || 0) - Number(row.settled_amount || 0), 0);
       const pending = (settlementsRes.data || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
       setDriverCashOutstanding(Math.max(0, open - pending));
     });
-    supabase.from('driver_cash_settlements').select('id, amount, status, note, requested_at, processed_at').order('requested_at', { ascending: false }).limit(30).then(({ data }) => { if (data) setDriverSettlements(data || []); });
+    supabase.from('driver_cash_settlements').select('id, amount, status, note, requested_at, processed_at').eq('driver_id', userId).order('requested_at', { ascending: false }).limit(30).then(({ data }) => { if (data) setDriverSettlements(data || []); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'ready_for_pickup').is('driver_id', null).then(({ data }) => { if (data) setAvailable(data as FullOrderRow[]); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('driver_id', userId).not('status', 'in', '(delivered,cancelled,pending)').order('created_at', { ascending: false }).limit(1).then(({ data }) => {
       setActiveOrder(((data as FullOrderRow[] | null) || [])[0] || null);
