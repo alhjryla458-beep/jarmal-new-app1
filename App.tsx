@@ -232,6 +232,7 @@ type MyStoreRow = {
   is_open: boolean;
   rating: number | null;
   commission_rate: number | null;
+  approval_status: 'pending' | 'approved' | 'rejected' | 'suspended';
 };
 
 type StoreMemberContext = {
@@ -2002,7 +2003,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
 
   const loadAll = () => {
-    supabase.from('stores').select('id, name, store_type, address_description, is_open, rating').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
+    supabase.from('stores').select('id, name, store_type, address_description, is_open, rating').eq('approval_status', 'approved').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
     supabase.from('products').select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
     supabase.from('product_variants').select('id, product_id, variant_name, price, is_available').then(({ data }) => { if (data) setVariantsReal(data as VariantRow[]); });
@@ -3094,7 +3095,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
 
     const storeBaseQuery = supabase
       .from('stores')
-      .select('id, name, is_open, rating, commission_rate');
+      .select('id, name, is_open, rating, commission_rate, approval_status');
 
     const { data } = resolvedMemberContext
       ? await storeBaseQuery.eq('id', resolvedMemberContext.store_id).maybeSingle()
@@ -3124,7 +3125,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   useEffect(() => { loadAll(); }, []);
 
   const toggleOpen = async () => {
-    if (!store || !isOwner) return;
+    if (!store || !isOwner || store.approval_status !== 'approved') return;
     await supabase.from('stores').update({ is_open: !store.is_open }).eq('id', store.id);
     loadAll();
   };
@@ -3452,7 +3453,11 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                 <p className="text-sm text-[#747b72]">اسم المتجر</p>
                 <p className="mt-1 font-bold">{store.name}</p>
               </div>
-              <button onClick={toggleOpen} className={`w-full rounded-xl py-4 font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-[#697068]'}`}>{store.is_open ? 'إغلاق المتجر مؤقتاً' : 'فتح المتجر'}</button>
+              <div className="w-full rounded-xl border border-[#e1e5de] bg-white p-4">
+                <p className="text-sm text-[#747b72]">حالة اعتماد المتجر</p>
+                <p className="mt-1 font-black">{store.approval_status === 'pending' ? 'قيد مراجعة الإدارة' : store.approval_status === 'approved' ? 'معتمد' : store.approval_status === 'rejected' ? 'مرفوض' : 'موقوف'}</p>
+              </div>
+              <button disabled={store.approval_status !== 'approved'} onClick={toggleOpen} className={`w-full rounded-xl py-4 font-black ${store.is_open ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-[#697068]'} disabled:cursor-not-allowed disabled:opacity-40`}>{store.approval_status !== 'approved' ? 'لا يمكن فتح المتجر قبل الاعتماد' : store.is_open ? 'إغلاق المتجر مؤقتاً' : 'فتح المتجر'}</button>
             </div>
           )}
         </main>
