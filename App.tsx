@@ -2141,10 +2141,10 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           {active === 'home' && !selectedStore && (
             <>
               <div className="jarmal-hero rounded-3xl p-6 sm:p-8">
-                <div className="flex items-start justify-between gap-4"><div><Pill dark>مرحباً بك في جَرْمَل</Pill><h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">قطعك وخدماتك<br />أقرب إليك.</h1><p className="mt-2 max-w-md text-sm opacity-70">ابحث عن المتجر أو القطعة التي تحتاجها واطلبها بسهولة.</p></div><div className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-black/10 sm:flex"><ShoppingBag size={28} /></div></div>
+                <div className="flex items-start justify-between gap-4"><div><Pill dark>مرحباً بك في جَرْمَل</Pill><h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">طلباتك وخدماتك<br />أقرب إليك.</h1><p className="mt-2 max-w-md text-sm opacity-70">ابحث عن المتجر أو المنتج الذي تحتاجه واطلبه بسهولة.</p></div><div className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-black/10 sm:flex"><ShoppingBag size={28} /></div></div>
               </div>
               <section className="mt-10">
-                <div className="flex items-end justify-between gap-3"><div><h2 className="text-xl font-black">متاجر جَرْمَل</h2><p className="mt-1 text-sm text-black/45">اختر المتجر ثم تصفح المنتجات</p></div></div>
+                <div className="flex items-end justify-between gap-3"><div><h2 className="text-xl font-black">متاجر جَرْمَل</h2><p className="mt-1 text-sm text-black/45">اختر المتجر ثم تصفح المنتجات والخدمات</p></div></div>
                 <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto rounded-2xl border border-[#e3e7e0] bg-[#f7f9f5] p-2 pb-2">
                   <button onClick={() => setStoreCategory('الكل')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${storeCategory === 'الكل' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>الكل</button>
                   {Array.from(new Set(storesReal.map((s) => s.store_type))).map((type) => (
