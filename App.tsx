@@ -3246,11 +3246,17 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
     loadAll();
   };
 
-  const advance = async (orderId: string) => {
+  const advance = async (orderId: string, currentStatus: string) => {
     if (!canManageOrders && !canManageInventory) return;
+    const nextStatus = currentStatus === 'accepted' ? 'preparing' : currentStatus === 'preparing' ? 'ready_for_pickup' : null;
+    if (!nextStatus) return;
     setBusy(true);
-    await supabase.rpc('merchant_update_order_status', { p_order_id: orderId, p_status: 'ready_for_pickup' });
+    const { error: rpcError } = await supabase.rpc('merchant_update_order_status', { p_order_id: orderId, p_status: nextStatus });
     setBusy(false);
+    if (rpcError) {
+      setError(rpcError.message || 'تعذر تحديث حالة الطلب');
+      return;
+    }
     loadAll();
   };
 
@@ -3384,7 +3390,9 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                         </div>
                       )}
                       {(order.status === 'accepted' || order.status === 'preparing') && (
-                        <button disabled={busy} onClick={() => advance(order.id)} className="mt-4 w-full rounded-xl border border-[#e3fe00]/40 py-3 text-sm font-black text-[#687500] disabled:opacity-50">جاهز للاستلام</button>
+                        <button disabled={busy} onClick={() => advance(order.id, order.status)} className="mt-4 w-full rounded-xl border border-[#e3fe00]/40 py-3 text-sm font-black text-[#687500] disabled:opacity-50">
+                          {order.status === 'accepted' ? 'بدء التحضير' : 'جاهز للاستلام'}
+                        </button>
                       )}
                     </div>
                   );
