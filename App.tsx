@@ -225,6 +225,7 @@ type DriverProfileRow = {
   vehicle_type: string | null;
   vehicle_plate_number: string | null;
   rating: number | null;
+  verification_status: 'pending' | 'approved' | 'rejected' | 'suspended';
 };
 type MyStoreRow = {
   id: string;
@@ -1257,7 +1258,7 @@ function Auth({
                 <Field label="رقم الهوية" value={form.nationalId} onChange={(value) => update('nationalId', value)} placeholder="رقم البطاقة الشخصية" icon={<ShieldCheck size={17} />} />
                 <Field label="رقم رخصة القيادة" value={form.licenseNumber} onChange={(value) => update('licenseNumber', value)} placeholder="رقم الرخصة" icon={<ClipboardList size={17} />} />
                 <Field label="نوع المركبة" value={form.vehicleType} onChange={(value) => update('vehicleType', value)} placeholder="مثال: دراجة نارية / سيارة" icon={<Truck size={17} />} />
-                <Field label="رقم لوحة المركبة" value={form.vehiclePlate} onChange={(value) => update('vehiclePlate', value)} placeholder="رقم اللوحة" icon={<Car size={17} />} />
+                <Field label="رقم لوحة المركبة" value={form.vehiclePlate} onChange={(value) => update('vehiclePlate', value)} placeholder="رقم اللوحة" icon={<Bike size={17} />} />
 
                 <div>
                   <label className="mb-2 block text-sm font-bold">كود المندوب</label>
@@ -2682,7 +2683,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [error, setError] = useState('');
 
   const loadAll = () => {
-    supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating').maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
+    supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating, verification_status').maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
     supabase.from('driver_wallets').select('balance, reserved_balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
     supabase.from('payment_methods').select('id, name, code, account_number, instructions').eq('is_active', true).neq('code', 'cash').then(({ data }) => {
       if (data) {
@@ -2717,6 +2718,10 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   useEffect(() => { loadAll(); }, []);
 
   const toggleAvailability = async () => {
+    if (profile?.verification_status !== 'approved') {
+      setError('لا يمكنك تفعيل حالة "متاح" حتى تعتمد الإدارة حسابك');
+      return;
+    }
     const next = !profile?.is_available;
     await supabase.from('driver_profiles').update({ is_available: next }).eq('id', (await supabase.auth.getUser()).data.user?.id || '');
     loadAll();
