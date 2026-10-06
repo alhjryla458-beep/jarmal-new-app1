@@ -8,7 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 
 const CURRENCY = 'ر.ي';
 
-type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'driver_withdrawals' | 'payment_settings' | 'driver_earning_settings' | 'users' | 'orders';
+type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'driver_withdrawals' | 'payment_settings' | 'driver_earning_settings' | 'merchant_stores' | 'users' | 'orders';
 
 type ProfileRow = {
   id: string;
@@ -99,6 +99,20 @@ type OrderRow = {
   created_at: string;
 };
 
+type StoreRow = {
+  id: string;
+  merchant_id: string;
+  name: string;
+  phone: string | null;
+  store_type: string | null;
+  branch_id: string | null;
+  is_open: boolean;
+  approval_status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  admin_note: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+};
+
 type Stats = {
   totalOrders: number;
   activeOrders: number;
@@ -148,6 +162,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceiptRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [stores, setStores] = useState<StoreRow[]>([]);
   const [merchantWithdrawals, setMerchantWithdrawals] = useState<MerchantWithdrawalRow[]>([]);
   const [driverCashSettlements, setDriverCashSettlements] = useState<DriverCashSettlementRow[]>([]);
   const [driverWithdrawals, setDriverWithdrawals] = useState<DriverWithdrawalRow[]>([]);
@@ -322,19 +337,29 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     setOrders((data || []) as OrderRow[]);
   }, []);
 
+  const loadStores = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('stores')
+      .select('id, merchant_id, name, phone, store_type, branch_id, is_open, approval_status, admin_note, created_at, reviewed_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (err) { setError('تعذر تحميل المتاجر'); return; }
+    setStores((data || []) as StoreRow[]);
+  }, []);
+
   useEffect(() => {
     (async () => {
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadDriverEarningSettings(), loadOrders()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadDriverEarningSettings(), loadOrders(), loadStores()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
         setLoading(false);
       }
     })();
-  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadDriverEarningSettings, loadOrders]);
+  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadDriverEarningSettings, loadOrders, loadStores]);
 
   const handleTxAction = async (txId: string, action: 'confirm' | 'reject') => {
     setActionLoading(txId + action);
@@ -423,6 +448,25 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
 
 
 
+  const handleStoreReview = async (storeId: string, status: 'approved' | 'rejected' | 'suspended') => {
+    setActionLoading(storeId + status);
+    setError('');
+    const note = window.prompt(status === 'approved' ? 'ملاحظة اعتماد المتجر (اختياري)' : 'سبب المراجعة (اختياري)') || null;
+    try {
+      const { data, error: err } = await supabase.rpc('admin_review_store', {
+        p_store_id: storeId,
+        p_status: status,
+        p_note: note,
+      });
+      if (err) throw err;
+      if (data) setStores((prev) => prev.map((s) => s.id === storeId ? { ...s, ...(data as StoreRow) } : s));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر تحديث حالة المتجر');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const toggleUserActive = async (userId: string, currentActive: boolean) => {
     setActionLoading(userId);
     setError('');
@@ -450,6 +494,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     ['driver_withdrawals', 'سحوبات المندوبين', WalletCards],
     ['payment_settings', 'إعدادات الدفع', Settings2],
     ['driver_earning_settings', 'أجور المندوبين', Settings2],
+    ['merchant_stores', 'إدارة المتاجر', Landmark],
     ['users', 'إدارة الحسابات', Users],
     ['orders', 'متابعة الطلبات', ClipboardList],
   ];
@@ -889,6 +934,76 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                   ))}
                 </div>
               )}
+            </>
+          )}
+
+          {tab === 'merchant_stores' && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-white/40">مراجعة واعتماد المتاجر المسجلة في جَرْمَل</p>
+                <h2 className="mt-1 text-3xl font-black">إدارة المتاجر والتجار</h2>
+              </div>
+
+              <div className="mt-7 space-y-3">
+                {stores.map((store) => (
+                  <div key={store.id} className="rounded-2xl border border-white/5 bg-white/[.02] p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="min-w-[220px] flex-1">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
+                            <Landmark size={19} />
+                          </div>
+                          <div>
+                            <h3 className="font-black">{store.name || 'بدون اسم'}</h3>
+                            <p className="mt-1 text-xs text-white/35">التاجر: {store.merchant_id.slice(0, 8)}</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid gap-2 text-xs text-white/45 sm:grid-cols-2">
+                          <p>الهاتف: <span dir="ltr">{store.phone || '—'}</span></p>
+                          <p>النشاط: {store.store_type || '—'}</p>
+                          <p>الفرع: {store.branch_id ? store.branch_id.slice(0, 8) : 'غير محدد'}</p>
+                          <p>تاريخ التسجيل: {new Date(store.created_at).toLocaleString('ar-YE')}</p>
+                        </div>
+                      </div>
+
+                      <StatusBadge status={store.approval_status} />
+                    </div>
+
+                    {store.admin_note && (
+                      <p className="mt-4 rounded-xl bg-white/5 p-3 text-xs text-white/50">ملاحظة الإدارة: {store.admin_note}</p>
+                    )}
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {store.approval_status === 'pending' && (
+                        <>
+                          <button onClick={() => handleStoreReview(store.id, 'approved')} disabled={!!actionLoading} className="rounded-xl bg-[#e3fe00] px-4 py-2.5 text-xs font-black text-black disabled:opacity-50">
+                            <Check size={14} className="mr-1 inline" /> اعتماد المتجر
+                          </button>
+                          <button onClick={() => handleStoreReview(store.id, 'rejected')} disabled={!!actionLoading} className="rounded-xl border border-red-500/30 px-4 py-2.5 text-xs font-black text-red-400 disabled:opacity-50">
+                            <X size={14} className="mr-1 inline" /> رفض
+                          </button>
+                        </>
+                      )}
+                      {store.approval_status === 'approved' && (
+                        <button onClick={() => handleStoreReview(store.id, 'suspended')} disabled={!!actionLoading} className="rounded-xl border border-orange-500/30 px-4 py-2.5 text-xs font-black text-orange-400 disabled:opacity-50">
+                          إيقاف المتجر
+                        </button>
+                      )}
+                      {(store.approval_status === 'rejected' || store.approval_status === 'suspended') && (
+                        <button onClick={() => handleStoreReview(store.id, 'approved')} disabled={!!actionLoading} className="rounded-xl bg-[#e3fe00] px-4 py-2.5 text-xs font-black text-black disabled:opacity-50">
+                          إعادة اعتماد
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {stores.length === 0 && (
+                  <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
+                    <Landmark size={42} className="text-white/20" />
+                    <h3 className="mt-4 font-bold">لا توجد متاجر</h3>
+                  </div>
+                )}
+              </div>
             </>
           )}
 
