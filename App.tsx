@@ -559,6 +559,10 @@ function Auth({
     phone: '',
     otp: '',
     accessCode: '',
+    nationalId: '',
+    licenseNumber: '',
+    vehicleType: '',
+    vehiclePlate: '',
     storeName: '',
     category: 'بقالة'
   });
@@ -782,8 +786,12 @@ function Auth({
       const activeSession = session || (await supabase.auth.getSession()).data.session;
       if (!activeSession) throw new Error('انتهت جلسة التحقق، أعد إرسال الرمز');
 
-      if (role === 'driver' && !form.accessCode.trim()) {
-        throw new Error('أدخل كود المندوب');
+      if (role === 'driver') {
+        if (!form.accessCode.trim()) throw new Error('أدخل كود المندوب');
+        if (!form.nationalId.trim()) throw new Error('أدخل رقم الهوية');
+        if (!form.licenseNumber.trim()) throw new Error('أدخل رقم رخصة القيادة');
+        if (!form.vehicleType.trim()) throw new Error('أدخل نوع المركبة');
+        if (!form.vehiclePlate.trim()) throw new Error('أدخل رقم لوحة المركبة');
       }
 
       if (role === 'merchant') {
@@ -797,7 +805,7 @@ function Auth({
           p_role: role,
           p_full_name: form.name.trim(),
           p_phone: `+967${form.phone}`,
-          p_national_id: null,
+          p_national_id: role === 'driver' ? form.nationalId.trim() : null,
           p_email: null,
           p_store_name: role === 'merchant' ? form.storeName.trim() : null,
           p_store_category: role === 'merchant' ? form.category : null,
@@ -806,6 +814,20 @@ function Auth({
       );
 
       if (registerError) throw registerError;
+
+      if (role === 'driver') {
+        const { error: driverProfileError } = await supabase
+          .from('driver_profiles')
+          .update({
+            identity_card_number: form.nationalId.trim(),
+            license_number: form.licenseNumber.trim(),
+            vehicle_type: form.vehicleType.trim(),
+            vehicle_plate_number: form.vehiclePlate.trim(),
+            is_available: false
+          })
+          .eq('id', activeSession.user.id);
+        if (driverProfileError) throw driverProfileError;
+      }
 
       const resolvedRole = registeredRole as Role;
       localStorage.setItem('jarmal_test_role', resolvedRole);
@@ -1228,36 +1250,19 @@ function Auth({
             role === 'driver' && (
               <div className="space-y-4">
                 <div className="mb-2 text-center">
-                  <h2 className="text-xl font-black">
-                    كود المندوب
-                  </h2>
-
-                  <p className="mt-1 text-sm text-white/40">
-                    أدخل الكود الذي أصدره لك مدير جَرْمَل
-                  </p>
+                  <h2 className="text-xl font-black">بيانات المندوب</h2>
+                  <p className="mt-1 text-sm text-white/40">هذه البيانات ستراجعها إدارة جَرْمَل قبل تفعيلك للعمل.</p>
                 </div>
 
+                <Field label="رقم الهوية" value={form.nationalId} onChange={(value) => update('nationalId', value)} placeholder="رقم البطاقة الشخصية" icon={<ShieldCheck size={17} />} />
+                <Field label="رقم رخصة القيادة" value={form.licenseNumber} onChange={(value) => update('licenseNumber', value)} placeholder="رقم الرخصة" icon={<ClipboardList size={17} />} />
+                <Field label="نوع المركبة" value={form.vehicleType} onChange={(value) => update('vehicleType', value)} placeholder="مثال: دراجة نارية / سيارة" icon={<Truck size={17} />} />
+                <Field label="رقم لوحة المركبة" value={form.vehiclePlate} onChange={(value) => update('vehiclePlate', value)} placeholder="رقم اللوحة" icon={<Car size={17} />} />
+
                 <div>
-                  <label className="mb-2 block text-sm font-bold">
-                    كود المندوب
-                  </label>
-
-                  <input
-                    required
-                    value={form.accessCode}
-                    onChange={(e) =>
-                      update(
-                        'accessCode',
-                        e.target.value.toUpperCase()
-                      )
-                    }
-                    placeholder="مثال: JARMAL-101"
-                    className="w-full rounded-xl border border-[#e3fe00]/40 bg-black px-4 py-3.5 text-left font-bold tracking-widest text-[#e3fe00] outline-none placeholder:text-white/20 focus:border-[#e3fe00]"
-                  />
-
-                  <p className="mt-2 text-xs text-white/35">
-                    الكود يجب أن يكون صادرًا من الإدارة.
-                  </p>
+                  <label className="mb-2 block text-sm font-bold">كود المندوب</label>
+                  <input required value={form.accessCode} onChange={(e) => update('accessCode', e.target.value.toUpperCase())} placeholder="مثال: JARMAL-101" className="w-full rounded-xl border border-[#e3fe00]/40 bg-black px-4 py-3.5 text-left font-bold tracking-widest text-[#e3fe00] outline-none placeholder:text-white/20 focus:border-[#e3fe00]" />
+                  <p className="mt-2 text-xs text-white/35">الكود يجب أن يكون صادرًا من الإدارة.</p>
                 </div>
 
                 {error && (
@@ -1278,7 +1283,7 @@ function Auth({
 
                   <button
                     type="button"
-                    disabled={busy || !form.accessCode.trim()}
+                    disabled={busy || !form.accessCode.trim() || !form.nationalId.trim() || !form.licenseNumber.trim() || !form.vehicleType.trim() || !form.vehiclePlate.trim()}
                     onClick={() => void finishSignup()}
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
                   >
