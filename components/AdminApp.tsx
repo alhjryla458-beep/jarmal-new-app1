@@ -156,6 +156,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function AdminApp({ session, onLogout }: { session: Session; onLogout: () => void }) {
   const [tab, setTab] = useState<AdminTab>('stats');
+  const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'active' | 'pending' | 'accepted' | 'preparing' | 'ready_for_pickup' | 'picked_up' | 'on_the_way' | 'delivered' | 'cancelled'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [stats, setStats] = useState<Stats | null>(null);
@@ -482,6 +483,24 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const filteredOrders = orders.filter((o) => {
+    if (orderStatusFilter === 'all') return true;
+    if (orderStatusFilter === 'active') return !['delivered', 'cancelled'].includes(o.status);
+    return o.status === orderStatusFilter;
+  });
+
+  const orderCounts = {
+    all: orders.length,
+    active: orders.filter((o) => !['delivered', 'cancelled'].includes(o.status)).length,
+    pending: orders.filter((o) => o.status === 'pending').length,
+    preparing: orders.filter((o) => o.status === 'preparing').length,
+    ready_for_pickup: orders.filter((o) => o.status === 'ready_for_pickup').length,
+    picked_up: orders.filter((o) => o.status === 'picked_up').length,
+    on_the_way: orders.filter((o) => o.status === 'on_the_way').length,
+    delivered: orders.filter((o) => o.status === 'delivered').length,
+    cancelled: orders.filter((o) => o.status === 'cancelled').length,
   };
 
   const navGroups: { title: string; items: [AdminTab, string, React.ElementType][] }[] = [
@@ -1101,38 +1120,53 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
           {tab === 'orders' && (
             <>
               <div className="mb-2">
-                <p className="text-sm text-white/40">متابعة الطلبات المباشرة وحالات التوصيل</p>
+                <p className="text-sm text-white/40">مركز متابعة الطلبات والتوصيل في الوقت الفعلي</p>
                 <h2 className="mt-1 text-3xl font-black">متابعة الطلبات</h2>
               </div>
 
-              {orders.length === 0 ? (
-                <div className="mt-12 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
+              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+                {([
+                  ['all', 'الكل'], ['active', 'نشطة'], ['pending', 'جديدة'], ['preparing', 'تجهيز'],
+                  ['ready_for_pickup', 'جاهزة'], ['picked_up', 'مستلمة'], ['on_the_way', 'في الطريق'], ['delivered', 'مكتملة'], ['cancelled', 'ملغاة'],
+                ] as const).map(([key, label]) => (
+                  <button key={key} onClick={() => setOrderStatusFilter(key)} className={"rounded-xl border px-3 py-3 text-right transition " + (orderStatusFilter === key ? 'border-[#e3fe00]/40 bg-[#e3fe00]/10' : 'border-white/5 bg-white/[.02] hover:bg-white/[.04]')}>
+                    <span className="block text-[10px] font-bold text-white/40">{label}</span>
+                    <span className={"mt-1 block text-lg font-black " + (orderStatusFilter === key ? 'text-[#e3fe00]' : 'text-white')}>{orderCounts[key]}</span>
+                  </button>
+                ))}
+              </div>
+
+              {filteredOrders.length === 0 ? (
+                <div className="mt-7 flex flex-col items-center rounded-3xl border border-dashed border-white/10 py-16">
                   <Package size={42} className="text-white/20" />
-                  <h3 className="mt-4 font-bold">لا توجد طلبات</h3>
+                  <h3 className="mt-4 font-bold">{orders.length === 0 ? 'لا توجد طلبات' : 'لا توجد طلبات بهذه الحالة'}</h3>
                 </div>
               ) : (
                 <div className="mt-7 space-y-3">
-                  {orders.map((o) => (
-                    <div key={o.id} className="flex flex-wrap items-center gap-4 rounded-xl border border-white/5 bg-white/[.02] p-4">
-                      <div className="flex min-w-[120px] items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e3fe00]/10 text-[#e3fe00]">
-                          <Package size={17} />
+                  {filteredOrders.map((o) => (
+                    <div key={o.id} className="rounded-2xl border border-white/5 bg-white/[.02] p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="flex min-w-[150px] items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e3fe00]/10 text-[#e3fe00]"><Package size={18} /></div>
+                          <div>
+                            <p className="text-sm font-black">#{o.id.slice(0, 8)}</p>
+                            <p className="mt-1 text-[11px] text-white/30">{new Date(o.created_at).toLocaleString('ar-YE')}</p>
+                          </div>
                         </div>
-                        <p className="text-sm font-bold">#{o.id.slice(0, 8)}</p>
+                        <StatusBadge status={o.status} />
                       </div>
 
-                      <div className="min-w-[160px] flex-1">
-                        <p className="text-sm text-white/55">
-                          الإجمالي: {Number(o.total_amount).toLocaleString('ar-YE')} {CURRENCY}
-                        </p>
-                        <p className="mt-1 text-xs text-white/35">
-                          توصيل: {Number(o.custom_delivery_fee || o.delivery_fee).toLocaleString('ar-YE')} {CURRENCY}
-                          {o.courier_distance ? ` • ${o.courier_distance} كم` : ''}
-                        </p>
+                      <div className="mt-4 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="rounded-xl bg-white/[.03] p-3"><p className="text-[10px] font-bold text-white/30">العميل</p><p className="mt-1 font-bold" dir="ltr">{o.customer_id.slice(0, 8)}…</p></div>
+                        <div className="rounded-xl bg-white/[.03] p-3"><p className="text-[10px] font-bold text-white/30">المتجر</p><p className="mt-1 font-bold" dir="ltr">{o.store_id.slice(0, 8)}…</p></div>
+                        <div className="rounded-xl bg-white/[.03] p-3"><p className="text-[10px] font-bold text-white/30">المندوب</p><p className="mt-1 font-bold">{o.driver_id ? <span dir="ltr">{o.driver_id.slice(0, 8)}…</span> : 'لم يُعيّن بعد'}</p></div>
+                        <div className="rounded-xl bg-white/[.03] p-3"><p className="text-[10px] font-bold text-white/30">المسافة</p><p className="mt-1 font-bold">{o.courier_distance != null ? Number(o.courier_distance).toLocaleString('ar-YE') + ' كم' : 'غير محددة'}</p></div>
                       </div>
 
-                      <StatusBadge status={o.status} />
-                      <span className="text-xs text-white/30">{new Date(o.created_at).toLocaleDateString('ar-YE')}</span>
+                      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/5 pt-3 text-xs">
+                        <span className="text-white/45">قيمة الطلب: <b className="text-white">{Number(o.total_amount).toLocaleString('ar-YE')} {CURRENCY}</b></span>
+                        <span className="text-white/45">التوصيل: <b className="text-white">{Number(o.custom_delivery_fee ?? o.delivery_fee).toLocaleString('ar-YE')} {CURRENCY}</b></span>
+                      </div>
                     </div>
                   ))}
                 </div>
