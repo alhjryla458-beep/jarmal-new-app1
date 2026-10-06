@@ -1717,6 +1717,7 @@ function SideNav({
       ? [
           ['home', 'الرئيسية', Home],
           ['orders', 'طلباتي', ClipboardList],
+          ['notifications', 'الإشعارات', Bell],
           ['services', 'الخدمات', Zap],
           ['wallet', 'محفظتي', WalletCards],
           ['map', 'تتبع الطلب', Navigation],
@@ -1727,6 +1728,7 @@ function SideNav({
         ? [
             ['available', 'الطلبات القريبة', Navigation],
             ['active', 'الطلب الحالي', Truck],
+          ['notifications', 'الإشعارات', Bell],
             ['history', 'سجل التوصيلات', ClipboardList],
             ['wallet', 'محفظتي', WalletCards],
             ['settings', 'الإعدادات', Settings2]
@@ -1734,6 +1736,7 @@ function SideNav({
         : [
             ['dashboard', 'نظرة عامة', BarChart3],
             ['incoming', 'الطلبات الواردة', ClipboardList],
+            ['notifications', 'الإشعارات', Bell],
             ['products', 'إدارة المنتجات', ShoppingBag],
             ...(merchantCanManageInventory ? [['inventory', 'المخزون', Boxes] as [string, string, React.ElementType]] : []),
             ['wallet', 'محفظتي', WalletCards],
@@ -1990,6 +1993,94 @@ function Wallet({
   );
 }
 
+
+function NotificationsView() {
+  type NotificationRow = {
+    id: string;
+    type: string;
+    title: string;
+    body: string | null;
+    order_id: string | null;
+    is_read: boolean;
+    created_at: string;
+  };
+
+  const [items, setItems] = useState<NotificationRow[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  const load = async () => {
+    const { data } = await supabase
+      .from('notifications')
+      .select('id, type, title, body, order_id, is_read, created_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (data) setItems(data as NotificationRow[]);
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  const markRead = async (id: string) => {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    setItems(current => current.map(item => item.id === id ? { ...item, is_read: true } : item));
+  };
+
+  const markAllRead = async () => {
+    setBusy(true);
+    await supabase.from('notifications').update({ is_read: true }).eq('is_read', false);
+    await load();
+    setBusy(false);
+  };
+
+  const unread = items.filter(item => !item.is_read).length;
+
+  return (
+    <section className="max-w-3xl">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm text-[#747b72]">آخر تنبيهات وتحديثات حسابك</p>
+          <h1 className="mt-1 text-3xl font-black">الإشعارات</h1>
+        </div>
+        {unread > 0 && (
+          <button disabled={busy} onClick={markAllRead} className="rounded-xl border border-[#e1e5de] bg-white px-4 py-2.5 text-xs font-black text-[#596159] disabled:opacity-50">
+            تحديد الكل كمقروء
+          </button>
+        )}
+      </div>
+
+      <div className="mt-6 space-y-3">
+        {items.map(item => (
+          <button
+            key={item.id}
+            onClick={() => !item.is_read && markRead(item.id)}
+            className={`w-full rounded-2xl border p-4 text-right transition ${item.is_read ? 'border-[#e7eae5] bg-white' : 'border-[#e3fe00]/50 bg-[#e3fe00]/10'}`}
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e3fe00] text-black">
+                <Bell size={18} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="font-black">{item.title}</h3>
+                  {!item.is_read && <span className="rounded-full bg-[#e3fe00] px-2 py-1 text-[10px] font-black text-black">جديد</span>}
+                </div>
+                {item.body && <p className="mt-1 text-sm leading-6 text-[#697068]">{item.body}</p>}
+                <p className="mt-2 text-[11px] text-[#8a9088]">{new Date(item.created_at).toLocaleString('ar-YE')}</p>
+              </div>
+            </div>
+          </button>
+        ))}
+        {items.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-[#dfe4db] bg-white py-16 text-center">
+            <Bell className="mx-auto text-[#a0a69e]" size={30} />
+            <p className="mt-3 font-black">لا توجد إشعارات حالياً</p>
+            <p className="mt-1 text-sm text-[#858c84]">ستظهر هنا تحديثات الطلبات والحساب.</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('home');
   const [storeCategory, setStoreCategory] = useState<string>('الكل');
@@ -2091,6 +2182,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
             />
           )}
           {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} />}
+          {active === 'notifications' && <NotificationsView />}
           {active === 'services' && <ServicesView providers={providers} packages={packages} onRefresh={loadAll} />}
           {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
           {active === 'map' && (<div><h2 className="mb-5 text-xl font-black">تتبع الطلب</h2><MapCard /></div>)}
@@ -2885,6 +2977,8 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
 
+          {active === 'notifications' && <NotificationsView />}
+
           {active === 'settings' && <SettingsView role="driver" />}
 
           {active === 'history' && (
@@ -3460,6 +3554,8 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
               <div className="mt-8"><StoreAuditLogView storeId={store.id} /></div>
             </>
           )}
+
+          {active === 'notifications' && <NotificationsView />}
 
           {active === 'settings' && store && isOwner && (
             <div className="max-w-md space-y-4">
