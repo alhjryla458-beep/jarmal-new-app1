@@ -2800,9 +2800,8 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
     });
     supabase.from('driver_cash_settlements').select('id, amount, status, note, requested_at, processed_at').order('requested_at', { ascending: false }).limit(30).then(({ data }) => { if (data) setDriverSettlements(data || []); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'ready_for_pickup').is('driver_id', null).then(({ data }) => { if (data) setAvailable(data as FullOrderRow[]); });
-    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').not('status', 'in', '(delivered,cancelled,pending)').then(({ data }) => {
-      const mine = (data as FullOrderRow[] | null)?.find((o) => o.driver_id) || null;
-      setActiveOrder(mine);
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('driver_id', userId).not('status', 'in', '(delivered,cancelled,pending)').order('created_at', { ascending: false }).limit(1).then(({ data }) => {
+      setActiveOrder(((data as FullOrderRow[] | null) || [])[0] || null);
     });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'delivered').order('created_at', { ascending: false }).then(({ data }) => { if (data) setHistory(data as FullOrderRow[]); });
   };
