@@ -1247,7 +1247,6 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                     </div>
                   ))}
                   </div>
-              </div>
                 )}
               </div>
             </>
