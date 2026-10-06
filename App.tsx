@@ -2827,8 +2827,13 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
           {active === 'available' && (
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <h2 className="text-2xl font-black">الطلبات القريبة</h2>
-                <button onClick={toggleAvailability} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black ${profile?.is_available ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-[#667067]'}`}>
+                <div>
+                  <h2 className="text-2xl font-black">الطلبات القريبة</h2>
+                  {profile?.verification_status !== 'approved' && (
+                    <p className="mt-2 text-sm text-orange-600">حالة الحساب: {profile?.verification_status === 'pending' ? 'بانتظار اعتماد الإدارة' : profile?.verification_status === 'rejected' ? 'تم رفض الاعتماد' : 'تم إيقاف الاعتماد'}</p>
+                  )}
+                </div>
+                <button onClick={toggleAvailability} disabled={profile?.verification_status !== 'approved'} className={`flex items-center gap-3 rounded-full px-4 py-3 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 ${profile?.is_available ? 'bg-[#e3fe00] text-black' : 'bg-white/10 text-[#667067]'}`}>
                   <span className={`h-3 w-3 rounded-full ${profile?.is_available ? 'bg-black' : 'bg-white/30'}`} />
                   {profile?.is_available ? 'متصل الآن' : 'غير متصل'}
                 </button>
