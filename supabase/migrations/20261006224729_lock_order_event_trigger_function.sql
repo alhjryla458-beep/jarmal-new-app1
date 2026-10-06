@@ -1,0 +1,1 @@
+revoke execute on function public.record_order_event_and_notification() from public, anon, authenticated;
