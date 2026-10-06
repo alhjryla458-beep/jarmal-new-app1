@@ -297,8 +297,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
     }
   };
 
-  const loadDriverCashSettlements = useCallback(async () => {
-    const { data, error: err } = await supabase
+  const loadDriverCashSettlements = useCallback(async () => {    const { data, error: err } = await supabase
       .from('driver_cash_settlements')
       .select('id, driver_id, amount, status, note, requested_at, processed_at')
       .order('requested_at', { ascending: false })
@@ -556,7 +555,6 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
               </div>
             ))}
           </nav>
-          </nav>
         </aside>
 
         <main className="min-w-0 flex-1 p-5 sm:p-8">
@@ -597,8 +595,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                   </button>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
-                  <div className="flex items-center gap-3">
+                <div className="rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">                  <div className="flex items-center gap-3">
                     <ClipboardList size={20} className="text-white/40" />
                     <p className="font-bold">آخر الطلبات</p>
                   </div>
@@ -897,8 +894,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                     </div>
                   );
                 })}
-              </div>
-            </>
+              </div>            </>
           )}
 
           {tab === 'merchant_withdrawals' && (
