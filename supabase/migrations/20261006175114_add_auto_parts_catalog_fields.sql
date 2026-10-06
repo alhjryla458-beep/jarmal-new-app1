@@ -58,5 +58,4 @@ begin
   return v_product_id;
 end; $$;
 
-revoke execute on function public.merchant_create_auto_part(uuid,text,text,numeric,text,text,text,text,smallint,smallint,text,text,text,numeric,text) from public,anon;
-grant execute on function public.merchant_create_auto_part(uuid,text,text,numeric,text,text,text,text,smallint,smallint,text,text,text,numeric,text) to authenticated;
+revoke execute on function public.merchant_create_auto_part(uuid,text,text,numeric,text,text,text,text,smallint,smallint,text,text,text,numeric,text) from public,anon,authenticated;
