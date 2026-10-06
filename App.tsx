@@ -7,10 +7,9 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
-import AdminApp from '@/components/AdminApp';
 
-type Role = 'customer' | 'driver' | 'merchant' | 'admin';
-type Screen = 'welcome' | 'auth' | 'app' | 'admin';
+type Role = 'customer' | 'driver' | 'merchant';
+type Screen = 'welcome' | 'auth' | 'app';
 type AuthMode = 'login' | 'signup';
 
 type Product = {
@@ -608,7 +607,7 @@ function Auth({
           data: {
             full_name: form.name.trim(),
             phone_number: `+967${form.phone}`,
-            role: role === 'admin' ? 'customer' : role
+            role
           }
         }
       });
@@ -3479,12 +3478,8 @@ export default function App() {
       if (data.session && savedRole) {
         setSession(data.session);
 
-        if (savedRole === 'admin') {
-          setScreen('admin');
-        } else {
-          setRole(savedRole);
-          setScreen('app');
-        }
+        setRole(savedRole === 'driver' || savedRole === 'merchant' ? savedRole : 'customer');
+        setScreen('app');
       }
     });
 
@@ -3517,10 +3512,6 @@ export default function App() {
     setScreen('welcome');
   };
 
-  if (screen === 'admin' && session) {
-    return <AdminApp session={session} onLogout={handleLogout} />;
-  }
-
   if (screen === 'app') {
     if (role === 'driver') {
       return <DriverApp onLogout={handleLogout} />;
@@ -3541,12 +3532,8 @@ export default function App() {
         onSuccess={(newSession, resolvedRole) => {
           setSession(newSession);
 
-          if (resolvedRole === 'admin') {
-            setScreen('admin');
-          } else {
-            setRole(resolvedRole);
-            setScreen('app');
-          }
+          setRole(resolvedRole === 'driver' || resolvedRole === 'merchant' ? resolvedRole : 'customer');
+          setScreen('app');
         }}
       />
     );
