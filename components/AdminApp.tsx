@@ -18,6 +18,19 @@ type ProfileRow = {
   is_active: boolean;
 };
 
+type DriverProfileRow = {
+  id: string;
+  identity_card_number: string | null;
+  license_number: string | null;
+  vehicle_type: string | null;
+  vehicle_plate_number: string | null;
+  is_available: boolean | null;
+  rating: number | null;
+  verification_status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  verification_note: string | null;
+  verified_at: string | null;
+};
+
 type TxRow = {
   id: string;
   user_id: string;
@@ -163,6 +176,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
   const [transactions, setTransactions] = useState<TxRow[]>([]);
   const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceiptRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [driverProfiles, setDriverProfiles] = useState<DriverProfileRow[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [stores, setStores] = useState<StoreRow[]>([]);
   const [merchantWithdrawals, setMerchantWithdrawals] = useState<MerchantWithdrawalRow[]>([]);
@@ -221,6 +235,15 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
 
     if (err) { setError('تعذر تحميل المستخدمين'); return; }
     setProfiles((data || []) as ProfileRow[]);
+  }, []);
+
+  const loadDriverProfiles = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('driver_profiles')
+      .select('id, identity_card_number, license_number, vehicle_type, vehicle_plate_number, is_available, rating, verification_status, verification_note, verified_at')
+      .order('created_at', { ascending: false });
+    if (err) { setError('تعذر تحميل ملفات المندوبين'); return; }
+    setDriverProfiles((data || []) as DriverProfileRow[]);
   }, []);
 
   const loadPaymentReceipts = useCallback(async () => {
@@ -358,7 +381,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadDriverEarningSettings(), loadOrders(), loadStores()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadDriverProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadDriverEarningSettings(), loadOrders(), loadStores()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
@@ -467,6 +490,25 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
       if (data) setStores((prev) => prev.map((s) => s.id === storeId ? { ...s, ...(data as StoreRow) } : s));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'تعذر تحديث حالة المتجر');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDriverReview = async (driverId: string, status: 'approved' | 'rejected' | 'suspended') => {
+    setActionLoading(driverId + status);
+    setError('');
+    const note = window.prompt(status === 'approved' ? 'ملاحظة اعتماد المندوب (اختياري)' : 'سبب المراجعة (اختياري)') || null;
+    try {
+      const { data, error: err } = await supabase.rpc('admin_review_driver', {
+        p_driver_id: driverId,
+        p_status: status,
+        p_note: note,
+      });
+      if (err) throw err;
+      if (data) setDriverProfiles((prev) => prev.map((d) => d.id === driverId ? { ...d, ...(data as DriverProfileRow) } : d));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر تحديث اعتماد المندوب');
     } finally {
       setActionLoading(null);
     }
@@ -1156,6 +1198,38 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
                       <span className={`rounded-full px-3 py-1 text-[10px] font-black ${p.is_active ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-red-500/10 text-red-400'}`}>
                         {p.is_active ? 'نشط' : 'مجمّد'}
                       </span>
+
+                      {p.role === 'driver' && (() => {
+                        const d = driverProfiles.find((row) => row.id === p.id);
+                        if (!d) return <span className="text-[11px] text-white/30">ملف المندوب غير مكتمل</span>;
+                        return (
+                          <div className="w-full rounded-xl border border-blue-500/10 bg-blue-500/[.03] p-3">
+                            <div className="grid gap-2 text-[11px] text-white/50 sm:grid-cols-2 lg:grid-cols-4">
+                              <span>الهوية: <b className="text-white/80">{d.identity_card_number || '—'}</b></span>
+                              <span>الرخصة: <b className="text-white/80">{d.license_number || '—'}</b></span>
+                              <span>المركبة: <b className="text-white/80">{d.vehicle_type || '—'}</b></span>
+                              <span>اللوحة: <b className="text-white/80">{d.vehicle_plate_number || '—'}</b></span>
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              <StatusBadge status={d.verification_status} />
+                              <span className="text-[11px] text-white/35">{d.is_available ? 'متاح الآن' : 'غير متاح'}{d.rating != null ? ' • التقييم ' + Number(d.rating).toFixed(1) : ''}</span>
+                              {d.verification_note && <span className="text-[11px] text-white/35">ملاحظة: {d.verification_note}</span>}
+                              {d.verification_status === 'pending' && (
+                                <>
+                                  <button onClick={() => handleDriverReview(p.id, 'approved')} disabled={!!actionLoading} className="mr-auto rounded-lg bg-[#e3fe00] px-3 py-2 text-[11px] font-black text-black disabled:opacity-50">اعتماد المندوب</button>
+                                  <button onClick={() => handleDriverReview(p.id, 'rejected')} disabled={!!actionLoading} className="rounded-lg border border-red-500/30 px-3 py-2 text-[11px] font-bold text-red-400 disabled:opacity-50">رفض</button>
+                                </>
+                              )}
+                              {d.verification_status === 'approved' && (
+                                <button onClick={() => handleDriverReview(p.id, 'suspended')} disabled={!!actionLoading} className="mr-auto rounded-lg border border-orange-500/30 px-3 py-2 text-[11px] font-bold text-orange-400 disabled:opacity-50">إيقاف اعتماد المندوب</button>
+                              )}
+                              {(d.verification_status === 'rejected' || d.verification_status === 'suspended') && (
+                                <button onClick={() => handleDriverReview(p.id, 'approved')} disabled={!!actionLoading} className="mr-auto rounded-lg bg-[#e3fe00] px-3 py-2 text-[11px] font-black text-black disabled:opacity-50">إعادة اعتماد</button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {p.role !== 'admin' && (
                         <button
