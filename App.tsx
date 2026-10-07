@@ -2506,9 +2506,9 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
       <button onClick={onBack} className="mb-4 flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-bold text-[#697068] hover:bg-[#f4f6f1]"><ArrowRight size={16} />رجوع للمتاجر</button>
       <div className="rounded-3xl border border-[#e1e5de] bg-white p-5 shadow-[0_10px_30px_rgba(23,26,22,.05)]"><div className="flex items-center gap-4"><div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#f1f5df]"><Store size={30} className="text-[#7e8f00]" /></div><div className="min-w-0"><h2 className="text-xl font-black text-[#171a16]">{store.name}</h2><p className="mt-1 text-sm text-[#70776f]">{store.address_description}</p></div></div></div>
       {categories.length > 0 && (
-        <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
-          <button onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>الكل</button>
-          {categories.map((c) => (<button key={c.id} onClick={() => setActiveCategory(c.id)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === c.id ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>{c.name}</button>))}
+        <div className="jarmal-store-category-rail no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
+          <button onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#e3fe00] text-black' : 'bg-[#f4f6f1] text-[#596159]'}`}>الكل</button>
+          {categories.map((c) => (<button key={c.id} onClick={() => setActiveCategory(c.id)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === c.id ? 'bg-[#e3fe00] text-black' : 'bg-[#f4f6f1] text-[#596159]'}`}>{c.name}</button>))}
         </div>
       )}
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -2516,10 +2516,20 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
           const productVariants = variants.filter((v) => v.product_id === product.id && v.is_available);
           const isFav = favorites.includes(product.id);
           return (
-            <div key={product.id} className="rounded-2xl border border-[#e1e5de] bg-white p-4 shadow-[0_8px_24px_rgba(23,26,22,.045)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,26,22,.07)]">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0"><p className="font-black text-[#171a16]">{product.name}</p><p className="mt-1 line-clamp-2 text-xs leading-5 text-[#747b72]">{product.description || 'منتج من متجر جَرْمَل'}</p></div>
-                <button aria-label="إضافة للمفضلة" onClick={() => onToggleFavorite(product.id)} className={isFav ? 'rounded-xl bg-[#f1f5df] p-2 text-[#718000]' : 'rounded-xl bg-[#f4f6f1] p-2 text-[#a0a69e]'}><Sparkles size={18} /></button>
+            <div key={product.id} className="jarmal-product-card rounded-2xl border border-[#e1e5de] bg-white p-4 shadow-[0_8px_24px_rgba(23,26,22,.045)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,26,22,.07)]">
+              <div className="flex items-start gap-3">
+                <div className="jarmal-product-art flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#f1f5df] text-[#738100]"><ShoppingBag size={24} strokeWidth={1.7} /></div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-black text-[#171a16]">{product.name}</p>
+                    <button aria-label="إضافة للمفضلة" onClick={() => onToggleFavorite(product.id)} className={isFav ? 'rounded-xl bg-[#f1f5df] p-2 text-[#718000]' : 'rounded-xl bg-[#f4f6f1] p-2 text-[#a0a69e]'}><Sparkles size={18} /></button>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#747b72]">{product.description || 'منتج من متجر جَرْمَل'}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold">
+                <span className="rounded-full bg-[#f4f6f1] px-2.5 py-1 text-[#687500]">متوفر</span>
+                <span className="rounded-full bg-[#f4f6f1] px-2.5 py-1 text-[#747b72]">{product.payment_options === 'cash_only' ? 'دفع عند الاستلام' : product.payment_options === 'electronic_only' ? 'دفع إلكتروني' : 'طرق دفع متعددة'}</span>
               </div>
               {productVariants.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-2">
