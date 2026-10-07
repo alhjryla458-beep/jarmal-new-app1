@@ -2367,6 +2367,10 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
               <JarmalHomeContent
                 onNavigate={setActive}
                 onOpenAssistant={() => window.dispatchEvent(new Event('jarmal-open-assistant'))}
+                onOpenStore={(storeId) => {
+                  const store = storesReal.find((item) => item.id === storeId);
+                  if (store) setSelectedStore(store);
+                }}
               />
               <JarmalHomeDiscovery
                 providersCount={providers.length}
