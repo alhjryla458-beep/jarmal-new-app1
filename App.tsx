@@ -2109,6 +2109,12 @@ function JarmalAssistant({
     }
   ]);
 
+  useEffect(() => {
+    const openAssistant = () => setOpen(true);
+    window.addEventListener('jarmal-open-assistant', openAssistant);
+    return () => window.removeEventListener('jarmal-open-assistant', openAssistant);
+  }, []);
+
   const pageHint =
     active === 'orders'
       ? 'خلني أشوف طلباتك الحالية.'
@@ -2418,8 +2424,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
                   <div className="jarmal-hero-mark hidden sm:flex"><ShoppingBag size={25} /></div>
                 </div>
                 <button className="jarmal-home-search mt-6 w-full" onClick={() => {
-                  const input = document.querySelector<HTMLInputElement>('.jarmal-assistant-panel input');
-                  if (input) input.focus();
+                  window.dispatchEvent(new Event('jarmal-open-assistant'));
                 }}>
                   <Search size={18} />
                   <span>ابحث عن منتج أو متجر...</span>
