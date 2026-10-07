@@ -56,7 +56,8 @@ export function commandToMotion(command: CompanionCommand, context: CompanionCon
 
 export class CompanionController {
   private listeners = new Set<(state: CompanionMotionState) => void>();
-  private state: CompanionMotionState = base;\n  private timer: number | null = null;
+  private state: CompanionMotionState = base;
+  private timer: number | null = null;
 
   subscribe(listener: (state: CompanionMotionState) => void) {
     this.listeners.add(listener);
