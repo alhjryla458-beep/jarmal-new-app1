@@ -1633,3 +1633,32 @@ body {
     padding-inline: 8px;
   }
 }
+
+
+/* ===== JARMAL HOME DISCOVERY ===== */
+.jarmal-discovery { margin-top: 28px; display: grid; gap: 28px; }
+.jarmal-discovery-section { min-width: 0; }
+.jarmal-section-heading { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.jarmal-section-heading p { margin:0 0 3px; font-size:11px; color:#8a9188; font-weight:700; }
+.jarmal-section-heading h2 { margin:0; font-size:20px; line-height:1.2; font-weight:900; color:#171a16; }
+.jarmal-section-heading > svg { color:#788600; }
+.jarmal-service-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.jarmal-service-card { min-height:112px; padding:15px; border:1px solid #e3e7df; border-radius:18px; background:#fff; text-align:right; box-shadow:0 8px 24px rgba(23,26,22,.045); }
+.jarmal-service-card > span { display:flex; width:38px; height:38px; align-items:center; justify-content:center; border-radius:12px; background:#f0f5d8; color:#6f7d00; margin-bottom:10px; }
+.jarmal-service-card strong { display:block; font-size:14px; font-weight:900; color:#171a16; }
+.jarmal-service-card small { display:block; margin-top:4px; font-size:10px; line-height:1.6; color:#7b8279; }
+.jarmal-category-rail,.jarmal-product-rail { display:flex; gap:10px; overflow-x:auto; padding:2px 1px 6px; scrollbar-width:none; }
+.jarmal-category-rail::-webkit-scrollbar,.jarmal-product-rail::-webkit-scrollbar { display:none; }
+.jarmal-category-rail button { flex:0 0 auto; min-width:105px; padding:13px 12px; border:1px solid #e3e7df; border-radius:16px; background:#fff; text-align:center; box-shadow:0 6px 18px rgba(23,26,22,.035); }
+.jarmal-category-rail button span { display:flex; width:34px; height:34px; margin:0 auto 8px; align-items:center; justify-content:center; border-radius:11px; background:#f2f5e3; color:#738100; }
+.jarmal-category-rail button b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:#30362f; }
+.jarmal-product-rail { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(230px,1fr); }
+.jarmal-discovery-product { display:flex; align-items:center; gap:11px; min-height:92px; padding:13px; border:1px solid #e3e7df; border-radius:17px; background:#fff; box-shadow:0 7px 20px rgba(23,26,22,.04); }
+.jarmal-discovery-product-icon { flex:0 0 auto; display:flex; width:45px; height:45px; align-items:center; justify-content:center; border-radius:14px; background:#f1f5df; color:#738100; }
+.jarmal-discovery-product strong,.jarmal-discovery-product small,.jarmal-discovery-product b { display:block; }
+.jarmal-discovery-product strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:#171a16; }
+.jarmal-discovery-product small { margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; color:#7b8279; }
+.jarmal-discovery-product b { margin-top:7px; font-size:11px; color:#687500; }
+.jarmal-discovery-product > svg { margin-right:auto; flex:0 0 auto; color:#a0a69e; }
+.jarmal-discovery-note { margin:0; padding:12px 14px; border:1px dashed #dfe4db; border-radius:14px; color:#858c84; font-size:11px; text-align:center; }
+@media (min-width:640px) { .jarmal-service-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } .jarmal-service-card { min-height:128px; } .jarmal-discovery-product { min-width:0; } }
