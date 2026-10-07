@@ -3089,7 +3089,7 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
   const submit = async () => {
     setError(''); setBusy(true);
     try {
-      const { error: rpcError } = await supabase.rpc('request_wallet_topup', { p_amount: Number(amount), p_payment_method_code: methodCode, p_reference_number: reference.trim() || null });
+      const { error: rpcError } = await supabase.rpc('request_wallet_topup', { p_amount: Number(amount), p_payment_method_code: methodCode, p_reference_number: reference.trim() || null, p_idempotency_key: crypto.randomUUID() });
       if (rpcError) throw rpcError;
       setShow(false); setAmount(''); setReference(''); onRefresh();
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'تعذر إرسال طلب الشحن'); }
