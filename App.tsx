@@ -398,8 +398,6 @@ function Auth({
         if (!savedRole) throw new Error('لم يتم العثور على ملف الحساب بعد التحقق');
 
         const resolvedRole = await resolveUiRole(data.session.user.id, savedRole);
-        localStorage.setItem('jarmal_test_name', profile?.full_name || '');
-        localStorage.setItem('jarmal_test_phone', profile?.phone_number || `+967${form.phone}`);
         onSuccess(data.session, resolvedRole);
         return;
       }
