@@ -2597,6 +2597,16 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
               </div>
               <span className="shrink-0 rounded-full bg-[#f1f5df] px-3 py-1.5 text-xs font-black text-[#667400]">{statusLabels[order.status] || order.status}</span>
             </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-xl border border-[#e8ebe5] bg-[#fafbf9] px-3 py-2.5">
+                <p className="text-[10px] font-bold text-[#9aa097]">حالة الدفع</p>
+                <p className="mt-1 text-xs font-black text-[#596159]">{order.payment_status === 'paid' ? 'مدفوع' : order.payment_status === 'pending' ? 'بانتظار التحقق' : order.payment_status || 'غير محدد'}</p>
+              </div>
+              <div className="rounded-xl border border-[#e8ebe5] bg-[#fafbf9] px-3 py-2.5">
+                <p className="text-[10px] font-bold text-[#9aa097]">رسوم التوصيل</p>
+                <p className="mt-1 text-xs font-black text-[#596159]">{Number(order.delivery_fee || 0).toLocaleString('ar-YE')} {CURRENCY}</p>
+              </div>
+            </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <div className="rounded-xl bg-[#f7f8f5] px-3 py-2.5">
                 <p className="text-[10px] font-bold text-[#9aa097]">التاريخ</p>
@@ -2613,7 +2623,7 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
                 <p className="mt-1 text-xs font-bold leading-5 text-[#596159]">{order.delivery_address}</p>
               </div>
             )}
-            {['pending', 'accepted', 'preparing', 'ready_for_pickup'].includes(order.status) && (
+            {['pending', 'accepted', 'preparing', 'ready_for_pickup'].includes(order.status) && order.payment_status === 'pending' && (
               <button
                 disabled={busy}
                 onClick={() => cancelOrder(order.id)}
