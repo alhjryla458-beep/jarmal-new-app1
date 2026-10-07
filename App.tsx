@@ -1799,11 +1799,12 @@ function MapCard({ driver = false, latitude, longitude, address }: { driver?: bo
     : 'https://www.google.com/maps';
   return (
     <div className="map-grid relative h-[360px] overflow-hidden rounded-3xl border border-white/10">
-      <div className="absolute right-[24%] top-[23%] h-3 w-3 rounded-full bg-[#e3fe00] shadow-[0_0_0_8px_rgba(227,254,0,.15)]" />
-
-      <div className="absolute bottom-[22%] left-[24%] h-3 w-3 rounded-full bg-white shadow-[0_0_0_8px_rgba(255,255,255,.12)]" />
-
-      <div className="absolute left-1/3 top-1/3 h-48 w-48 rounded-full border-2 border-dashed border-[#e3fe00]/50" />
+      {hasDestination && (
+        <>
+          <div className="absolute right-[24%] top-[23%] h-3 w-3 rounded-full bg-[#e3fe00] shadow-[0_0_0_8px_rgba(227,254,0,.15)]" />
+          <div className="absolute left-1/3 top-1/3 h-48 w-48 rounded-full border-2 border-dashed border-[#e3fe00]/50" />
+        </>
+      )}
 
       <div className="absolute right-5 top-5 rounded-xl border border-white/10 bg-black/75 px-3 py-2 text-xs text-white/50">
         <MapPin
@@ -1826,13 +1827,13 @@ function MapCard({ driver = false, latitude, longitude, address }: { driver?: bo
           <p className="font-bold">
             {driver
               ? 'المسار إلى المتجر ثم العميل'
-              : 'المندوب في طريقه إليك'}
+              : hasDestination
+                ? 'موقع التسليم محفوظ من الطلب'
+                : 'لم يتم تحديد موقع الخريطة لهذا الطلب'}
           </p>
 
           <p className="text-xs text-white/40">
-            {driver
-              ? 'افتح المسار في خرائط Google'
-              : 'متبقي تقريباً 12 دقيقة'}
+            {address || (hasDestination ? `${latitude}, ${longitude}` : 'أضف موقعًا عند إنشاء الطلب')}
           </p>
         </div>
 
