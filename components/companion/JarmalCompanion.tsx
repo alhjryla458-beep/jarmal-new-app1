@@ -12,7 +12,7 @@ type Props = {
   bridgeToAssistant?: boolean;
 };
 
-export default function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssistant = false }: Props) {
+export function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssistant = false }: Props) {
   const [open, setOpen] = useState(false);
   const [motion, setMotion] = useState<CompanionMotionState>({
     animation: 'idle', expression: 'idle', visible: true, x: 0, y: 0, scale: 1
