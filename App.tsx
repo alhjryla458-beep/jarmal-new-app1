@@ -181,6 +181,7 @@ type ProductRow = {
   is_available: boolean;
   category_id: string | null;
   redemption_points_cost: number | null;
+  payment_options?: 'cash_only' | 'electronic_only' | 'both' | null;
 };
 type OrderRow = {
   id: string;
@@ -280,6 +281,7 @@ type MerchantProductRow = {
   price: number;
   image_url: string | null;
   is_available: boolean;
+  payment_options?: 'cash_only' | 'electronic_only' | 'both' | null;
 };
 type InventoryRow = {
   id: string;
@@ -2283,7 +2285,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
     if (!user) return;
 
     supabase.from('stores').select('id, name, store_type, address_description, is_open, rating').eq('approval_status', 'approved').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
-    supabase.from('products').select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
+    supabase.from('products').select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost, payment_options').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
     supabase.from('product_variants').select('id, product_id, variant_name, price, is_available').then(({ data }) => { if (data) setVariantsReal(data as VariantRow[]); });
     supabase.from('favorites').select('product_id').eq('customer_id', user.id).then(({ data }) => { if (data) setFavorites(data.map((f: any) => f.product_id)); });
@@ -3536,6 +3538,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const [newDesc, setNewDesc] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newImage, setNewImage] = useState('');
+  const [newPaymentOptions, setNewPaymentOptions] = useState<'cash_only' | 'electronic_only' | 'both'>('both');
   const [addError, setAddError] = useState('');
   const [memberContext, setMemberContext] = useState<StoreMemberContext | null>(null);
   const [inventoryRows, setInventoryRows] = useState<InventoryRow[]>([]);
@@ -3591,7 +3594,7 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
             setOrderItems(grouped);
           }
         });
-        supabase.from('products').select('id, store_id, name, description, price, image_url, is_available').eq('store_id', row.id).then(({ data: prods }) => { if (prods) setMyProducts(prods as MerchantProductRow[]); });
+        supabase.from('products').select('id, store_id, name, description, price, image_url, is_available, payment_options').eq('store_id', row.id).then(({ data: prods }) => { if (prods) setMyProducts(prods as MerchantProductRow[]); });
         supabase.from('product_inventory').select('id, store_id, product_id, variant_id, quantity_on_hand, quantity_reserved, reorder_level, unit_label, updated_at').eq('store_id', row.id).then(({ data: inventory }) => { if (inventory) setInventoryRows(inventory as InventoryRow[]); });
         supabase.from('inventory_movements').select('id, product_id, movement_type, quantity, quantity_before, quantity_after, reason, created_at').eq('store_id', row.id).order('created_at', { ascending: false }).limit(50).then(({ data: movements }) => { if (movements) setInventoryMovements(movements as InventoryMovementRow[]); });
     }
@@ -3639,11 +3642,12 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
       p_name: newName.trim(),
       p_description: newDesc.trim() || null,
       p_price: Number(newPrice),
-      p_image_url: newImage.trim() || null
+      p_image_url: newImage.trim() || null,
+      p_payment_options: newPaymentOptions
     });
     setBusy(false);
     if (error) { setAddError('تعذر إضافة المنتج'); return; }
-    setShowAdd(false); setNewName(''); setNewDesc(''); setNewPrice(''); setNewImage('');
+    setShowAdd(false); setNewName(''); setNewDesc(''); setNewPrice(''); setNewImage(''); setNewPaymentOptions('both');
     loadAll();
   };
 
@@ -3883,6 +3887,15 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                       <Field label="وصف المنتج" value={newDesc} onChange={setNewDesc} placeholder="اكتب وصفاً مختصراً" icon={<FileText size={17} />} />
                       <Field label="السعر" value={newPrice} onChange={(v) => setNewPrice(v.replace(/\D/g, ''))} placeholder="مثال: 2500" />
                       <Field label="رابط صورة المنتج (اختياري)" value={newImage} onChange={setNewImage} placeholder="https://..." />
+                      <div>
+                        <label className="mb-2 block text-sm font-bold">طريقة الدفع لهذا المنتج</label>
+                        <select value={newPaymentOptions} onChange={(e) => setNewPaymentOptions(e.target.value as 'cash_only' | 'electronic_only' | 'both')} className="w-full rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3.5 font-bold outline-none focus:border-[#e3fe00]">
+                          <option value="both">الدفع عند الاستلام + الدفع الإلكتروني</option>
+                          <option value="cash_only">الدفع عند الاستلام فقط</option>
+                          <option value="electronic_only">الدفع الإلكتروني فقط</option>
+                        </select>
+                        <p className="mt-2 text-xs text-[#747b72]">هذا الخيار يحدد طرق الدفع المسموح بها لهذا المنتج عند إتمام الطلب.</p>
+                      </div>
                       {addError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{addError}</div>}
                       <button disabled={busy} onClick={addProduct} className="w-full rounded-xl bg-[#e3fe00] py-3.5 font-black text-black disabled:opacity-50">حفظ المنتج</button>
                     </div>
