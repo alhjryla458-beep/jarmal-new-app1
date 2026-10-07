@@ -398,8 +398,6 @@ function Auth({
         if (!savedRole) throw new Error('لم يتم العثور على ملف الحساب بعد التحقق');
 
         const resolvedRole = await resolveUiRole(data.session.user.id, savedRole);
-
-        localStorage.setItem('jarmal_test_role', resolvedRole);
         localStorage.setItem('jarmal_test_name', profile?.full_name || '');
         localStorage.setItem('jarmal_test_phone', profile?.phone_number || `+967${form.phone}`);
         onSuccess(data.session, resolvedRole);
@@ -442,8 +440,6 @@ function Auth({
 
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) throw new Error('انتهت جلسة الدخول');
-
-      localStorage.setItem('jarmal_test_role', 'merchant');
       localStorage.setItem('jarmal_test_name', form.name.trim() || 'موظف');
       localStorage.setItem('jarmal_test_phone', `+967${form.phone}`);
       onSuccess(sessionData.session, 'merchant');
@@ -530,7 +526,6 @@ function Auth({
       }
 
       const resolvedRole = registeredRole as Role;
-      localStorage.setItem('jarmal_test_role', resolvedRole);
       localStorage.setItem('jarmal_test_name', form.name.trim());
       localStorage.setItem('jarmal_test_phone', `+967${form.phone}`);
       onSuccess(activeSession, resolvedRole);
@@ -574,8 +569,6 @@ function Auth({
       if (!savedRole) throw new Error('لم يتم العثور على حساب بهذا الرقم');
 
       const resolvedRole = await resolveUiRole(data.session.user.id, savedRole);
-
-      localStorage.setItem('jarmal_test_role', resolvedRole);
       localStorage.setItem('jarmal_test_name', profile?.full_name || '');
       localStorage.setItem('jarmal_test_phone', profile?.phone_number || `+967${form.phone}`);
       onSuccess(data.session, resolvedRole);
@@ -3666,7 +3659,6 @@ export default function App() {
 
       if (profile.role === 'admin') {
         await supabase.auth.signOut();
-        localStorage.removeItem('jarmal_test_role');
         return;
       }
 
@@ -3702,7 +3694,6 @@ export default function App() {
 
   const handleLogout = () => {
     void supabase.auth.signOut();
-    localStorage.removeItem('jarmal_test_role');
     localStorage.removeItem('jarmal_test_name');
     localStorage.removeItem('jarmal_test_phone');
     setSession(null);
