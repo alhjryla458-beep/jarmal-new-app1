@@ -662,8 +662,7 @@ function Auth({
             </div>
           )}
 
-          <>
-              <div className="mb-4 flex rounded-xl bg-white/5 p-1">
+          <div className="mb-4 flex rounded-xl bg-white/5 p-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -711,8 +710,6 @@ function Auth({
               >
                 لدي دعوة من متجر
               </button>
-            </>
-          )}
 
           {mode === 'login' && (
             <form onSubmit={submitLogin} className="space-y-4">
