@@ -2292,7 +2292,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
     supabase.from('customer_invoices').select('id, invoice_number, customer_id, order_id, store_id, issued_at, billing_month, subtotal, delivery_fee, total_amount, payment_method, payment_reference, payment_status, items').eq('customer_id', user.id).order('issued_at', { ascending: false }).limit(200).then(({ data }) => { if (data) setInvoicesReal(data as InvoiceRow[]); });
     supabase.from('service_providers').select('id, service_type, name, account_number_length, region').eq('is_active', true).then(({ data }) => { if (data) setProviders(data as ServiceProviderRow[]); });
     supabase.from('service_packages').select('id, provider_id, name, face_value, price').eq('is_active', true).then(({ data }) => { if (data) setPackages(data as ServicePackageRow[]); });
-    supabase.from('payment_methods').select('id, name, code, account_number, instructions').eq('is_active', true).then(({ data }) => { if (data) setPaymentMethods(data as PaymentMethodRow[]); });
+    supabase.from('payment_methods').select('id, name, code, account_number, instructions, checkout_url, deep_link, verification_mode, auto_verify_enabled').eq('is_active', true).then(({ data }) => { if (data) setPaymentMethods(data as PaymentMethodRow[]); });
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -2734,7 +2734,7 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
       if (rpcError) throw rpcError;
 
       if (paymentCode !== 'cash') {
-        const orderId = (createdOrder as { id?: string } | null)?.id;
+        const orderId = (createdOrder as { order_id?: string } | null)?.order_id;
         if (!orderId) throw new Error('تم إنشاء الطلب لكن تعذر الحصول على رقم الدفع');
 
         const rawUrl = selectedMethod?.deep_link || selectedMethod?.checkout_url || '';
@@ -3145,7 +3145,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const loadAll = () => {
     supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating, verification_status').eq('id', userId).maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
     supabase.from('driver_wallets').select('balance, reserved_balance').eq('user_id', userId).maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
-    supabase.from('payment_methods').select('id, name, code, account_number, instructions').eq('is_active', true).neq('code', 'cash').then(({ data }) => {
+    supabase.from('payment_methods').select('id, name, code, account_number, instructions, checkout_url, deep_link, verification_mode, auto_verify_enabled').eq('is_active', true).neq('code', 'cash').then(({ data }) => {
       if (data) {
         const methods = data as PaymentMethodRow[];
         setDriverPaymentMethods(methods);
