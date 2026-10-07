@@ -181,6 +181,7 @@ type ProductRow = {
   name: string;
   description: string | null;
   price: number;
+  image_url?: string | null;
   is_available: boolean;
   category_id: string | null;
   redemption_points_cost: number | null;
@@ -2289,7 +2290,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
     if (!user) return;
 
     supabase.from('stores').select('id, name, store_type, address_description, is_open, rating').eq('approval_status', 'approved').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
-    supabase.from('products').select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost, payment_options').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
+    supabase.from('products').select('id, store_id, name, description, price, image_url, is_available, category_id, redemption_points_cost, payment_options').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
     supabase.from('product_variants').select('id, product_id, variant_name, price, is_available').then(({ data }) => { if (data) setVariantsReal(data as VariantRow[]); });
     supabase.from('favorites').select('product_id').eq('customer_id', user.id).then(({ data }) => { if (data) setFavorites(data.map((f: any) => f.product_id)); });
@@ -2522,7 +2523,9 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
           return (
             <div key={product.id} className="jarmal-product-card rounded-2xl border border-[#e1e5de] bg-white p-4 shadow-[0_8px_24px_rgba(23,26,22,.045)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(23,26,22,.07)]">
               <div className="flex items-start gap-3">
-                <div className="jarmal-product-art flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#f1f5df] text-[#738100]"><ShoppingBag size={24} strokeWidth={1.7} /></div>
+                <div className="jarmal-product-art flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#f1f5df] text-[#738100]">
+                  {product.image_url ? <img src={product.image_url} alt="" loading="lazy" className="h-full w-full object-cover" /> : <ShoppingBag size={24} strokeWidth={1.7} />}
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <p className="font-black text-[#171a16]">{product.name}</p>
