@@ -1,10 +1,10 @@
 import { Zap, WalletCards, ReceiptText, PackageSearch, Store, ShoppingBag, ChevronLeft } from 'lucide-react';
 
-type DiscoveryProps = {
+type DiscoveryProduct = { id: string; name: string; description: string | null; price: number; is_available: boolean };\ntype DiscoveryStore = { id: string; name: string; store_type: string };\n\ntype DiscoveryProps = {
   providersCount: number;
   packagesCount: number;
-  products: ProductRow[];
-  stores: StoreRow[];
+  products: DiscoveryProduct[];
+  stores: DiscoveryStore[];
   onNavigate: (screen: string) => void;
   onStoreCategory: (category: string) => void;
 };
