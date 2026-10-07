@@ -186,6 +186,8 @@ type OrderRow = {
   id: string;
   status: string;
   total_amount: number;
+  payment_status?: string | null;
+  payment_method?: string | null;
   delivery_fee: number;
   created_at: string;
   store_id: string | null;
@@ -2285,7 +2287,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
     supabase.from('product_variants').select('id, product_id, variant_name, price, is_available').then(({ data }) => { if (data) setVariantsReal(data as VariantRow[]); });
     supabase.from('favorites').select('product_id').eq('customer_id', user.id).then(({ data }) => { if (data) setFavorites(data.map((f: any) => f.product_id)); });
-    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, order_type, fulfillment_type, points_earned').eq('customer_id', user.id).order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrdersReal(data as OrderRow[]); });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, order_type, fulfillment_type, points_earned, payment_status, payment_method').eq('customer_id', user.id).order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrdersReal(data as OrderRow[]); });
     supabase.from('client_wallets').select('balance, points').eq('user_id', user.id).maybeSingle().then(({ data }) => { if (data) setWallet(data as ClientWalletRow); });
     supabase.from('customer_invoices').select('id, invoice_number, customer_id, order_id, store_id, issued_at, billing_month, subtotal, delivery_fee, total_amount, payment_method, payment_reference, payment_status, items').eq('customer_id', user.id).order('issued_at', { ascending: false }).limit(200).then(({ data }) => { if (data) setInvoicesReal(data as InvoiceRow[]); });
     supabase.from('service_providers').select('id, service_type, name, account_number_length, region').eq('is_active', true).then(({ data }) => { if (data) setProviders(data as ServiceProviderRow[]); });
@@ -2699,8 +2701,16 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
     try {
       if (fulfillment === 'delivery' && !address.trim()) throw new Error('أدخل وصف موقع التوصيل');
       if (fulfillment === 'delivery' && (deliveryLatitude === null || deliveryLongitude === null)) throw new Error('حدد موقعك على الخريطة أو اضغط «موقعي الحالي»');
-      const items = cart.map((c) => c.custom_name ? { custom_name: c.custom_name, custom_price: c.custom_price, quantity: c.quantity } : { product_id: c.product_id, ...(c.variant_id ? { variant_id: c.variant_id } : {}), quantity: c.quantity });
-      if (paymentCode !== 'cash' && !referenceNumber.trim()) throw new Error('أدخل رقم عملية التحويل بعد إتمام التحويل');
+
+      const items = cart.map((c) =>
+        c.custom_name
+          ? { custom_name: c.custom_name, custom_price: c.custom_price, quantity: c.quantity }
+          : { product_id: c.product_id, ...(c.variant_id ? { variant_id: c.variant_id } : {}), quantity: c.quantity }
+      );
+
+      const selectedMethod = paymentMethods.find((m) => m.code === paymentCode);
+      if (paymentCode !== 'cash' && !selectedMethod) throw new Error('اختر وسيلة دفع إلكترونية صحيحة');
+
       const rpcName = paymentCode === 'cash' ? 'create_cash_order' : 'create_electronic_order';
       const rpcParams = paymentCode === 'cash'
         ? {
@@ -2716,14 +2726,49 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
             p_delivery_latitude: fulfillment === 'delivery' ? deliveryLatitude : null,
             p_delivery_longitude: fulfillment === 'delivery' ? deliveryLongitude : null,
             p_fulfillment_type: fulfillment, p_notes: notes.trim() || null,
-            p_payment_method_code: paymentCode, p_reference_number: referenceNumber.trim()
+            p_payment_method_code: paymentCode,
+            p_reference_number: referenceNumber.trim() || null
           };
-      const { error: rpcError } = await supabase.rpc(rpcName, rpcParams);
+
+      const { data: createdOrder, error: rpcError } = await supabase.rpc(rpcName, rpcParams);
       if (rpcError) throw rpcError;
+
+      if (paymentCode !== 'cash') {
+        const orderId = (createdOrder as { id?: string } | null)?.id;
+        if (!orderId) throw new Error('تم إنشاء الطلب لكن تعذر الحصول على رقم الدفع');
+
+        const rawUrl = selectedMethod?.deep_link || selectedMethod?.checkout_url || '';
+        const paymentUrl = rawUrl
+          .replaceAll('{order_id}', encodeURIComponent(orderId))
+          .replaceAll('{amount}', encodeURIComponent(String(Number(total + deliveryFee))))
+          .replaceAll('{currency}', encodeURIComponent(CURRENCY));
+
+        if (paymentUrl) {
+          window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+        }
+
+        const started = Date.now();
+        while (Date.now() - started < 90000) {
+          const { data: statusRows, error: statusError } = await supabase.rpc('get_customer_payment_status', { p_order_id: orderId });
+          if (statusError) break;
+          const status = Array.isArray(statusRows) ? statusRows[0] : statusRows;
+          if (status?.payment_status === 'paid' || ['approved', 'confirmed', 'paid'].includes(status?.receipt_status)) {
+            onOrdered();
+            return;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 2500));
+        }
+
+        onOrdered();
+        return;
+      }
+
       onOrdered();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'تعذر إتمام الطلب');
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -2766,14 +2811,14 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
             <p className="text-sm font-black text-[#171a16]">تحويل المبلغ إلى حساب جَرْمَل</p>
             {method.account_number && <p className="mt-2 text-lg font-black tracking-wide text-[#687500]" dir="ltr">{method.account_number}</p>}
             {method.instructions && <p className="mt-2 whitespace-pre-wrap text-xs leading-6 text-[#747b72]">{method.instructions}</p>}
-            <p className="mt-3 text-[11px] font-bold text-[#8a9189]">بعد التحويل، أدخل رقم العملية. يبقى الطلب قيد المراجعة حتى تؤكد الإدارة الدفع.</p>
-            <div className="mt-3"><Field label="رقم عملية التحويل" value={referenceNumber} onChange={setReferenceNumber} placeholder="رقم العملية / المرجع" /></div>
+            <p className="mt-3 text-[11px] font-bold text-[#8a9189]">إذا كانت المحفظة مرتبطة بالدفع الآلي، سيفتحها جَرْمَل بالعملية المجهزة، وبعد التأكيد سيجري التحقق تلقائيًا دون انتظار موافقة الإدارة.</p>
+            <div className="mt-3"><Field label="رقم العملية (فقط عند الحاجة)" value={referenceNumber} onChange={setReferenceNumber} placeholder="رقم العملية / المرجع" /></div>
           </div>;
         })()}
         <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: اتصل بي عند الوصول" /></div>
         {error && <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black"><span>الإجمالي</span><span>{(total + deliveryFee).toLocaleString('ar-YE')} {CURRENCY}</span></div>
-        <button disabled={busy || cart.length === 0} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? 'جارٍ إرسال الطلب...' : 'تأكيد الطلب'}</button>
+        <button disabled={busy || cart.length === 0} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? (paymentCode === 'cash' ? 'جارٍ إرسال الطلب...' : 'جارٍ التحقق من الدفع...') : (paymentCode === 'cash' ? 'تأكيد الطلب' : 'الدفع الآن')}</button>
       </div>
     </div>
   );
