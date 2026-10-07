@@ -2808,7 +2808,7 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
           <label className="mb-2 block text-sm font-black text-[#171a16]">طريقة الدفع</label>
           {!cashAllowed && electronicAllowed && <p className="mb-2 rounded-lg bg-[#fff7e6] px-3 py-2 text-xs font-bold text-[#8a6500]">بعض المنتجات في السلة تتطلب الدفع الإلكتروني.</p>}
           {cashAllowed && !electronicAllowed && <p className="mb-2 rounded-lg bg-[#f1f5df] px-3 py-2 text-xs font-bold text-[#687500]">هذه السلة تسمح بالدفع عند الاستلام فقط.</p>}
-          {!cashAllowed && !electronicAllowed && <p className="mb-2 rounded-lg bg-red-500/10 px-3 py-2 text-xs font-bold text-red-600">المنتجات في السلة لا تشترك في طريقة دفع واحدة. عدّل السلة.</p>
+          {!cashAllowed && !electronicAllowed && <p className="mb-2 rounded-lg bg-red-500/10 px-3 py-2 text-xs font-bold text-red-600">المنتجات في السلة لا تشترك في طريقة دفع واحدة. عدّل السلة.</p>}
           <div className="grid gap-2 sm:grid-cols-2">
             {cashAllowed && <button type="button" onClick={() => { setPaymentCode('cash'); setReferenceNumber(''); }} className={paymentCode === 'cash' ? 'rounded-xl border border-[#e3fe00] bg-[#f1f5df] px-4 py-3 text-right text-sm font-bold text-[#171a16]' : 'rounded-xl border border-[#e1e5de] bg-white px-4 py-3 text-right text-sm font-bold text-[#747b72]'}>الدفع عند الاستلام</button>}
             {electronicAllowed && paymentMethods.filter((m) => m.code !== 'cash').map((method) => (
