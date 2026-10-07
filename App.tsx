@@ -1917,6 +1917,118 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
     setCartStoreId(storeId);
   };
 
+  const reorderToCart = async (order: OrderRow) => {
+    const { data, error } = await supabase.rpc('get_reorder_items', { p_order_id: order.id });
+    if (error) {
+      window.alert(error.message || 'تعذر إعادة الطلب');
+      return;
+    }
+
+    const items = Array.isArray(data) ? data as Array<{
+      product_id: string | null;
+      variant_id: string | null;
+      custom_name: string | null;
+      custom_price: number | null;
+      quantity: number;
+    }> : [];
+
+    if (items.length === 0) {
+      window.alert('لا توجد عناصر قابلة لإعادة الطلب.');
+      return;
+    }
+
+    if (cart.length > 0 && cartStoreId && cartStoreId !== order.store_id) {
+      const confirmed = window.confirm('السلة الحالية من متجر آخر. هل تريد استبدالها بعناصر هذا الطلب؟');
+      if (!confirmed) return;
+    }
+
+    const lines: CartLine[] = [];
+    let skipped = 0;
+
+    for (const item of items) {
+      const quantity = Math.max(1, Number(item.quantity) || 1);
+
+      if (item.product_id === null) {
+        if (!item.custom_name || item.custom_price === null) {
+          skipped += 1;
+          continue;
+        }
+        const key = `custom:${item.custom_name}:${item.custom_price}`;
+        lines.push({
+          key,
+          custom_name: item.custom_name,
+          custom_price: Number(item.custom_price),
+          name: item.custom_name,
+          price: Number(item.custom_price),
+          payment_options: 'electronic_only',
+          quantity
+        });
+        continue;
+      }
+
+      const product = productsReal.find(
+        (candidate) => candidate.id === item.product_id &&
+          candidate.store_id === order.store_id &&
+          candidate.is_available
+      );
+      if (!product) {
+        skipped += 1;
+        continue;
+      }
+
+      if (item.variant_id) {
+        const variant = variantsReal.find(
+          (candidate) => candidate.id === item.variant_id &&
+            candidate.product_id === product.id &&
+            candidate.is_available
+        );
+        if (!variant) {
+          skipped += 1;
+          continue;
+        }
+        lines.push({
+          key: variant.id,
+          product_id: product.id,
+          variant_id: variant.id,
+          name: `${product.name} - ${variant.variant_name}`,
+          price: variant.price,
+          payment_options: product.payment_options || 'both',
+          quantity
+        });
+      } else {
+        lines.push({
+          key: product.id,
+          product_id: product.id,
+          name: product.name,
+          price: product.price,
+          payment_options: product.payment_options || 'both',
+          quantity
+        });
+      }
+    }
+
+    if (lines.length === 0) {
+      window.alert('لم تعد منتجات هذا الطلب متاحة حاليًا لإعادة الطلب.');
+      return;
+    }
+
+    setCart((current) => {
+      const base = cartStoreId === order.store_id ? current : [];
+      const merged = [...base];
+      for (const line of lines) {
+        const found = merged.find((existing) => existing.key === line.key);
+        if (found) found.quantity += line.quantity;
+        else merged.push(line);
+      }
+      return merged;
+    });
+    setCartStoreId(order.store_id);
+    setShowCart(true);
+    if (skipped > 0) {
+      window.alert(`تمت إعادة ${lines.length} عنصرًا. تم تجاهل ${skipped} عنصر غير متاح حاليًا.`);
+    }
+  };
+
   const cartTotal = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
 
   return (
@@ -2043,7 +2155,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
               onAdd={(line) => addToCart(selectedStore.id, line)}
             />
           )}
-          {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} />}
+          {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} onReorder={reorderToCart} />}
           {active === 'invoices' && <CustomerInvoicesView invoices={invoicesReal} />}
           {active === 'notifications' && <NotificationsView />}
           {active === 'services' && <ServicesView providers={providers} packages={packages} paymentMethods={paymentMethods} onRefresh={loadAll} />}
@@ -2544,7 +2656,7 @@ function CustomerInvoicesView({ invoices }: { invoices: InvoiceRow[] }) {
   );
 }
 
-function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => void }) {
+function Orders({ orders, onRefresh, onReorder }: { orders: OrderRow[]; onRefresh: () => void; onReorder: (order: OrderRow) => void | Promise<void> }) {
   const [ratingFor, setRatingFor] = useState<string | null>(null);
   const [driverRating, setDriverRating] = useState(5);
   const [merchantRating, setMerchantRating] = useState(5);
@@ -2556,11 +2668,6 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
     setBusy(true);
     await supabase.rpc('submit_order_rating', { p_order_id: ratingFor, p_driver_rating: driverRating, p_merchant_rating: merchantRating, p_driver_comment: comment || null, p_merchant_comment: comment || null });
     setBusy(false); setRatingFor(null); setComment('');
-  };
-
-  const reorder = async (orderId: string) => {
-    await supabase.rpc('get_reorder_items', { p_order_id: orderId });
-    onRefresh();
   };
 
   const cancelOrder = async (orderId: string) => {
@@ -2633,7 +2740,7 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
             {order.status === 'delivered' && (
               <div className="mt-3 flex gap-2">
                 <button onClick={() => setRatingFor(order.id)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]">قيّم الطلب</button>
-                <button onClick={() => reorder(order.id)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]">إعادة الطلب</button>
+                <button onClick={() => void onReorder(order)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]">إعادة الطلب</button>
               </div>
             )}
           </div>
