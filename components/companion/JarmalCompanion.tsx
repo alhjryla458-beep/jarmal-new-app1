@@ -13,6 +13,7 @@ type Props = {
   context: CompanionContext;
   onOpen?: () => void;
   compact?: boolean;
+  bridgeToAssistant?: boolean;
 };
 
 const animationClass: Record<CompanionAnimation, string> = {
@@ -22,12 +23,12 @@ const animationClass: Record<CompanionAnimation, string> = {
   deliver: 'jc-deliver', celebrate: 'jc-celebrate', exit: 'jc-exit'
 };
 
-export default function JarmalCompanion({ context, onOpen, compact = false }: Props) {
+export default function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssistant = false }: Props) {
   const [open, setOpen] = useState(false);
   const [animation, setAnimation] = useState<CompanionAnimation>('idle');
   const [message, setMessage] = useState<string | undefined>();
 
-  const reducedMotion = context.reducedMotion ?? window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const reducedMotion = context.reducedMotion ?? (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) ?? false;
   const runtimeContext = useMemo(() => ({ ...context, reducedMotion }), [context, reducedMotion]);
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function JarmalCompanion({ context, onOpen, compact = false }: Pr
   if (context.enabled === false) return null;
 
   const handleOpen = () => {
-    setOpen(true);
+    if (!bridgeToAssistant) setOpen(true);
     const decision = decideCompanion({ type: 'open_assistant' }, runtimeContext);
     setAnimation(decision.animation);
     setMessage(decision.message);
@@ -88,7 +89,7 @@ export default function JarmalCompanion({ context, onOpen, compact = false }: Pr
         {animation === 'celebrate' && <span className="jc-spark"><Sparkles size={18} /></span>}
       </button>
 
-      {open && (
+      {!bridgeToAssistant && open && (
         <div className="jc-panel" role="dialog" aria-label="رفيق جَرْمَل">
           <div className="jc-panel-head">
             <div><strong>رفيق جَرْمَل</strong><small>الشخصية المساعدة</small></div>
