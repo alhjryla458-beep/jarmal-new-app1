@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
+import { JarmalCompanion } from './components/companion/JarmalCompanion';
 
 type Role = 'customer' | 'driver' | 'merchant';
 type Screen = 'welcome' | 'auth' | 'app';
@@ -2324,6 +2325,17 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="customer" active={active} onActive={setActive} />
         <main className="jarmal-page min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
+          <JarmalCompanion
+            context={{
+              role: 'customer',
+              page: active,
+              section: selectedStore ? 'store' : active,
+              hasActiveOrder: ordersReal.some((order) => !['delivered', 'cancelled'].includes(order.status)),
+              enabled: true,
+            }}
+            bridgeToAssistant
+            onOpen={() => window.dispatchEvent(new Event('jarmal-open-assistant'))}
+          />
           {active === 'home' && !selectedStore && (
             <>
               <div className="jarmal-hero rounded-[26px] p-5 sm:p-7">
