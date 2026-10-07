@@ -228,7 +228,7 @@ function Welcome({
 
           <span className="flex items-center gap-2">
             <Navigation size={15} className="text-[#e3fe00]" />
-            تتبع مباشر
+            تحديد موقع التسليم
           </span>
 
         </div>
@@ -1414,69 +1414,43 @@ function SideNav({
   );
 }
 
-function MapCard({ driver = false, latitude, longitude, address }: { driver?: boolean; latitude?: number | null; longitude?: number | null; address?: string | null }) {
+function MapCard({ latitude, longitude, address }: { latitude?: number | null; longitude?: number | null; address?: string | null }) {
   const hasDestination = Number.isFinite(latitude) && Number.isFinite(longitude);
   const mapsUrl = hasDestination
     ? `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
     : 'https://www.google.com/maps';
+
   return (
-    <div className="map-grid relative h-[360px] overflow-hidden rounded-3xl border border-white/10">
-      {hasDestination && (
-        <>
-          <div className="absolute right-[24%] top-[23%] h-3 w-3 rounded-full bg-[#e3fe00] shadow-[0_0_0_8px_rgba(227,254,0,.15)]" />
-          <div className="absolute left-1/3 top-1/3 h-48 w-48 rounded-full border-2 border-dashed border-[#e3fe00]/50" />
-        </>
+    <div className="overflow-hidden rounded-3xl border border-white/10 bg-white">
+      <div className="flex items-center justify-between gap-3 border-b border-[#e1e5de] bg-[#fafbf9] px-4 py-3">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-sm font-black text-[#171a16]">
+            <MapPin size={16} className="text-[#7a8a00]" />
+            {hasDestination ? 'موقع التسليم الحقيقي' : 'موقع التسليم غير محدد'}
+          </p>
+          {address && <p className="mt-1 truncate text-xs text-[#747b72]">{address}</p>}
+        </div>
+        {hasDestination && (
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 rounded-xl bg-[#e3fe00] px-3 py-2 text-xs font-black text-black"
+          >
+            فتح في الخرائط
+          </a>
+        )}
+      </div>
+      {hasDestination ? (
+        <LocationMap latitude={Number(latitude)} longitude={Number(longitude)} interactive={false} title="موقع التسليم" />
+      ) : (
+        <div className="flex h-64 items-center justify-center bg-[#f5f6f3] px-5 text-center text-sm text-[#747b72]">
+          لا توجد إحداثيات حقيقية محفوظة لهذا الطلب.
+        </div>
       )}
-
-      <div className="absolute right-5 top-5 rounded-xl border border-white/10 bg-black/75 px-3 py-2 text-xs text-white/50">
-        <MapPin
-          size={14}
-          className="ml-1 inline text-[#e3fe00]"
-        />
-        <>{driver ? 'المسار الأقصر' : hasDestination ? 'موقع التسليم' : 'موقع غير محدد'}</>
-      </div>
-
-      <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/85 p-4 backdrop-blur">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e3fe00] text-black">
-          {driver ? (
-            <Navigation size={19} />
-          ) : (
-            <Bike size={19} />
-          )}
-        </div>
-
-        <div>
-          <p className="font-bold">
-            {driver
-              ? 'المسار إلى المتجر ثم العميل'
-              : hasDestination
-                ? 'موقع التسليم محفوظ من الطلب'
-                : 'لم يتم تحديد موقع الخريطة لهذا الطلب'}
-          </p>
-
-          <p className="text-xs text-white/40">
-            {address || (hasDestination ? `${latitude}, ${longitude}` : 'أضف موقعًا عند إنشاء الطلب')}
-          </p>
-        </div>
-
-        <button
-          onClick={() =>
-            window.open(
-              mapsUrl,
-              '_blank',
-              'noopener,noreferrer'
-            )
-          }
-          className="mr-auto rounded-lg bg-[#e3fe00] px-3 py-2 text-xs font-black text-black"
-        >
-          خرائط Google
-        </button>
-      </div>
     </div>
   );
 }
-
-
 function NotificationsView() {
   type NotificationRow = {
     id: string;
