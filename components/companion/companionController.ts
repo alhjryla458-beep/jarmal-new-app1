@@ -71,10 +71,26 @@ export class CompanionController {
   }
 
   command(command: CompanionCommand, context: CompanionContext) {
+    if (this.timer !== null) {
+      window.clearTimeout(this.timer);
+      this.timer = null;
+    }
+
     this.emit(commandToMotion(command, context));
-    const duration = context.reducedMotion ? 0 : command.type === 'celebrate' ? 1200 : command.type === 'exit' ? 700 : 850;
-    if (duration > 0 && command.type !== 'exit') {
-      this.timer = window.setTimeout(() => { this.timer = null; this.emit({ ...base, animation: 'idle' }); }, duration);
+
+    const duration = context.reducedMotion
+      ? 0
+      : command.type === 'celebrate'
+        ? 1200
+        : command.type === 'exit'
+          ? 700
+          : 850;
+
+    if (duration > 0) {
+      this.timer = window.setTimeout(() => {
+        this.timer = null;
+        this.emit({ ...base, animation: 'idle' });
+      }, duration);
     }
   }
 
