@@ -2446,20 +2446,47 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
                     <button key={type} onClick={() => setStoreCategory(type)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${storeCategory === type ? 'bg-[#e3fe00] text-black' : 'bg-white/[.05] text-white/55'}`}>{type}</button>
                   ))}
                 </div>
-                <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {storesReal.filter((s) => storeCategory === 'الكل' || s.store_type === storeCategory).map((store) => (
-                    <button key={store.id} disabled={!store.is_open} onClick={() => setSelectedStore(store)} className="group overflow-hidden rounded-2xl border border-[#e5e8e2] bg-white text-right shadow-[0_8px_24px_rgba(23,26,22,.05)] transition hover:-translate-y-0.5 hover:border-[#d5dc00] disabled:cursor-not-allowed disabled:opacity-60">
-                      <div className="flex h-24 items-center justify-center bg-[#f5f6f3]"><Store size={40} className="text-[#e3fe00]" /></div>
-                      <div className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div><h3 className="font-black">{store.name}</h3><p className="mt-1 text-xs text-white/40">{store.address_description}</p></div>
-                          <span className={`rounded-lg px-2 py-1 text-[10px] font-bold ${store.is_open ? 'bg-[#e3fe00]/10 text-[#e3fe00]' : 'bg-white/10 text-white/50'}`}>{store.is_open ? 'مفتوح' : 'مغلق'}</span>
+                <div className="jarmal-store-grid mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {storesReal.filter((s) => storeCategory === 'الكل' || s.store_type === storeCategory).map((store) => {
+                    const type = store.store_type || 'متجر';
+                    const StoreIcon = type.includes('مطعم') ? ShoppingBag : type.includes('صيد') ? ShieldCheck : type.includes('حلويات') ? Sparkles : type.includes('قهوة') || type.includes('بوفيه') ? Sparkles : Store;
+                    return (
+                      <button
+                        key={store.id}
+                        disabled={!store.is_open}
+                        onClick={() => setSelectedStore(store)}
+                        className="jarmal-store-card group overflow-hidden text-right disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <div className="jarmal-store-card-top">
+                          <div className="jarmal-store-icon"><StoreIcon size={24} strokeWidth={1.8} /></div>
+                          <div className={`jarmal-store-status ${store.is_open ? 'is-open' : ''}`}>
+                            <span className="jarmal-store-status-dot" />
+                            {store.is_open ? 'مفتوح الآن' : 'مغلق'}
+                          </div>
                         </div>
-                        <div className="mt-4 text-xs text-white/35">★ {store.rating ?? '—'} • {store.store_type}</div>
-                      </div>
-                    </button>
-                  ))}
-                  {storesReal.length === 0 && <p className="text-sm text-white/40">لا توجد متاجر حالياً</p>}
+                        <div className="p-4 pt-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="truncate text-[15px] font-black text-white">{store.name}</h3>
+                              <p className="mt-1 truncate text-xs text-[#8fa2b8]">{store.address_description || 'متجر معتمد في جَرْمَل'}</p>
+                            </div>
+                            <span className="jarmal-store-type">{type}</span>
+                          </div>
+                          <div className="mt-4 flex items-center gap-3 text-[11px] text-[#9aacbf]">
+                            <span className="jarmal-rating">★ {store.rating ?? '—'}</span>
+                            <span className="h-1 w-1 rounded-full bg-[#526b86]" />
+                            <span>متجر معتمد</span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {storesReal.length === 0 && (
+                    <div className="jarmal-empty-card sm:col-span-2 xl:col-span-3">
+                      <Store size={22} />
+                      <span>لا توجد متاجر متاحة حالياً</span>
+                    </div>
+                  )}
                 </div>
               </section>
             </>
