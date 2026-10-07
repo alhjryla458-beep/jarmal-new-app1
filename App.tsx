@@ -2277,7 +2277,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
 
   const toggleFavorite = async (productId: string) => {
     await supabase.rpc('toggle_favorite', { p_product_id: productId });
-    const { data } = await supabase.from('favorites').select('product_id');
+    const { data } = await supabase.from('favorites').select('product_id').eq('customer_id', userId);
     if (data) setFavorites(data.map((f: any) => f.product_id));
   };
 
@@ -3004,8 +3004,8 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   const [error, setError] = useState('');
 
   const loadAll = () => {
-    supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating, verification_status').maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
-    supabase.from('driver_wallets').select('balance, reserved_balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
+    supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating, verification_status').eq('id', userId).maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
+    supabase.from('driver_wallets').select('balance, reserved_balance').eq('user_id', userId).maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
     supabase.from('payment_methods').select('id, name, code, account_number, instructions').eq('is_active', true).neq('code', 'cash').then(({ data }) => {
       if (data) {
         const methods = data as PaymentMethodRow[];
@@ -3456,8 +3456,8 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
         supabase.from('product_inventory').select('id, store_id, product_id, variant_id, quantity_on_hand, quantity_reserved, reorder_level, unit_label, updated_at').eq('store_id', row.id).then(({ data: inventory }) => { if (inventory) setInventoryRows(inventory as InventoryRow[]); });
         supabase.from('inventory_movements').select('id, product_id, movement_type, quantity, quantity_before, quantity_after, reason, created_at').eq('store_id', row.id).order('created_at', { ascending: false }).limit(50).then(({ data: movements }) => { if (movements) setInventoryMovements(movements as InventoryMovementRow[]); });
     }
-    supabase.from('merchant_wallets').select('balance, reserved_balance').maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
-    supabase.from('merchant_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, created_at, admin_note').order('created_at', { ascending: false }).limit(10).then(({ data }) => { if (data) setWithdrawals(data || []); });
+    supabase.from('merchant_wallets').select('balance, reserved_balance').eq('merchant_id', userId).maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
+    supabase.from('merchant_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, created_at, admin_note').eq('merchant_id', userId).order('created_at', { ascending: false }).limit(10).then(({ data }) => { if (data) setWithdrawals(data || []); });
   };
 
   useEffect(() => { loadAll(); }, []);
