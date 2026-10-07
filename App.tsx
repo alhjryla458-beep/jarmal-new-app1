@@ -332,6 +332,7 @@ type CartLine = {
   name: string;
   price: number;
   quantity: number;
+  payment_options?: 'cash_only' | 'electronic_only' | 'both' | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -2497,7 +2498,7 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
               {productVariants.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {productVariants.map((v) => (
-                    <button key={v.id} onClick={() => onAdd({ product_id: product.id, variant_id: v.id, name: `${product.name} - ${v.variant_name}`, price: v.price })} className="rounded-xl border border-[#e2e6df] bg-[#f8faf7] px-3 py-2 text-xs font-bold text-[#596159] hover:border-[#b8c400] hover:bg-[#f1f5df]">
+                    <button key={v.id} onClick={() => onAdd({ product_id: product.id, variant_id: v.id, name: `${product.name} - ${v.variant_name}`, price: v.price, payment_options: product.payment_options || 'both' })} className="rounded-xl border border-[#e2e6df] bg-[#f8faf7] px-3 py-2 text-xs font-bold text-[#596159] hover:border-[#b8c400] hover:bg-[#f1f5df]">
                       {v.variant_name} • {v.price.toLocaleString('ar-YE')} {CURRENCY}
                     </button>
                   ))}
@@ -2505,7 +2506,7 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
               ) : (
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-black text-[#687500]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</span>
-                  <button onClick={() => onAdd({ product_id: product.id, name: product.name, price: product.price })} className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white">إضافة</button>
+                  <button onClick={() => onAdd({ product_id: product.id, name: product.name, price: product.price, payment_options: product.payment_options || 'both' })} className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white">إضافة</button>
                 </div>
               )}
             </div>
@@ -2520,7 +2521,7 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
           <div className="space-y-3">
             <Field label="اسم المنتج" value={customName} onChange={setCustomName} placeholder="مثال: كيلو تفاح أحمر" />
             <Field label="السعر التقديري" value={customPrice} onChange={(v) => setCustomPrice(v.replace(/\D/g, ''))} placeholder="مثال: 2000" />
-            <button disabled={!customName.trim() || !customPrice} onClick={() => { onAdd({ custom_name: customName.trim(), custom_price: Number(customPrice), name: customName.trim(), price: Number(customPrice) }); setShowCustom(false); setCustomName(''); setCustomPrice(''); }} className="w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black disabled:opacity-40">إضافة للسلة</button>
+            <button disabled={!customName.trim() || !customPrice} onClick={() => { onAdd({ custom_name: customName.trim(), custom_price: Number(customPrice), name: customName.trim(), price: Number(customPrice), payment_options: 'electronic_only' }); setShowCustom(false); setCustomName(''); setCustomPrice(''); }} className="w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black disabled:opacity-40">إضافة للسلة</button>
           </div>
         )}
       </div>
@@ -2693,6 +2694,12 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
   const [deliveryLongitude, setDeliveryLongitude] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
   const [paymentCode, setPaymentCode] = useState('cash');
+  const cashAllowed = cart.every((item) => (item.payment_options || 'both') !== 'electronic_only');
+  const electronicAllowed = cart.every((item) => (item.payment_options || 'both') !== 'cash_only');
+  useEffect(() => {
+    if (paymentCode === 'cash' && !cashAllowed) setPaymentCode(paymentMethods.find((m) => m.code !== 'cash')?.code || '');
+    if (paymentCode !== 'cash' && !electronicAllowed) setPaymentCode(cashAllowed ? 'cash' : '');
+  }, [cashAllowed, electronicAllowed, paymentCode, paymentMethods]);
   const [referenceNumber, setReferenceNumber] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -2799,9 +2806,12 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
         </>}
         <div className="mt-4">
           <label className="mb-2 block text-sm font-black text-[#171a16]">طريقة الدفع</label>
+          {!cashAllowed && electronicAllowed && <p className="mb-2 rounded-lg bg-[#fff7e6] px-3 py-2 text-xs font-bold text-[#8a6500]">بعض المنتجات في السلة تتطلب الدفع الإلكتروني.</p>}
+          {cashAllowed && !electronicAllowed && <p className="mb-2 rounded-lg bg-[#f1f5df] px-3 py-2 text-xs font-bold text-[#687500]">هذه السلة تسمح بالدفع عند الاستلام فقط.</p>}
+          {!cashAllowed && !electronicAllowed && <p className="mb-2 rounded-lg bg-red-500/10 px-3 py-2 text-xs font-bold text-red-600">المنتجات في السلة لا تشترك في طريقة دفع واحدة. عدّل السلة.</p>
           <div className="grid gap-2 sm:grid-cols-2">
-            <button type="button" onClick={() => { setPaymentCode('cash'); setReferenceNumber(''); }} className={paymentCode === 'cash' ? 'rounded-xl border border-[#e3fe00] bg-[#f1f5df] px-4 py-3 text-right text-sm font-bold text-[#171a16]' : 'rounded-xl border border-[#e1e5de] bg-white px-4 py-3 text-right text-sm font-bold text-[#747b72]'}>الدفع عند الاستلام</button>
-            {paymentMethods.filter((m) => m.code !== 'cash').map((method) => (
+            {cashAllowed && <button type="button" onClick={() => { setPaymentCode('cash'); setReferenceNumber(''); }} className={paymentCode === 'cash' ? 'rounded-xl border border-[#e3fe00] bg-[#f1f5df] px-4 py-3 text-right text-sm font-bold text-[#171a16]' : 'rounded-xl border border-[#e1e5de] bg-white px-4 py-3 text-right text-sm font-bold text-[#747b72]'}>الدفع عند الاستلام</button>}
+            {electronicAllowed && paymentMethods.filter((m) => m.code !== 'cash').map((method) => (
               <button type="button" key={method.id} onClick={() => setPaymentCode(method.code)} className={paymentCode === method.code ? 'rounded-xl border border-[#e3fe00] bg-[#f1f5df] px-4 py-3 text-right text-sm font-bold text-[#171a16]' : 'rounded-xl border border-[#e1e5de] bg-white px-4 py-3 text-right text-sm font-bold text-[#747b72]'}>{method.name}</button>
             ))}
           </div>
@@ -2820,7 +2830,7 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
         <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: اتصل بي عند الوصول" /></div>
         {error && <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black"><span>الإجمالي</span><span>{(total + deliveryFee).toLocaleString('ar-YE')} {CURRENCY}</span></div>
-        <button disabled={busy || cart.length === 0} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? (paymentCode === 'cash' ? 'جارٍ إرسال الطلب...' : 'جارٍ التحقق من الدفع...') : (paymentCode === 'cash' ? 'تأكيد الطلب' : 'الدفع الآن')}</button>
+        <button disabled={busy || cart.length === 0 || (!cashAllowed && !electronicAllowed) || !paymentCode} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? (paymentCode === 'cash' ? 'جارٍ إرسال الطلب...' : 'جارٍ التحقق من الدفع...') : (paymentCode === 'cash' ? 'تأكيد الطلب' : 'الدفع الآن')}</button>
       </div>
     </div>
   );
