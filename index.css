@@ -813,3 +813,150 @@ body {
   stroke: initial;
   stroke-width: initial;
 }
+
+
+/* ===== JARMAL 3.1 — FINAL COLOR CONSISTENCY LAYER ===== */
+/* This layer intentionally comes last so legacy light-theme rules cannot
+   make text dark on the new navy surfaces. */
+.jarmal-app {
+  color: #f7f9ff !important;
+  background-color: #06172f !important;
+}
+
+/* Primary typography */
+.jarmal-app .jarmal-page h1,
+.jarmal-app .jarmal-page h2,
+.jarmal-app .jarmal-page h3,
+.jarmal-app .jarmal-page h4,
+.jarmal-app .jarmal-page label,
+.jarmal-app .jarmal-page strong,
+.jarmal-app .jarmal-page b {
+  color: #f7f9ff !important;
+}
+
+/* Legacy dark text classes must become readable on navy */
+.jarmal-app [class*="text-[#171a16]"],
+.jarmal-app [class*="text-[#30362f]"],
+.jarmal-app [class*="text-[#596159]"],
+.jarmal-app [class*="text-[#5f675d]"],
+.jarmal-app [class*="text-[#656d63]"],
+.jarmal-app [class*="text-[#697068]"],
+.jarmal-app [class*="text-[#6d756b]"],
+.jarmal-app [class*="text-[#70776f]"],
+.jarmal-app [class*="text-[#747b72]"],
+.jarmal-app [class*="text-[#788078]"],
+.jarmal-app [class*="text-[#7b827a]"],
+.jarmal-app [class*="text-[#858c84]"],
+.jarmal-app [class*="text-[#8a9189]"],
+.jarmal-app [class*="text-[#8a9088]"],
+.jarmal-app [class*="text-[#949b93]"],
+.jarmal-app [class*="text-[#9aa097]"],
+.jarmal-app [class*="text-[#a0a69e]"] {
+  color: #aebbd0 !important;
+}
+
+/* Common Tailwind gray text used by legacy screens */
+.jarmal-app [class*="text-gray-900"],
+.jarmal-app [class*="text-gray-800"],
+.jarmal-app [class*="text-gray-700"] {
+  color: #f7f9ff !important;
+}
+.jarmal-app [class*="text-gray-600"],
+.jarmal-app [class*="text-gray-500"],
+.jarmal-app [class*="text-gray-400"] {
+  color: #aebbd0 !important;
+}
+
+/* Explicit white text always stays white */
+.jarmal-app [class~="text-white"],
+.jarmal-app [class~="text-white/90"],
+.jarmal-app [class~="text-white/80"] {
+  color: #f7f9ff !important;
+}
+
+/* Secondary white opacity classes */
+.jarmal-app [class~="text-white/70"],
+.jarmal-app [class~="text-white/60"],
+.jarmal-app [class~="text-white/55"],
+.jarmal-app [class~="text-white/50"],
+.jarmal-app [class~="text-white/45"],
+.jarmal-app [class~="text-white/40"],
+.jarmal-app [class~="text-white/35"],
+.jarmal-app [class~="text-white/30"],
+.jarmal-app [class~="text-white/25"],
+.jarmal-app [class~="text-white/20"] {
+  color: #9fb0c7 !important;
+}
+
+/* Interactive text */
+.jarmal-app button,
+.jarmal-app a {
+  color: inherit;
+}
+.jarmal-app button[class*="text-gray-"],
+.jarmal-app a[class*="text-gray-"] {
+  color: #c2ccda !important;
+}
+
+/* Lime is reserved for active/important states */
+.jarmal-app [class*="text-[#e3fe00]"],
+.jarmal-app [class*="text-[#dfff00]"],
+.jarmal-app [class*="text-[#f4ff00]"] {
+  color: #f4ff00 !important;
+}
+.jarmal-app [class*="bg-[#e3fe00]"],
+.jarmal-app [class*="bg-[#dfff00]"] {
+  background: #f4ff00 !important;
+  color: #07111f !important;
+}
+
+/* Secondary buttons/cards */
+.jarmal-app button[class*="border-white/10"],
+.jarmal-app button[class*="border-[#e1e5de"],
+.jarmal-app button[class*="border-[#e2e6df"] {
+  background: #0c294b !important;
+  color: #dce5f1 !important;
+  border-color: #1c4164 !important;
+}
+
+/* Forms on dark theme */
+.jarmal-app input,
+.jarmal-app textarea,
+.jarmal-app select {
+  background: #071c36 !important;
+  color: #f7f9ff !important;
+  border-color: #1c4164 !important;
+}
+.jarmal-app input::placeholder,
+.jarmal-app textarea::placeholder {
+  color: #74859c !important;
+}
+
+/* Error / destructive actions: the only red family */
+.jarmal-app [class*="text-red-"],
+.jarmal-app [class*="text-rose-"] {
+  color: #ff9da7 !important;
+}
+.jarmal-app [class*="border-red-"],
+.jarmal-app [class*="border-rose-"] {
+  border-color: rgba(255,125,138,.55) !important;
+}
+.jarmal-app [class*="bg-red-"],
+.jarmal-app [class*="bg-rose-"] {
+  background: rgba(145,38,55,.28) !important;
+}
+
+/* Bottom navigation */
+.jarmal-app .jarmal-bottom-nav button {
+  color: #aebbd0 !important;
+}
+.jarmal-app .jarmal-bottom-nav button[class*="text-[#e3fe00]"],
+.jarmal-app .jarmal-bottom-nav button[class*="text-[#dfff00]"] {
+  color: #f4ff00 !important;
+}
+
+/* Keep logo completely untouched */
+.jarmal-app img[src*="jarmal-logo-full.svg"] {
+  filter: none !important;
+  opacity: 1 !important;
+}
