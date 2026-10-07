@@ -440,8 +440,6 @@ function Auth({
 
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) throw new Error('انتهت جلسة الدخول');
-      localStorage.setItem('jarmal_test_name', form.name.trim() || 'موظف');
-      localStorage.setItem('jarmal_test_phone', `+967${form.phone}`);
       onSuccess(sessionData.session, 'merchant');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'تعذر قبول دعوة المتجر');
@@ -526,8 +524,6 @@ function Auth({
       }
 
       const resolvedRole = registeredRole as Role;
-      localStorage.setItem('jarmal_test_name', form.name.trim());
-      localStorage.setItem('jarmal_test_phone', `+967${form.phone}`);
       onSuccess(activeSession, resolvedRole);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'تعذر إنشاء الحساب');
@@ -569,8 +565,6 @@ function Auth({
       if (!savedRole) throw new Error('لم يتم العثور على حساب بهذا الرقم');
 
       const resolvedRole = await resolveUiRole(data.session.user.id, savedRole);
-      localStorage.setItem('jarmal_test_name', profile?.full_name || '');
-      localStorage.setItem('jarmal_test_phone', profile?.phone_number || `+967${form.phone}`);
       onSuccess(data.session, resolvedRole);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'رمز التحقق غير صحيح أو انتهت صلاحيته');
@@ -1308,7 +1302,7 @@ function StoreAuditLogView({ storeId }: { storeId: string }) {
   );
 }
 
-function SettingsView({ role }: { role: 'customer' | 'driver' | 'merchant' }) {
+function SettingsView({ role, phone }: { role: 'customer' | 'driver' | 'merchant'; phone?: string | null }) {
   const roleLabel = role === 'customer' ? 'العميل' : role === 'driver' ? 'المندوب' : 'التاجر';
   const [notifications, setNotifications] = useState(true);
   return (
@@ -1317,7 +1311,7 @@ function SettingsView({ role }: { role: 'customer' | 'driver' | 'merchant' }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="jarmal-card rounded-2xl border p-5">
           <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e3fe00]/15 text-[#6f7e00]"><UserRound size={20}/></div><div><p className="font-black">الحساب</p><p className="text-xs text-white/40">نوع الحساب: {roleLabel}</p></div></div>
-          <div className="mt-5 rounded-xl bg-[#f4f6f1] p-4"><p className="text-xs text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{localStorage.getItem('jarmal_test_phone') || 'غير متوفر'}</p></div>
+          <div className="mt-5 rounded-xl bg-[#f4f6f1] p-4"><p className="text-xs text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{phone || 'غير متوفر'}</p></div>
         </div>
         <div className="jarmal-card rounded-2xl border p-5">
           <p className="font-black">التفضيلات</p>
@@ -1887,11 +1881,13 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [packages, setPackages] = useState<ServicePackageRow[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
   const [invoicesReal, setInvoicesReal] = useState<InvoiceRow[]>([]);
+  const [profileReal, setProfileReal] = useState<{ full_name: string | null; phone_number: string | null }>({ full_name: null, phone_number: null });
 
   const loadAll = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    supabase.from('profiles').select('full_name, phone_number').eq('id', user.id).maybeSingle().then(({ data }) => { if (data) setProfileReal(data); });
     supabase.from('stores').select('id, name, store_type, address_description, is_open, rating').eq('approval_status', 'approved').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
     supabase.from('products').select('id, store_id, name, description, price, image_url, is_available, category_id, redemption_points_cost, payment_options').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
@@ -1916,7 +1912,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const addToCart = (storeId: string, line: Omit<CartLine, 'key' | 'quantity'>) => {
     setCart((current) => {
       const base = cartStoreId && cartStoreId !== storeId ? [] : current;
-      const key = line.variant_id || line.product_id || line.custom_name || Math.random().toString();
+      const key = line.variant_id || line.product_id || `custom:${line.custom_name}:${line.price}`;
       const found = base.find((c) => c.key === key);
       return found ? base.map((c) => (c.key === key ? { ...c, quantity: c.quantity + 1 } : c)) : [...base, { ...line, key, quantity: 1 }];
     });
@@ -2074,12 +2070,12 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
               </div>
             );
           })()}
-          {active === 'settings' && <SettingsView role="customer" />}
+          {active === 'settings' && <SettingsView role="customer" phone={profileReal.phone_number} />}
           {active === 'profile' && (
             <div className="mx-auto max-w-md space-y-4">
               <h2 className="text-2xl font-black">حسابي</h2>
-              <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">الاسم</p><p className="mt-1 font-bold">{localStorage.getItem('jarmal_test_name') || '—'}</p></div>
-              <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{localStorage.getItem('jarmal_test_phone') || '—'}</p></div>
+              <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">الاسم</p><p className="mt-1 font-bold">{profileReal.full_name || '—'}</p></div>
+              <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{profileReal.phone_number || '—'}</p></div>
               <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"><LogOut size={18} />تسجيل الخروج</button>
             </div>
           )}
@@ -3698,8 +3694,6 @@ export default function App() {
 
   const handleLogout = () => {
     void supabase.auth.signOut();
-    localStorage.removeItem('jarmal_test_name');
-    localStorage.removeItem('jarmal_test_phone');
     setSession(null);
     setScreen('welcome');
   };
