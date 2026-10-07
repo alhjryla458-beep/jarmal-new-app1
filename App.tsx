@@ -205,7 +205,7 @@ type ServiceProviderRow = {
   region: string | null;
 };
 type ServicePackageRow = { id: string; provider_id: string; name: string; face_value: number | null; price: number };
-type PaymentMethodRow = { id: string; name: string; code: string; account_number: string | null; instructions: string | null };
+type PaymentMethodRow = { id: string; name: string; code: string; account_number: string | null; instructions: string | null; checkout_url?: string | null; deep_link?: string | null; verification_mode?: string | null; auto_verify_enabled?: boolean | null };
 type ClientWalletRow = { balance: number; points: number };
 type FullOrderRow = {
   id: string;
