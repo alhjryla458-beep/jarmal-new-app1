@@ -2399,18 +2399,9 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
           window.open(paymentUrl, '_blank', 'noopener,noreferrer');
         }
 
-        const started = Date.now();
-        while (Date.now() - started < 90000) {
-          const { data: statusRows, error: statusError } = await supabase.rpc('get_customer_payment_status', { p_order_id: orderId });
-          if (statusError) break;
-          const status = Array.isArray(statusRows) ? statusRows[0] : statusRows;
-          if (status?.payment_status === 'paid' || ['approved', 'confirmed', 'paid'].includes(status?.receipt_status)) {
-            onOrdered();
-            return;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 2500));
-        }
-
+        // Electronic payments currently use manual verification in the database.
+        // The order and pending receipt already exist; do not block the customer for an
+        // artificial polling window. The order will appear in Orders as pending verification.
         onOrdered();
         return;
       }
