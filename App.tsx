@@ -2779,6 +2779,79 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
   );
 }
 
+function CustomerInvoicesView({ invoices }: { invoices: InvoiceRow[] }) {
+  const grouped = invoices.reduce<Record<string, InvoiceRow[]>>((acc, invoice) => {
+    const key = invoice.billing_month || invoice.issued_at.slice(0, 7);
+    (acc[key] ||= []).push(invoice);
+    return acc;
+  }, {});
+
+  const monthLabel = (value: string) => {
+    const date = new Date((value.length === 7 ? value + '-01' : value) + 'T00:00:00Z');
+    return date.toLocaleDateString('ar-YE', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  };
+
+  return (
+    <section className="max-w-4xl">
+      <div className="flex items-end justify-between gap-3">
+        <div><p className="text-sm text-[#747b72]">فواتيرك المحفوظة تلقائيًا</p><h1 className="mt-1 text-3xl font-black">فواتيري</h1></div>
+        <span className="rounded-xl bg-[#f1f5df] px-3 py-2 text-xs font-black text-[#687500]">{invoices.length} فاتورة</span>
+      </div>
+
+      {Object.keys(grouped).length === 0 ? (
+        <div className="mt-6 rounded-3xl border border-dashed border-[#dfe4db] bg-white py-20 text-center">
+          <FileText className="mx-auto text-[#9aa097]" size={32}/>
+          <p className="mt-3 font-black">لا توجد فواتير بعد</p>
+          <p className="mt-1 text-sm text-[#858c84]">تظهر الفاتورة تلقائيًا بعد تأكيد الدفع.</p>
+        </div>
+      ) : (
+        <div className="mt-6 space-y-6">
+          {Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a)).map(([month, rows]) => (
+            <div key={month} className="rounded-3xl border border-[#e1e5de] bg-white p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div><p className="text-xs text-[#8a9189]">كشف الشهر</p><h2 className="text-xl font-black">{monthLabel(month)}</h2></div>
+                <span className="text-xs font-bold text-[#747b72]">{rows.length} طلب</span>
+              </div>
+              <div className="mt-4 space-y-3">
+                {rows.map((invoice) => (
+                  <details key={invoice.id} className="rounded-2xl border border-[#edf0eb] bg-[#fafbf9] p-4">
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div><p className="text-xs font-bold text-[#8a9189]">{invoice.invoice_number}</p><p className="mt-1 font-black">{Number(invoice.total_amount || 0).toLocaleString('ar-YE')} {CURRENCY}</p></div>
+                        <span className="rounded-lg bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-700">مدفوعة</span>
+                      </div>
+                    </summary>
+                    <div className="mt-4 border-t border-[#e7eae5] pt-4">
+                      <div className="grid gap-2 text-xs text-[#697068] sm:grid-cols-2">
+                        <p>التاريخ: {new Date(invoice.issued_at).toLocaleString('ar-YE')}</p>
+                        <p>طريقة الدفع: {invoice.payment_method || '—'}</p>
+                        {invoice.payment_reference && <p className="sm:col-span-2">مرجع الدفع: {invoice.payment_reference}</p>}
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        {(invoice.items || []).map((item, index) => (
+                          <div key={item.id || index} className="flex items-center justify-between gap-3 rounded-xl bg-white p-3">
+                            <span className="text-sm font-bold">{item.name || 'منتج'} × {item.quantity || 0}</span>
+                            <span className="text-sm font-black">{Number(item.line_total || 0).toLocaleString('ar-YE')} {CURRENCY}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 grid gap-2 border-t border-[#e7eae5] pt-4 text-sm">
+                        <div className="flex justify-between"><span className="text-[#7b827a]">قيمة المنتجات</span><b>{Number(invoice.subtotal || 0).toLocaleString('ar-YE')} {CURRENCY}</b></div>
+                        <div className="flex justify-between"><span className="text-[#7b827a]">التوصيل</span><b>{Number(invoice.delivery_fee || 0).toLocaleString('ar-YE')} {CURRENCY}</b></div>
+                        <div className="flex justify-between text-base"><span className="font-black">الإجمالي</span><b>{Number(invoice.total_amount || 0).toLocaleString('ar-YE')} {CURRENCY}</b></div>
+                      </div>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => void }) {
   const [ratingFor, setRatingFor] = useState<string | null>(null);
   const [driverRating, setDriverRating] = useState(5);
