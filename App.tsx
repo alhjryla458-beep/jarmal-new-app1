@@ -1870,24 +1870,47 @@ function NotificationsView() {
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setItems([]);
+      return;
+    }
+
     const { data } = await supabase
       .from('notifications')
       .select('id, type, title, body, order_id, is_read, created_at')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50);
+
     if (data) setItems(data as NotificationRow[]);
   };
 
   useEffect(() => { void load(); }, []);
 
   const markRead = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', id)
+      .eq('user_id', user.id);
+
     setItems(current => current.map(item => item.id === id ? { ...item, is_read: true } : item));
   };
 
   const markAllRead = async () => {
     setBusy(true);
-    await supabase.from('notifications').update({ is_read: true }).eq('is_read', false);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+    }
     await load();
     setBusy(false);
   };
