@@ -591,11 +591,7 @@ function Auth({
       ? 'حساب العميل'
       : role === 'driver'
         ? 'حساب المندوب'
-        : role === 'merchant'
-          ? 'حساب التاجر'
-          : 'لوحة الإدارة';
-
-  const isAdmin = role === 'admin';
+        : 'حساب التاجر';
 
   return (
     <main className="jarmal-app min-h-screen px-5 py-7">
@@ -666,8 +662,7 @@ function Auth({
             </div>
           )}
 
-          {!isAdmin && (
-            <>
+          <>
               <div className="mb-4 flex rounded-xl bg-white/5 p-1">
                 <button
                   type="button"
@@ -719,13 +714,7 @@ function Auth({
             </>
           )}
 
-          {isAdmin && (
-            <div className="mb-7 rounded-xl border border-[#e3fe00]/20 bg-[#e3fe00]/5 px-4 py-3 text-center text-sm text-white/60">
-              دخول مدير النظام — الصلاحية مطلوبة
-            </div>
-          )}
-
-          {mode === 'login' && !isAdmin && (
+          {mode === 'login' && (
             <form onSubmit={submitLogin} className="space-y-4">
               <div className="mb-3 text-center">
                 <h2 className="text-xl font-black">
@@ -775,51 +764,6 @@ function Auth({
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50"
               >
                 {busy ? 'جارٍ الدخول...' : 'دخول إلى حسابي'}
-                <ArrowLeft size={18} />
-              </button>
-            </form>
-          )}
-
-          {mode === 'login' && isAdmin && (
-            <form onSubmit={submitLogin} className="space-y-4">
-              <PhoneField
-                value={form.phone}
-                onChange={(value) => update('phone', value)}
-              />
-
-              <button
-                type="button"
-                onClick={() => void requestLoginOtp()}
-                disabled={busy || form.phone.length !== 9}
-                className="w-full rounded-xl border border-[#e3fe00]/30 py-3 text-sm font-bold text-[#e3fe00] disabled:opacity-50"
-              >
-                {busy ? 'جارٍ إرسال الرمز...' : otpSent ? 'إعادة إرسال رمز التحقق' : 'إرسال رمز التحقق'}
-              </button>
-
-              <Field
-                label="رمز التحقق"
-                value={form.otp}
-                onChange={(value) =>
-                  update(
-                    'otp',
-                    value.replace(/\D/g, '').slice(0, 6)
-                  )
-                }
-                placeholder="123456"
-                icon={<ShieldCheck size={17} />}
-              />
-
-              {error && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                  {error}
-                </div>
-              )}
-
-              <button
-                disabled={busy}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-50"
-              >
-                {busy ? 'جارٍ الدخول...' : 'دخول الإدارة'}
                 <ArrowLeft size={18} />
               </button>
             </form>
@@ -3707,19 +3651,36 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const savedRole = localStorage.getItem(
-      'jarmal_test_role'
-    ) as Role | null;
-
     const timer = window.setTimeout(() => setShowSplash(false), 1500);
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session && savedRole) {
-        setSession(data.session);
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) return;
 
-        setRole(savedRole === 'driver' || savedRole === 'merchant' ? savedRole : 'customer');
-        setScreen('app');
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.session.user.id)
+        .maybeSingle();
+
+      if (error || !profile?.role) {
+        await supabase.auth.signOut();
+        return;
       }
+
+      if (profile.role === 'admin') {
+        await supabase.auth.signOut();
+        localStorage.removeItem('jarmal_test_role');
+        return;
+      }
+
+      const resolvedRole: Role =
+        profile.role === 'driver' || profile.role === 'merchant'
+          ? profile.role
+          : 'customer';
+
+      setSession(data.session);
+      setRole(resolvedRole);
+      setScreen('app');
     });
 
     return () => window.clearTimeout(timer);
