@@ -1476,3 +1476,160 @@ body {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* ===== JARMAL 4.1 — STORE CARDS + ICON LANGUAGE =====
+   Delivery app only. The official logo remains untouched.
+*/
+.jarmal-app .jarmal-store-grid {
+  align-items: stretch;
+}
+
+.jarmal-app .jarmal-store-card {
+  position: relative;
+  min-height: 184px;
+  border: 1px solid rgba(29,69,105,.95) !important;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(242,255,0,.07), transparent 26%),
+    linear-gradient(145deg, #102f52 0%, #0a2442 55%, #071b34 100%) !important;
+  box-shadow: 0 16px 36px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.035);
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.jarmal-app .jarmal-store-card::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  bottom: 0;
+  width: 70px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(242,255,0,.16);
+  transition: width .22s ease, background .22s ease;
+}
+
+.jarmal-app .jarmal-store-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(242,255,0,.42) !important;
+  box-shadow: 0 20px 42px rgba(0,0,0,.25), 0 0 0 1px rgba(242,255,0,.035);
+}
+
+.jarmal-app .jarmal-store-card:hover::after {
+  width: 105px;
+  background: rgba(242,255,0,.62);
+}
+
+.jarmal-app .jarmal-store-card-top {
+  min-height: 82px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 0;
+}
+
+.jarmal-app .jarmal-store-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 52px;
+  border: 1px solid rgba(242,255,0,.22);
+  border-radius: 17px;
+  color: var(--j4-lime);
+  background:
+    linear-gradient(145deg, rgba(242,255,0,.13), rgba(242,255,0,.035));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.jarmal-app .jarmal-store-icon svg {
+  filter: drop-shadow(0 0 8px rgba(242,255,0,.12));
+}
+
+.jarmal-app .jarmal-store-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid rgba(120,145,170,.18);
+  border-radius: 999px;
+  color: #8296ad;
+  background: rgba(255,255,255,.025);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.jarmal-app .jarmal-store-status.is-open {
+  color: var(--j4-lime);
+  border-color: rgba(242,255,0,.18);
+  background: rgba(242,255,0,.065);
+}
+
+.jarmal-app .jarmal-store-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5c7087;
+}
+
+.jarmal-app .jarmal-store-status.is-open .jarmal-store-status-dot {
+  background: var(--j4-lime);
+  box-shadow: 0 0 8px rgba(242,255,0,.5);
+}
+
+.jarmal-app .jarmal-store-type {
+  flex: 0 0 auto;
+  max-width: 86px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 5px 7px;
+  border: 1px solid rgba(120,145,170,.16);
+  border-radius: 8px;
+  color: #8da1b7;
+  background: rgba(255,255,255,.025);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.jarmal-app .jarmal-rating {
+  color: #d7e0ea;
+  font-weight: 900;
+}
+
+.jarmal-app .jarmal-empty-card {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px dashed rgba(120,145,170,.25);
+  border-radius: 20px;
+  color: #8195ab;
+  background: rgba(255,255,255,.018);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .jarmal-app .jarmal-store-card {
+    min-height: 174px;
+    border-radius: 19px;
+  }
+  .jarmal-app .jarmal-store-card-top {
+    min-height: 76px;
+    padding: 12px 12px 0;
+  }
+  .jarmal-app .jarmal-store-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    border-radius: 15px;
+  }
+  .jarmal-app .jarmal-store-status {
+    font-size: 8px;
+    padding-inline: 8px;
+  }
+}
