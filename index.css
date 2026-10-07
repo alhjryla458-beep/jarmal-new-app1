@@ -749,3 +749,67 @@ body {
   .jarmal-app main { padding-left: 14px !important; padding-right: 14px !important; }
   .jarmal-app .jarmal-page { padding-top: 16px !important; }
 }
+
+
+/* ===== JARMAL ICON LANGUAGE ===== */
+.jarmal-app svg {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.15;
+}
+.jarmal-app .jarmal-page button svg,
+.jarmal-app header svg,
+.jarmal-app aside svg,
+.jarmal-app nav svg {
+  filter: none;
+}
+.jarmal-app .jarmal-page .grid > button svg {
+  color: var(--jarmal-lime);
+}
+.jarmal-app .jarmal-page .grid > button[class*="bg-[#e3fe00]"] svg,
+.jarmal-app .jarmal-page .grid > button[class*="bg-[#dfff00]"] svg {
+  color: #07111f;
+}
+.jarmal-app .jarmal-page button[class*="rounded-xl"] svg,
+.jarmal-app .jarmal-page button[class*="rounded-2xl"] svg {
+  stroke-width: 2.2;
+}
+.jarmal-app .jarmal-page button[class*="rounded-full"] svg {
+  stroke-width: 2.1;
+}
+.jarmal-app .jarmal-page .jarmal-card svg {
+  color: var(--jarmal-lime);
+}
+.jarmal-app .jarmal-page .jarmal-card [class*="bg-[#f4f6f1]"],
+.jarmal-app .jarmal-page .jarmal-card [class*="bg-[#fafbf9]"] {
+  background: #0a2342 !important;
+  border-color: var(--jarmal-border) !important;
+}
+.jarmal-app .jarmal-page .jarmal-card [class*="text-[#687500]"],
+.jarmal-app .jarmal-page .jarmal-card [class*="text-[#596159]"] {
+  color: var(--jarmal-lime) !important;
+}
+
+/* Small status chips: dark glass with lime signal */
+.jarmal-app .jarmal-page span[class*="rounded-lg"][class*="bg-[#e3fe00]"],
+.jarmal-app .jarmal-page span[class*="rounded-lg"][class*="bg-[#dfff00]"] {
+  border: 1px solid rgba(244,255,0,.28);
+  background: rgba(244,255,0,.10) !important;
+  color: var(--jarmal-lime) !important;
+}
+
+/* Lists feel like the reference: compact, layered, easy to scan */
+.jarmal-app .jarmal-page .space-y-3 > div,
+.jarmal-app .jarmal-page .space-y-4 > div {
+  border-radius: 18px;
+}
+.jarmal-app .jarmal-page .space-y-3 > div:hover,
+.jarmal-app .jarmal-page .space-y-4 > div:hover {
+  border-color: rgba(244,255,0,.24) !important;
+}
+
+/* Keep the official logo itself untouched */
+.jarmal-app img[src*="jarmal-logo-full.svg"] {
+  stroke: initial;
+  stroke-width: initial;
+}
