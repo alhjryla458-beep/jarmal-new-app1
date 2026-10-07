@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Bike, Package, Search, Sparkles } from 'lucide-react';
 import type { CompanionContext } from './companionEngine';
 import type { CompanionMotionState } from './companionController';
@@ -22,7 +22,7 @@ export function CompanionCharacter({ context, motion, onClick }: Props) {
   const cls = ['jc-runtime-character', 'jc-motion-' + motion.animation, 'jc-expression-' + motion.expression].join(' ');
 
   return (
-    <button type="button" className={cls} onClick={onClick} aria-label="رفيق جَرْمَل" style={{ '--jc-scale': motion.scale } as React.CSSProperties}>
+    <button type="button" className={cls} onClick={onClick} aria-label="رفيق جَرْمَل" style={{ '--jc-scale': motion.scale } as CSSProperties}>
       <span className="jc3-shadow" />
       <span className="jc3-bike">{context.role === 'driver' && <Bike size={42} />}</span>
       <span className="jc3-helmet" />
