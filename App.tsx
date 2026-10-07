@@ -3,7 +3,7 @@ import {
   ArrowLeft, ArrowRight, BarChart3, Bell, Bike, Boxes, Check, CheckCircle2,
   ClipboardList, Clock3, FileText, Home, ListChecks, LogOut, MapPin,
   Menu, Minus, Navigation, Package, Phone, Plus, Settings2, ShieldCheck,
-  ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap
+  ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap, MessageCircle, Search, Send, ChevronLeft
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
@@ -2081,6 +2081,274 @@ function NotificationsView() {
   );
 }
 
+
+type AssistantMessage = {
+  id: string;
+  from: 'assistant' | 'user';
+  text: string;
+};
+
+function JarmalAssistant({
+  active,
+  orders,
+  onNavigate
+}: {
+  active: string;
+  orders: OrderRow[];
+  onNavigate: (screen: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [results, setResults] = useState<ProductRow[]>([]);
+  const [messages, setMessages] = useState<AssistantMessage[]>([
+    {
+      id: 'welcome',
+      from: 'assistant',
+      text: 'هلا بك 👋 أنا رفيق جَرْمَل. أقدر أبحث لك عن منتج أو أساعدك في معرفة حالة طلبك.'
+    }
+  ]);
+
+  const pageHint =
+    active === 'orders'
+      ? 'خلني أشوف طلباتك الحالية.'
+      : active === 'services'
+        ? 'أقدر أساعدك في الوصول إلى الخدمات.'
+        : active === 'wallet'
+          ? 'أقدر أشرح لك خيارات المحفظة والدفع.'
+          : active === 'notifications'
+            ? 'خلني أساعدك في متابعة التنبيهات.'
+            : 'ماذا تريد أن تطلب اليوم؟';
+
+  const suggestions =
+    active === 'orders'
+      ? ['أين طلبي؟', 'عرض طلباتي', 'أحتاج مساعدة']
+      : active === 'services'
+        ? ['عرض الخدمات', 'أحتاج مساعدة']
+        : active === 'wallet'
+          ? ['عرض المحفظة', 'طرق الدفع', 'أحتاج مساعدة']
+          : ['ابحث عن منتج', 'أين طلبي؟', 'عرض المتاجر', 'أحتاج مساعدة'];
+
+  const pushMessage = (from: AssistantMessage['from'], text: string) => {
+    setMessages((current) => [
+      ...current.slice(-7),
+      { id: `${Date.now()}-${from}`, from, text }
+    ]);
+  };
+
+  const handleCommand = async (raw: string) => {
+    const value = raw.trim();
+    if (!value || busy) return;
+
+    setInput('');
+    setResults([]);
+    pushMessage('user', value);
+    setBusy(true);
+
+    try {
+      const normalized = value.toLowerCase();
+
+      if (
+        normalized.includes('أين طلبي') ||
+        normalized.includes('اين طلبي') ||
+        normalized.includes('حالة طلب') ||
+        normalized.includes('طلبات')
+      ) {
+        const activeOrder = orders.find(
+          (order) => !['delivered', 'cancelled'].includes(order.status)
+        );
+
+        if (!activeOrder) {
+          pushMessage('assistant', 'لا يوجد لديك طلب نشط حاليًا. أقدر أساعدك في اختيار متجر أو منتج.');
+          return;
+        }
+
+        pushMessage(
+          'assistant',
+          `طلبك الحالي حالته: ${statusLabels[activeOrder.status] || activeOrder.status}. إجمالي الطلب ${activeOrder.total_amount.toLocaleString('ar-YE')} ${CURRENCY}.`
+        );
+        onNavigate('orders');
+        return;
+      }
+
+      if (
+        normalized.includes('متجر') ||
+        normalized.includes('مطعم') ||
+        normalized.includes('صيدلية')
+      ) {
+        pushMessage('assistant', 'أكيد. فتحت لك قائمة المتاجر، واختر المتجر الذي يناسبك.');
+        onNavigate('home');
+        return;
+      }
+
+      if (
+        normalized.includes('محفظ') ||
+        normalized.includes('دفع')
+      ) {
+        pushMessage('assistant', 'فتحت لك المحفظة. ستظهر لك طرق الدفع المتاحة فعليًا في جَرْمَل.');
+        onNavigate('wallet');
+        return;
+      }
+
+      if (
+        normalized.includes('خدمات') ||
+        normalized.includes('خدمة')
+      ) {
+        pushMessage('assistant', 'هذه صفحة الخدمات المتاحة في جَرْمَل.');
+        onNavigate('services');
+        return;
+      }
+
+      const term = value
+        .replace(/ابحث عن|ابحث لي عن|أريد|اريد|من فضلك|لو سمحت|منتج|شيء|شيs*/gi, '')
+        .trim();
+
+      if (term.length >= 2) {
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost')
+          .eq('is_available', true)
+          .ilike('name', `%${term}%`)
+          .limit(6);
+
+        if (error) throw error;
+
+        const found = (data || []) as ProductRow[];
+        setResults(found);
+
+        if (found.length > 0) {
+          pushMessage('assistant', `وجدت لك ${found.length} نتيجة حقيقية مطابقة لـ «${term}».`);
+        } else {
+          pushMessage('assistant', `لم أجد «${term}» ضمن المنتجات المتاحة حاليًا. يمكنك استخدام «اطلب منتج غير موجود» من صفحة المتجر.`);
+        }
+        return;
+      }
+
+      pushMessage('assistant', pageHint);
+    } catch (error) {
+      pushMessage(
+        'assistant',
+        error instanceof Error ? 'تعذر تنفيذ الطلب الآن. حاول مرة أخرى.' : 'حدث خطأ غير متوقع.'
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      {open && (
+        <div className="jarmal-assistant-overlay" onClick={() => setOpen(false)} aria-hidden="true" />
+      )}
+
+      {open && (
+        <section
+          className="jarmal-assistant-panel"
+          dir="rtl"
+          role="dialog"
+          aria-label="رفيق جَرْمَل"
+        >
+          <div className="jarmal-assistant-head">
+            <div className="jarmal-assistant-avatar" aria-hidden="true">
+              <Sparkles size={22} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h2>رفيق جَرْمَل</h2>
+                <span>متاح</span>
+              </div>
+              <p>{pageHint}</p>
+            </div>
+            <button
+              onClick={() => setOpen(false)}
+              className="jarmal-assistant-close"
+              aria-label="إغلاق المساعد"
+            >
+              <X size={19} />
+            </button>
+          </div>
+
+          <div className="jarmal-assistant-messages">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`jarmal-assistant-message ${message.from === 'user' ? 'is-user' : 'is-assistant'}`}
+              >
+                {message.text}
+              </div>
+            ))}
+
+            {results.length > 0 && (
+              <div className="jarmal-assistant-results">
+                {results.map((product) => (
+                  <div key={product.id} className="jarmal-assistant-result">
+                    <div>
+                      <strong>{product.name}</strong>
+                      <small>{product.description || 'منتج متاح في جَرْمَل'}</small>
+                    </div>
+                    <b>{product.price.toLocaleString('ar-YE')} {CURRENCY}</b>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {busy && (
+              <div className="jarmal-assistant-typing">
+                <span />
+                <span />
+                <span />
+                أبحث لك...
+              </div>
+            )}
+          </div>
+
+          <div className="jarmal-assistant-suggestions">
+            {suggestions.map((suggestion) => (
+              <button key={suggestion} onClick={() => void handleCommand(suggestion)}>
+                {suggestion}
+                <ChevronLeft size={14} />
+              </button>
+            ))}
+          </div>
+
+          <form
+            className="jarmal-assistant-input"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleCommand(input);
+            }}
+          >
+            <Search size={18} />
+            <input
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder="اكتب ما تحتاجه..."
+              aria-label="اكتب ما تحتاجه"
+            />
+            <button type="submit" disabled={!input.trim() || busy} aria-label="إرسال">
+              <Send size={17} />
+            </button>
+          </form>
+        </section>
+      )}
+
+      <button
+        className={`jarmal-assistant-launcher ${open ? 'is-open' : ''}`}
+        onClick={() => setOpen((value) => !value)}
+        aria-label="فتح رفيق جَرْمَل"
+      >
+        <span className="jarmal-assistant-launcher-icon">
+          <Sparkles size={21} />
+        </span>
+        <span className="jarmal-assistant-launcher-copy">
+          <strong>رفيق جَرْمَل</strong>
+          <small>كيف أساعدك؟</small>
+        </span>
+      </button>
+    </>
+  );
+}
+
 function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState('home');
   const [storeCategory, setStoreCategory] = useState<string>('الكل');
@@ -2140,8 +2408,30 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
         <main className="jarmal-page min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
           {active === 'home' && !selectedStore && (
             <>
-              <div className="jarmal-hero rounded-3xl p-6 sm:p-8">
-                <div className="flex items-start justify-between gap-4"><div><Pill dark>مرحباً بك في جَرْمَل</Pill><h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">طلباتك وخدماتك<br />أقرب إليك.</h1><p className="mt-2 max-w-md text-sm opacity-70">ابحث عن المتجر أو المنتج الذي تحتاجه واطلبه بسهولة.</p></div><div className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-black/10 sm:flex"><ShoppingBag size={28} /></div></div>
+              <div className="jarmal-hero rounded-[26px] p-5 sm:p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <Pill dark>مرحباً بك في جَرْمَل</Pill>
+                    <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">طلباتك وخدماتك<br /><span className="text-[#f4ff00]">أقرب إليك.</span></h1>
+                    <p className="mt-2 max-w-md text-sm leading-6 text-white/65">ابحث عن منتج، متجر، أو خدمة. وجَرْمَل يتولى الباقي.</p>
+                  </div>
+                  <div className="jarmal-hero-mark hidden sm:flex"><ShoppingBag size={25} /></div>
+                </div>
+                <button className="jarmal-home-search mt-6 w-full" onClick={() => {
+                  const input = document.querySelector<HTMLInputElement>('.jarmal-assistant-panel input');
+                  if (input) input.focus();
+                }}>
+                  <Search size={18} />
+                  <span>ابحث عن منتج أو متجر...</span>
+                  <ChevronLeft size={17} />
+                </button>
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                  {['البقالات', 'المطاعم', 'المقاهي', 'الصيدليات'].map((label) => (
+                    <button key={label} onClick={() => setStoreCategory(label === 'البقالات' ? 'بقالة' : label === 'المطاعم' ? 'مطعم' : label === 'المقاهي' ? 'قهوة' : 'صيدلية')} className="jarmal-quick-chip">
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <section className="mt-10">
                 <div className="flex items-end justify-between gap-3"><div><h2 className="text-xl font-black">متاجر جَرْمَل</h2><p className="mt-1 text-sm text-black/45">اختر المتجر ثم تصفح المنتجات والخدمات</p></div></div>
@@ -2205,6 +2495,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
       {showCart && cartStoreId && (
         <Cart cart={cart} setCart={setCart} total={cartTotal} storeId={cartStoreId} paymentMethods={paymentMethods} onClose={() => setShowCart(false)} onOrdered={() => { setCart([]); setCartStoreId(null); setShowCart(false); setActive('orders'); loadAll(); }} />
       )}
+      <JarmalAssistant active={active} orders={ordersReal} onNavigate={setActive} />
     </div>
   );
 }
