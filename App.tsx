@@ -189,6 +189,10 @@ type OrderRow = {
   delivery_fee: number;
   created_at: string;
   store_id: string | null;
+  driver_id?: string | null;
+  delivery_address?: string | null;
+  delivery_latitude?: number | null;
+  delivery_longitude?: number | null;
   order_type: string;
   fulfillment_type: string;
   points_earned: number;
@@ -1788,7 +1792,11 @@ function SideNav({
   );
 }
 
-function MapCard({ driver = false }: { driver?: boolean }) {
+function MapCard({ driver = false, latitude, longitude, address }: { driver?: boolean; latitude?: number | null; longitude?: number | null; address?: string | null }) {
+  const hasDestination = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const mapsUrl = hasDestination
+    ? `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+    : 'https://www.google.com/maps';
   return (
     <div className="map-grid relative h-[360px] overflow-hidden rounded-3xl border border-white/10">
       <div className="absolute right-[24%] top-[23%] h-3 w-3 rounded-full bg-[#e3fe00] shadow-[0_0_0_8px_rgba(227,254,0,.15)]" />
@@ -1802,7 +1810,7 @@ function MapCard({ driver = false }: { driver?: boolean }) {
           size={14}
           className="ml-1 inline text-[#e3fe00]"
         />
-        {driver ? 'المسار الأقصر' : 'تتبع مباشر'}
+        <>{driver ? 'المسار الأقصر' : hasDestination ? 'موقع التسليم' : 'موقع غير محدد'}</>
       </div>
 
       <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/85 p-4 backdrop-blur">
@@ -1831,7 +1839,7 @@ function MapCard({ driver = false }: { driver?: boolean }) {
         <button
           onClick={() =>
             window.open(
-              'https://www.google.com/maps',
+              mapsUrl,
               '_blank',
               'noopener,noreferrer'
             )
@@ -2379,7 +2387,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
     supabase.from('product_variants').select('id, product_id, variant_name, price, is_available').then(({ data }) => { if (data) setVariantsReal(data as VariantRow[]); });
     supabase.from('favorites').select('product_id').then(({ data }) => { if (data) setFavorites(data.map((f: any) => f.product_id)); });
-    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, order_type, fulfillment_type, points_earned').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrdersReal(data as OrderRow[]); });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, order_type, fulfillment_type, points_earned').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrdersReal(data as OrderRow[]); });
     supabase.from('client_wallets').select('balance, points').maybeSingle().then(({ data }) => { if (data) setWallet(data as ClientWalletRow); });
     supabase.from('service_providers').select('id, service_type, name, account_number_length, region').eq('is_active', true).then(({ data }) => { if (data) setProviders(data as ServiceProviderRow[]); });
     supabase.from('service_packages').select('id, provider_id, name, face_value, price').eq('is_active', true).then(({ data }) => { if (data) setPackages(data as ServicePackageRow[]); });
@@ -2507,7 +2515,26 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           {active === 'notifications' && <NotificationsView />}
           {active === 'services' && <ServicesView providers={providers} packages={packages} onRefresh={loadAll} />}
           {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
-          {active === 'map' && (<div><h2 className="mb-5 text-xl font-black">تتبع الطلب</h2><MapCard /></div>)}
+          {active === 'map' && (() => {
+            const activeOrder = ordersReal.find((order) => !['delivered', 'cancelled'].includes(order.status));
+            return (
+              <div>
+                <h2 className="mb-2 text-xl font-black">تتبع الطلب</h2>
+                <p className="mb-5 text-sm text-white/45">يعرض جَرْمَل حالة الطلب وموقع التسليم الحقيقي المتاح في بياناته.</p>
+                {activeOrder ? (
+                  <MapCard
+                    latitude={activeOrder.delivery_latitude}
+                    longitude={activeOrder.delivery_longitude}
+                    address={activeOrder.delivery_address}
+                  />
+                ) : (
+                  <div className="rounded-3xl border border-dashed border-white/10 bg-white/[.02] py-20 text-center text-sm text-white/45">
+                    لا يوجد طلب نشط للتتبع حاليًا.
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           {active === 'settings' && <SettingsView role="customer" />}
           {active === 'profile' && (
             <div className="mx-auto max-w-md space-y-4">
