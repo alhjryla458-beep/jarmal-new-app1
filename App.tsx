@@ -2418,7 +2418,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} />}
           {active === 'invoices' && <CustomerInvoicesView invoices={invoicesReal} />}
           {active === 'notifications' && <NotificationsView />}
-          {active === 'services' && <ServicesView providers={providers} packages={packages} onRefresh={loadAll} />}
+          {active === 'services' && <ServicesView providers={providers} packages={packages} paymentMethods={paymentMethods} onRefresh={loadAll} />}
           {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
           {active === 'map' && (() => {
             const activeOrder = ordersReal.find((order) => !['delivered', 'cancelled'].includes(order.status));
@@ -3011,12 +3011,13 @@ function Orders({ orders, onRefresh }: { orders: OrderRow[]; onRefresh: () => vo
   );
 }
 
-function ServicesView({ providers, packages, onRefresh }: { providers: ServiceProviderRow[]; packages: ServicePackageRow[]; onRefresh: () => void }) {
+function ServicesView({ providers, packages, paymentMethods, onRefresh }: { providers: ServiceProviderRow[]; packages: ServicePackageRow[]; paymentMethods: PaymentMethodRow[]; onRefresh: () => void }) {
   const [tab, setTab] = useState<'mobile_recharge' | 'bill_payment'>('mobile_recharge');
   const [providerId, setProviderId] = useState('');
   const [packageId, setPackageId] = useState('');
   const [amount, setAmount] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
+  const [methodCode, setMethodCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -3024,13 +3025,15 @@ function ServicesView({ providers, packages, onRefresh }: { providers: ServicePr
   const providerList = providers.filter((p) => p.service_type === tab || (tab === 'bill_payment' && p.service_type !== 'mobile_recharge'));
   const providerPackages = packages.filter((p) => p.provider_id === providerId);
   const selectedProvider = providers.find((p) => p.id === providerId);
+  const electronicMethods = paymentMethods.filter((m) => m.code !== 'cash');
 
   const submit = async () => {
     setError(''); setBusy(true);
     try {
       const { error: rpcError } = await supabase.rpc('create_service_order', {
         p_order_type: tab, p_provider_id: providerId, p_package_id: packageId || null,
-        p_amount: packageId ? null : Number(amount), p_account_number: accountNumber.trim(), p_service_fee: 100
+        p_amount: packageId ? null : Number(amount), p_account_number: accountNumber.trim(), p_service_fee: 100,
+        p_payment_method_code: methodCode
       });
       if (rpcError) throw rpcError;
       setDone(true); onRefresh();
@@ -3059,8 +3062,15 @@ function ServicesView({ providers, packages, onRefresh }: { providers: ServicePr
           )}
           {!packageId && <Field label="المبلغ" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} placeholder="أدخل المبلغ" />}
           <Field label={`رقم الحساب${selectedProvider?.account_number_length ? ` (${selectedProvider.account_number_length} أرقام)` : ''}`} value={accountNumber} onChange={(v) => setAccountNumber(v.replace(/\D/g, ''))} placeholder="رقم الهاتف / رقم المشترك" />
+          <div><label className="mb-2 block text-sm font-bold">طريقة الدفع</label>
+            <select value={methodCode} onChange={(e) => setMethodCode(e.target.value)} className="w-full rounded-xl border border-white/10 bg-black px-4 py-3.5 text-white outline-none focus:border-[#e3fe00]">
+              <option value="">اختر طريقة الدفع الإلكتروني</option>
+              {electronicMethods.map((m) => (<option key={m.id} value={m.code}>{m.name}</option>))}
+            </select>
+          </div>
+          {methodCode && paymentMethods.find((m) => m.code === methodCode)?.instructions && <p className="text-xs text-white/40">{paymentMethods.find((m) => m.code === methodCode)?.instructions}</p>}
           {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
-          <button disabled={busy || !accountNumber || (!packageId && !amount)} onClick={submit} className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-40">{busy ? 'جارٍ الإرسال...' : 'تأكيد الطلب'}</button>
+          <button disabled={busy || !accountNumber || !methodCode || (!packageId && !amount)} onClick={submit} className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-40">{busy ? 'جارٍ الإرسال...' : 'تأكيد الطلب'}</button>
         </div>
       )}
     </div>
@@ -3074,6 +3084,7 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
   const [reference, setReference] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const electronicMethods = paymentMethods.filter((m) => m.code !== 'cash');
 
   const submit = async () => {
     setError(''); setBusy(true);
@@ -3109,11 +3120,11 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
               <div><label className="mb-2 block text-sm font-bold">طريقة الدفع</label>
                 <select value={methodCode} onChange={(e) => setMethodCode(e.target.value)} className="w-full rounded-xl border border-white/10 bg-black px-4 py-3.5 text-white outline-none focus:border-[#e3fe00]">
                   <option value="">اختر</option>
-                  {paymentMethods.map((m) => (<option key={m.id} value={m.code}>{m.name}</option>))}
+                  {electronicMethods.map((m) => (<option key={m.id} value={m.code}>{m.name}</option>))}
                 </select>
               </div>
               {paymentMethods.find((m) => m.code === methodCode)?.instructions && <p className="text-xs text-white/40">{paymentMethods.find((m) => m.code === methodCode)?.instructions}</p>}
-              <Field label="رقم مرجع التحويل" value={reference} onChange={setReference} placeholder="رقم العملية / إثبات التحويل" />
+              {methodCode && !paymentMethods.find((m) => m.code === methodCode)?.auto_verify_enabled && <Field label="رقم مرجع التحويل" value={reference} onChange={setReference} placeholder="رقم العملية / إثبات التحويل" />}
               {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
               <button disabled={busy || !amount || !methodCode} onClick={submit} className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-50">{busy ? 'جارٍ الإرسال...' : 'إرسال طلب الشحن'}</button>
             </div>
