@@ -56,7 +56,7 @@ export function commandToMotion(command: CompanionCommand, context: CompanionCon
 
 export class CompanionController {
   private listeners = new Set<(state: CompanionMotionState) => void>();
-  private state: CompanionMotionState = base;
+  private state: CompanionMotionState = base;\n  private timer: number | null = null;
 
   subscribe(listener: (state: CompanionMotionState) => void) {
     this.listeners.add(listener);
@@ -73,7 +73,7 @@ export class CompanionController {
     this.emit(commandToMotion(command, context));
     const duration = context.reducedMotion ? 0 : command.type === 'celebrate' ? 1200 : command.type === 'exit' ? 700 : 850;
     if (duration > 0 && command.type !== 'exit') {
-      window.setTimeout(() => this.emit({ ...base, animation: 'idle' }), duration);
+      this.timer = window.setTimeout(() => { this.timer = null; this.emit({ ...base, animation: 'idle' }); }, duration);
     }
   }
 
