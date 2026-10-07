@@ -8,6 +8,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import { JarmalCompanion } from './components/companion/JarmalCompanion';
+import { JarmalHomeDiscovery } from './components/home/JarmalHomeDiscovery';
 
 type Role = 'customer' | 'driver' | 'merchant';
 type Screen = 'welcome' | 'auth' | 'app';
@@ -2362,6 +2363,14 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
                   ))}
                 </div>
               </div>
+              <JarmalHomeDiscovery
+                providersCount={providers.length}
+                packagesCount={packages.length}
+                products={productsReal}
+                stores={storesReal}
+                onNavigate={setActive}
+                onStoreCategory={setStoreCategory}
+              />
               <section className="mt-10">
                 <div className="flex items-end justify-between gap-3"><div><h2 className="text-xl font-black">متاجر جَرْمَل</h2><p className="mt-1 text-sm text-black/45">اختر المتجر ثم تصفح المنتجات والخدمات</p></div></div>
                 <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto rounded-2xl border border-[#e3e7e0] bg-[#f7f9f5] p-2 pb-2">
