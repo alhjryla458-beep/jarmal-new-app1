@@ -16,6 +16,7 @@ type HomeContentRow = {
 type HomeContentProps = {
   onNavigate?: (screen: string) => void;
   onOpenAssistant?: () => void;
+  onOpenStore?: (storeId: string) => void;
 };
 
 function isWithinSchedule(row: { starts_at?: string | null; ends_at?: string | null }) {
@@ -30,7 +31,7 @@ function HomeImage({ src, fallback }: { src?: string | null; fallback: React.Rea
   return <img src={src} alt="" loading="lazy" className="jarmal-home-content-image" />;
 }
 
-export function JarmalHomeContent({ onNavigate, onOpenAssistant }: HomeContentProps) {
+export function JarmalHomeContent({ onNavigate, onOpenAssistant, onOpenStore }: HomeContentProps) {
   const [stories, setStories] = useState<HomeContentRow[]>([]);
   const [ads, setAds] = useState<HomeContentRow[]>([]);
   const [offers, setOffers] = useState<HomeContentRow[]>([]);
@@ -85,6 +86,11 @@ export function JarmalHomeContent({ onNavigate, onOpenAssistant }: HomeContentPr
     }
     if (row.target_type === 'services') {
       onNavigate?.('services');
+      return;
+    }
+    if (row.target_type === 'store' && row.target_id) {
+      onOpenStore?.(row.target_id);
+      return;
     }
   };
 
