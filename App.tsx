@@ -2837,7 +2837,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
     });
     supabase.from('driver_cash_settlements').select('id, amount, status, note, requested_at, processed_at').eq('driver_id', userId).order('requested_at', { ascending: false }).limit(30).then(({ data }) => { if (data) setDriverSettlements(data || []); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'ready_for_pickup').is('driver_id', null).then(({ data }) => { if (data) setAvailable(data as FullOrderRow[]); });
-    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('driver_id', userId).not('status', 'in', '(delivered,cancelled,pending)').order('created_at', { ascending: false }).limit(1).then(({ data }) => {
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status, payment_method').eq('driver_id', userId).not('status', 'in', '(delivered,cancelled,pending)').order('created_at', { ascending: false }).limit(1).then(({ data }) => {
       setActiveOrder(((data as FullOrderRow[] | null) || [])[0] || null);
     });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, notes, courier_distance, fulfillment_type, payment_status').eq('status', 'delivered').eq('driver_id', userId).order('created_at', { ascending: false }).then(({ data }) => { if (data) setHistory(data as FullOrderRow[]); });
@@ -2975,7 +2975,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
                       <span className="text-xs text-[#747b72]">{order.courier_distance ? `${order.courier_distance} كم` : ''}</span>
                     </div>
                     <p className="mt-2 text-xs text-[#747b72]">{order.fulfillment_type === 'pickup' ? 'استلام من المتجر فقط' : order.delivery_address}</p>
-                    <button disabled={busy} onClick={() => acceptOrder(order.id)} className="mt-4 w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black hover:bg-white disabled:opacity-50">قبول الطلب</button>
+                    <button disabled={busy || profile?.verification_status !== 'approved' || profile?.is_available !== true} onClick={() => acceptOrder(order.id)} className="mt-4 w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black hover:bg-white disabled:opacity-50">قبول الطلب</button>
                   </div>
                 ))}
                 {available.length === 0 && <p className="text-sm text-[#747b72]">لا توجد طلبات جاهزة للاستلام حالياً</p>}
@@ -3001,7 +3001,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
                           {activeOrder.status === 'picked_up' ? 'بدء التوصيل' : 'تم التسليم'}
                         </button>
                       )}
-                      {activeOrder.payment_status !== 'paid' && (
+                      {(activeOrder.payment_status !== 'paid' && (activeOrder as FullOrderRow & { payment_method?: string | null }).payment_method === 'cash') && (
                         <button disabled={busy} onClick={() => confirmCash(activeOrder.id)} className="flex-1 rounded-xl border border-[#e3fe00]/40 py-3 font-black text-[#687500] disabled:opacity-50">تأكيد استلام الدفع</button>
                       )}
                     </div>
