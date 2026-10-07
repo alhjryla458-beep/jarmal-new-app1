@@ -2257,14 +2257,17 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [packages, setPackages] = useState<ServicePackageRow[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
 
-  const loadAll = () => {
+  const loadAll = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     supabase.from('stores').select('id, name, store_type, address_description, is_open, rating').eq('approval_status', 'approved').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
     supabase.from('products').select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
     supabase.from('product_variants').select('id, product_id, variant_name, price, is_available').then(({ data }) => { if (data) setVariantsReal(data as VariantRow[]); });
-    supabase.from('favorites').select('product_id').then(({ data }) => { if (data) setFavorites(data.map((f: any) => f.product_id)); });
-    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, order_type, fulfillment_type, points_earned').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrdersReal(data as OrderRow[]); });
-    supabase.from('client_wallets').select('balance, points').maybeSingle().then(({ data }) => { if (data) setWallet(data as ClientWalletRow); });
+    supabase.from('favorites').select('product_id').eq('customer_id', user.id).then(({ data }) => { if (data) setFavorites(data.map((f: any) => f.product_id)); });
+    supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, order_type, fulfillment_type, points_earned').eq('customer_id', user.id).order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrdersReal(data as OrderRow[]); });
+    supabase.from('client_wallets').select('balance, points').eq('user_id', user.id).maybeSingle().then(({ data }) => { if (data) setWallet(data as ClientWalletRow); });
     supabase.from('service_providers').select('id, service_type, name, account_number_length, region').eq('is_active', true).then(({ data }) => { if (data) setProviders(data as ServiceProviderRow[]); });
     supabase.from('service_packages').select('id, provider_id, name, face_value, price').eq('is_active', true).then(({ data }) => { if (data) setPackages(data as ServicePackageRow[]); });
     supabase.from('payment_methods').select('id, name, code, account_number, instructions').eq('is_active', true).then(({ data }) => { if (data) setPaymentMethods(data as PaymentMethodRow[]); });
