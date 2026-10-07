@@ -2349,7 +2349,8 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
   const [referenceNumber, setReferenceNumber] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const deliveryFee = fulfillment === 'delivery' ? 500 : 0;
+  // The server calculates the authoritative delivery fee from branch pricing and location.
+  const deliveryFee = 0;
 
   const confirmOrder = async () => {
     setError(''); setBusy(true);
@@ -2395,7 +2396,7 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
         const rawUrl = selectedMethod?.deep_link || selectedMethod?.checkout_url || '';
         const paymentUrl = rawUrl
           .replaceAll('{order_id}', encodeURIComponent(orderId))
-          .replaceAll('{amount}', encodeURIComponent(String(Number(total + deliveryFee))))
+          .replaceAll('{amount}', encodeURIComponent(String(Number((createdOrder as { total_amount?: number } | null)?.total_amount ?? total))))
           .replaceAll('{currency}', encodeURIComponent(CURRENCY));
 
         if (paymentUrl) {
@@ -2475,7 +2476,10 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
         })()}
         <div className="mt-3"><Field label="ملاحظات (اختياري)" value={notes} onChange={setNotes} placeholder="مثال: اتصل بي عند الوصول" /></div>
         {error && <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
-        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-lg font-black"><span>الإجمالي</span><span>{(total + deliveryFee).toLocaleString('ar-YE')} {CURRENCY}</span></div>
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <div className="flex items-center justify-between text-sm"><span className="text-[#747b72]">قيمة المنتجات</span><span className="font-bold">{total.toLocaleString('ar-YE')} {CURRENCY}</span></div>
+          <p className="mt-2 text-[11px] leading-5 text-[#8a9189]">رسوم التوصيل تُحسب آليًا حسب إعدادات جَرْمَل وموقع التوصيل، ويظهر المبلغ النهائي بعد إنشاء الطلب.</p>
+        </div>
         <button disabled={busy || cart.length === 0 || (!cashAllowed && !electronicAllowed) || !paymentCode} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? (paymentCode === 'cash' ? 'جارٍ إرسال الطلب...' : 'جارٍ التحقق من الدفع...') : (paymentCode === 'cash' ? 'تأكيد الطلب' : 'الدفع الآن')}</button>
       </div>
     </div>
