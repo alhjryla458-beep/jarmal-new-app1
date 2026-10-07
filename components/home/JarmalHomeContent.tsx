@@ -10,6 +10,7 @@ type HomeContentRow = {
   target_type: string;
   target_id: string | null;
   sort_order: number;
+  discount_text?: string | null;
 };
 
 type HomeContentProps = {
@@ -149,6 +150,7 @@ export function JarmalHomeContent({ onNavigate, onOpenAssistant }: HomeContentPr
                 <div className="jarmal-offer-copy">
                   <h3>{offer.title}</h3>
                   {offer.description && <p>{offer.description}</p>}
+                  {offer.discount_text && <strong className="jarmal-offer-discount">{offer.discount_text}</strong>}
                   <span>عرض متاح من جَرْمَل</span>
                 </div>
               </button>
