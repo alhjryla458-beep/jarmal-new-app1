@@ -35,7 +35,18 @@ export default function JarmalCompanion({ context, onOpen, compact = false, brid
         if (!detail) return;
         const decision = decideCompanion(detail, runtimeContext);
         setMessage(decision.message);
-        companionController.command({ type: decision.animation === 'enterBottom' ? 'enter' : decision.animation === 'enterSide' ? 'enter' : decision.animation }, runtimeContext);
+        const command = decision.animation === 'enterBottom'
+          ? { type: 'enter' as const, direction: 'bottom' as const }
+          : decision.animation === 'enterSide'
+            ? { type: 'enter' as const, direction: 'side' as const }
+            : decision.animation === 'success'
+              ? { type: 'celebrate' as const }
+              : decision.animation === 'error'
+                ? { type: 'think' as const }
+                : decision.animation === 'idle'
+                  ? null
+                  : ({ type: decision.animation } as Parameters<typeof companionController.command>[0]);
+        if (command) companionController.command(command, runtimeContext);
       };
       const name = companionEventName({ type } as CompanionEvent);
       window.addEventListener(name, handler);
