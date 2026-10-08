@@ -3978,7 +3978,7 @@ export default function App() {
     return (
       <>
         <CustomerApp onLogout={handleLogout} />
-        <JarmalAIChat role="customer" page="customer-workspace" />
+        <JarmalAIChat role="customer" page="customer-workspace" onNavigate={setActive} />
       </>
     );
   }
