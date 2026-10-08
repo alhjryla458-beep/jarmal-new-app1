@@ -2303,7 +2303,7 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
   return (
     <div>
       <button onClick={onBack} className="mb-4 flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-bold text-[#697068] hover:bg-[#f4f6f1]"><ArrowRight size={16} />رجوع للمتاجر</button>
-      <div className="rounded-3xl border border-[#e1e5de] bg-white p-5 shadow-[0_10px_30px_rgba(23,26,22,.05)]"><div className="flex items-center gap-4"><div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#f1f5df]"><Store size={30} className="text-[#7e8f00]" /></div><div className="min-w-0"><h2 className="text-xl font-black text-[#171a16]">{store.name}</h2><p className="mt-1 text-sm text-[#70776f]">{store.address_description}</p></div></div></div>
+      <div className="jarmal-storefront-head"><div className="jarmal-storefront-head-inner"><div className="jarmal-storefront-avatar"><Store size={30} /></div><div className="jarmal-storefront-meta"><h2>{store.name}</h2><p>{store.address_description || 'متجر متاح للطلب عبر جَرْمَل'}</p><div className="jarmal-storefront-badges"><span className="open">{store.is_open ? 'مفتوح الآن' : 'مغلق الآن'}</span><span>{store.store_type || 'متجر'}</span></div></div></div></div>
       {categories.length > 0 && (
         <div className="jarmal-store-category-rail no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
           <button onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#e3fe00] text-black' : 'bg-[#f4f6f1] text-[#596159]'}`}>الكل</button>
