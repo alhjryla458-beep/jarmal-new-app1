@@ -56,7 +56,7 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
   const push = (from: Message['from'], text: string) => {
     setMessages((current) => [
       ...current.slice(-11),
-      { id: `${Date.now()}-${from}-${Math.random().toString(36).slice(2, 7)}`, from, text },
+      { id: `${Date.now()}-${from}-${current.length}`, from, text },
     ]);
   };
 
