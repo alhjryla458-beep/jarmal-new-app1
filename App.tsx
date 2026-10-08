@@ -8,6 +8,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import { JarmalCompanion } from './components/companion/JarmalCompanion';
+import { JarmalAIChat } from './components/companion/JarmalAIChat';
 import { JarmalHomeDiscovery } from './components/home/JarmalHomeDiscovery';
 import { JarmalHomeContent } from './components/home/JarmalHomeContent';
 
@@ -2277,8 +2278,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
       {showCart && cartStoreId && (
         <Cart cart={cart} setCart={setCart} total={cartTotal} storeId={cartStoreId} paymentMethods={paymentMethods} onClose={() => setShowCart(false)} onOrdered={() => { setCart([]); setCartStoreId(null); setShowCart(false); setActive('orders'); loadAll(); }} />
       )}
-      <JarmalAssistant active={active} orders={ordersReal} onNavigate={setActive} />
-    </div>
+          </div>
   );
 }
 
@@ -3958,14 +3958,29 @@ export default function App() {
 
   if (screen === 'app') {
     if (role === 'driver') {
-      return <DriverApp onLogout={handleLogout} />;
+      return (
+        <>
+          <DriverApp onLogout={handleLogout} />
+          <JarmalAIChat role="driver" page="driver-workspace" />
+        </>
+      );
     }
 
     if (role === 'merchant') {
-      return <MerchantApp onLogout={handleLogout} />;
+      return (
+        <>
+          <MerchantApp onLogout={handleLogout} />
+          <JarmalAIChat role="merchant" page="merchant-workspace" />
+        </>
+      );
     }
 
-    return <CustomerApp onLogout={handleLogout} />;
+    return (
+      <>
+        <CustomerApp onLogout={handleLogout} />
+        <JarmalAIChat role="customer" page="customer-workspace" />
+      </>
+    );
   }
 
   if (screen === 'auth') {
