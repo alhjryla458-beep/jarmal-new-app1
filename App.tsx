@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Component, useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, BarChart3, Bell, Bike, Boxes, Check, CheckCircle2,
   ClipboardList, Clock3, FileText, Home, ListChecks, LogOut, MapPin,
@@ -87,7 +87,7 @@ function Field({
           type={type}
           placeholder={placeholder}
           dir="rtl"
-          className="w-full rounded-xl border border-white/10 bg-black px-11 py-3.5 text-white outline-none transition placeholder:text-white/20 focus:border-[#e3fe00]"
+          className="w-full rounded-xl border border-[#dfe4db] bg-white px-11 py-3.5 text-[#171a16] caret-[#171a16] outline-none transition placeholder:text-[#8b9289] focus:border-[#dfff00]" style={{ color: "#171a16", backgroundColor: "#ffffff" }}
         />
       </div>
     </div>
@@ -119,7 +119,7 @@ function PhoneField({
             onChange(e.target.value.replace(/\D/g, '').slice(0, 9))
           }
           placeholder="7xx xxx xxx"
-          className="w-full rounded-xl border border-white/10 bg-black px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-[#e3fe00]"
+          className="w-full rounded-xl border border-[#dfe4db] bg-white px-4 py-3.5 text-[#171a16] caret-[#171a16] outline-none placeholder:text-[#8b9289] focus:border-[#dfff00]" style={{ color: "#171a16", backgroundColor: "#ffffff" }}
         />
       </div>
 
@@ -3941,7 +3941,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
   );
 }
 
-export default function App() {
+function AppContent() {
   const [screen, setScreen] = useState<Screen>('welcome');
   const [role, setRole] = useState<Role>('customer');
   const [session, setSession] = useState<Session | null>(null);
@@ -4057,5 +4057,46 @@ export default function App() {
         setScreen('auth');
       }}
     />
+  );
+}
+
+class AppErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('[JARMAL] واجهة التطبيق تعثرت أثناء العرض:', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <main dir="rtl" className="flex min-h-screen items-center justify-center bg-[#f5f6f3] px-5 py-10 text-[#171a16]">
+          <section className="w-full max-w-md rounded-3xl border border-[#e5e8e2] bg-white p-7 text-center shadow-lg">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#dfff00] text-[#171a16]">
+              <ShieldCheck size={28} />
+            </div>
+            <h1 className="mt-5 text-2xl font-black">تعذر عرض واجهة جَرْمَل</h1>
+            <p className="mt-3 text-sm leading-7 text-[#6b7169]">حدث خطأ أثناء فتح الصفحة. لم نحذف حسابك أو طلباتك. أعد تحميل التطبيق، وإذا استمرت المشكلة فسيظهر هذا التنبيه بدل الشاشة البيضاء.</p>
+            <button onClick={() => window.location.reload()} className="mt-6 w-full rounded-xl bg-[#dfff00] px-4 py-3.5 font-black text-[#171a16]">إعادة تحميل التطبيق</button>
+          </section>
+        </main>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function App() {
+  return (
+    <AppErrorBoundary>
+      <AppContent />
+    </AppErrorBoundary>
   );
 }
