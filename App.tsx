@@ -3939,6 +3939,9 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  const [driverCompanionTarget, setDriverCompanionTarget] = useState<string | null>(null);
+  const [merchantCompanionTarget, setMerchantCompanionTarget] = useState<string | null>(null);
+
   if (showSplash) {
     return (
       <main className="jarmal-app flex min-h-screen items-center justify-center overflow-hidden px-6">
@@ -3955,9 +3958,6 @@ export default function App() {
       </main>
     );
   }
-
-  const [driverCompanionTarget, setDriverCompanionTarget] = useState<string | null>(null);
-  const [merchantCompanionTarget, setMerchantCompanionTarget] = useState<string | null>(null);
 
   const handleLogout = () => {
     void supabase.auth.signOut();
