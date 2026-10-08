@@ -3150,16 +3150,35 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
     const target = nextStatus(status);
     if (!target) return;
     setBusy(true);
-    await supabase.rpc('driver_update_order_status', { p_order_id: orderId, p_status: target });
-    setBusy(false);
-    loadAll();
+    setError('');
+    try {
+      const { error: statusError } = await supabase.rpc('driver_update_order_status', {
+        p_order_id: orderId,
+        p_status: target
+      });
+      if (statusError) throw statusError;
+      await loadAll();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر تحديث حالة الطلب. حاول مرة أخرى.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const confirmCash = async (orderId: string) => {
     setBusy(true);
-    await supabase.rpc('confirm_cash_collected', { p_order_id: orderId });
-    setBusy(false);
-    loadAll();
+    setError('');
+    try {
+      const { error: paymentError } = await supabase.rpc('confirm_cash_collected', {
+        p_order_id: orderId
+      });
+      if (paymentError) throw paymentError;
+      await loadAll();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر تأكيد استلام الدفع. حاول مرة أخرى.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const requestCashSettlement = async () => {
@@ -3264,6 +3283,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
                 <>
                   <LocationMap latitude={activeOrder.delivery_latitude} longitude={activeOrder.delivery_longitude} interactive={false} title="موقع العميل" />
                   <div className="mt-6 rounded-2xl border border-[#e1e5de] bg-white p-5">
+                    {error && <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
                     <div className="flex items-center justify-between">
                       <span className="font-black">{activeOrder.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
                       <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#687500]">{statusLabels[activeOrder.status] || activeOrder.status}</span>
