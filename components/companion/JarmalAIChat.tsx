@@ -20,6 +20,14 @@ const suggestionsByRole: Record<Role, string[]> = {
   admin: ['ما الذي يحتاج مراجعة؟', 'اشرح لي هذا القسم', 'أحتاج مساعدة'],
 };
 
+function compactContext(value: unknown) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '{}';
+  }
+}
+
 export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -41,26 +49,32 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
     return () => window.removeEventListener('jarmal-open-assistant', handler);
   }, []);
 
+  useEffect(() => {
+    setPendingAction(null);
+  }, [page, role]);
+
   const push = (from: Message['from'], text: string) => {
     setMessages((current) => [
       ...current.slice(-11),
-      { id: `${Date.now()}-${from}`, from, text },
+      { id: `${Date.now()}-${from}-${Math.random().toString(36).slice(2, 7)}`, from, text },
     ]);
   };
 
   const buildContext = async () => {
     const { data: auth } = await supabase.auth.getUser();
     const userId = auth.user?.id;
-    if (!userId) return {};
+    if (!userId) return { page, role };
+
+    const base = { page, role };
 
     if (role === 'customer') {
       const { data } = await supabase
         .from('orders')
-        .select('id,status,total_amount,payment_status,payment_method,delivery_fee,created_at')
+        .select('id,status,total_amount,payment_status,payment_method,delivery_fee,created_at,store_id,driver_id,fulfillment_type')
         .eq('customer_id', userId)
         .order('created_at', { ascending: false })
-        .limit(6);
-      return { recentOrders: data || [] };
+        .limit(8);
+      return { ...base, recentOrders: data || [] };
     }
 
     if (role === 'driver') {
@@ -72,12 +86,12 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
           .maybeSingle(),
         supabase
           .from('orders')
-          .select('id,status,total_amount,payment_status,payment_method,store_id,created_at')
+          .select('id,status,total_amount,payment_status,payment_method,store_id,created_at,customer_id,delivery_address,fulfillment_type')
           .eq('driver_id', userId)
           .order('created_at', { ascending: false })
-          .limit(6),
+          .limit(8),
       ]);
-      return { driverProfile: profile || null, recentOrders: orders || [] };
+      return { ...base, driverProfile: profile || null, recentOrders: orders || [] };
     }
 
     if (role === 'merchant') {
@@ -91,21 +105,26 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
       if (storeIds.length) {
         const { data } = await supabase
           .from('orders')
-          .select('id,status,total_amount,payment_status,payment_method,store_id,created_at')
+          .select('id,status,total_amount,payment_status,payment_method,store_id,created_at,customer_id,fulfillment_type')
           .in('store_id', storeIds)
           .order('created_at', { ascending: false })
-          .limit(8);
+          .limit(10);
         orders = data || [];
       }
-      return { stores: stores || [], recentOrders: orders };
+      return { ...base, stores: stores || [], recentOrders: orders };
     }
 
-    return {};
+    return base;
   };
 
   const send = async (raw: string) => {
     const value = raw.trim();
     if (!value || busy) return;
+
+    const history = messages.slice(-8).map((item) => ({
+      role: item.from,
+      text: item.text,
+    }));
 
     setInput('');
     push('user', value);
@@ -113,13 +132,18 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
 
     try {
       const context = await buildContext();
-      const history = messages.slice(-8).map((item) => ({
-        role: item.from,
-        text: item.text,
-      }));
 
       const { data, error } = await supabase.functions.invoke('jarmal-ai', {
-        body: { message: value, role, page, context, history },
+        body: {
+          message: value,
+          role,
+          page,
+          context: {
+            ...context,
+            contextNote: 'هذه بيانات تشغيلية حقيقية قرأها التطبيق الآن. لا تفترض أي معلومة غير موجودة فيها.',
+          },
+          history,
+        },
       });
 
       if (error) throw error;
@@ -142,20 +166,11 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
   return (
     <>
       {open && (
-        <div
-          className="jarmal-assistant-overlay"
-          onClick={() => setOpen(false)}
-          aria-hidden="true"
-        />
+        <div className="jarmal-assistant-overlay" onClick={() => setOpen(false)} aria-hidden="true" />
       )}
 
       {open && (
-        <section
-          className="jarmal-assistant-panel"
-          dir="rtl"
-          role="dialog"
-          aria-label="محادثة رفيق جَرْمَل"
-        >
+        <section className="jarmal-assistant-panel" dir="rtl" role="dialog" aria-label="محادثة رفيق جَرْمَل">
           <header className="jarmal-assistant-head">
             <div className="jarmal-assistant-avatar" aria-hidden="true">
               <Sparkles size={22} />
@@ -167,12 +182,7 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
               </div>
               <p>مساعدك في جَرْمَل والأسئلة العامة</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="jarmal-assistant-close"
-              aria-label="إغلاق"
-            >
+            <button type="button" onClick={() => setOpen(false)} className="jarmal-assistant-close" aria-label="إغلاق">
               <X size={19} />
             </button>
           </header>
@@ -188,9 +198,7 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
             ))}
             {busy && (
               <div className="jarmal-assistant-typing">
-                <span />
-                <span />
-                <span />
+                <span /><span /><span />
                 أفكر وأبحث لك...
               </div>
             )}
