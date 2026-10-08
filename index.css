@@ -1698,3 +1698,77 @@ body {
   .jarmal-ad-rail { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .jarmal-offers-rail { grid-auto-columns:minmax(300px,38%); }
 }
+
+
+/* ===== JARMAL NAVY + LIME RESTORE — home discovery consistency ===== */
+.jarmal-app .jarmal-discovery,
+.jarmal-app .jarmal-discovery-section { color: var(--j4-text, #f7f9ff) !important; }
+.jarmal-app .jarmal-section-heading p,
+.jarmal-app .jarmal-home-content-heading > div span { color: #91a3b9 !important; }
+.jarmal-app .jarmal-section-heading h2,
+.jarmal-app .jarmal-home-content-heading h2 { color: #f7f9ff !important; }
+.jarmal-app .jarmal-section-heading > svg,
+.jarmal-app .jarmal-home-content-heading > svg { color: var(--j4-lime, #f2ff00) !important; }
+
+.jarmal-app .jarmal-service-card,
+.jarmal-app .jarmal-category-rail button,
+.jarmal-app .jarmal-discovery-product,
+.jarmal-app .jarmal-ad-card {
+  border-color: var(--j4-line, #1b4165) !important;
+  background: linear-gradient(145deg, #102f52 0%, #0a2442 60%, #071b34 100%) !important;
+  color: #f7f9ff !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18) !important;
+}
+.jarmal-app .jarmal-service-card > span,
+.jarmal-app .jarmal-category-rail button span,
+.jarmal-app .jarmal-discovery-product-icon {
+  background: rgba(242,255,0,.09) !important;
+  color: var(--j4-lime, #f2ff00) !important;
+  border: 1px solid rgba(242,255,0,.13);
+}
+.jarmal-app .jarmal-service-card strong,
+.jarmal-app .jarmal-category-rail button b,
+.jarmal-app .jarmal-discovery-product strong,
+.jarmal-app .jarmal-ad-card h3 { color: #f7f9ff !important; }
+.jarmal-app .jarmal-service-card small,
+.jarmal-app .jarmal-discovery-product small,
+.jarmal-app .jarmal-ad-card p { color: #a6b6ca !important; }
+.jarmal-app .jarmal-discovery-product b { color: var(--j4-lime, #f2ff00) !important; }
+.jarmal-app .jarmal-discovery-product > svg,
+.jarmal-app .jarmal-ad-card > svg { color: #8297b0 !important; }
+.jarmal-app .jarmal-discovery-note {
+  border-color: var(--j4-line, #1b4165) !important;
+  background: rgba(8,29,55,.72) !important;
+  color: #a6b6ca !important;
+}
+.jarmal-app .jarmal-story-card { border-color: var(--j4-line, #1b4165) !important; }
+.jarmal-app .jarmal-home-content-fallback {
+  background: linear-gradient(145deg, #12365d, #081d3a) !important;
+  color: var(--j4-lime, #f2ff00) !important;
+}
+.jarmal-app .jarmal-story-card > span {
+  background: rgba(4,18,37,.88) !important;
+  color: #f7f9ff !important;
+  border: 1px solid rgba(27,65,101,.8);
+}
+.jarmal-app .jarmal-offer-card {
+  border-color: var(--j4-line, #1b4165) !important;
+  background: linear-gradient(145deg, #102f52, #06172f) !important;
+}
+.jarmal-app .jarmal-offer-card .jarmal-home-content-fallback {
+  background: linear-gradient(145deg, #12365d, #06172f) !important;
+}
+.jarmal-app .jarmal-offer-copy > span {
+  background: var(--j4-lime, #f2ff00) !important;
+  color: #07111f !important;
+}
+.jarmal-app .jarmal-hero,
+.jarmal-app .jarmal-card { color: #f7f9ff; }
+.jarmal-app input,
+.jarmal-app textarea,
+.jarmal-app select {
+  color: #f7f9ff !important;
+  caret-color: var(--j4-lime, #f2ff00) !important;
+}
+.jarmal-app input::placeholder,
+.jarmal-app textarea::placeholder { color: #8295aa !important; }
