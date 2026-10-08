@@ -1904,7 +1904,7 @@ function JarmalAssistant({
   );
 }
 
-function CustomerApp({ onLogout }: { onLogout: () => void }) {
+function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; companionTarget?: string | null }) {
   const [active, setActive] = useState('home');
   const [storeCategory, setStoreCategory] = useState<string>('الكل');
   const [storesReal, setStoresReal] = useState<StoreRow[]>([]);
@@ -1925,6 +1925,10 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [invoicesReal, setInvoicesReal] = useState<InvoiceRow[]>([]);
   const [profileReal, setProfileReal] = useState<{ full_name: string | null; phone_number: string | null }>({ full_name: null, phone_number: null });
   const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  useEffect(() => {
+    if (companionTarget) setActive(companionTarget);
+  }, [companionTarget]);
 
   const loadAll = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -3984,6 +3988,7 @@ function AppContent() {
 
   const [driverCompanionTarget, setDriverCompanionTarget] = useState<string | null>(null);
   const [merchantCompanionTarget, setMerchantCompanionTarget] = useState<string | null>(null);
+  const [customerCompanionTarget, setCustomerCompanionTarget] = useState<string | null>(null);
 
   if (showSplash) {
     return (
@@ -4029,8 +4034,8 @@ function AppContent() {
 
     return (
       <>
-        <CustomerApp onLogout={handleLogout} />
-        <JarmalAIChat role="customer" page="customer-workspace" onNavigate={setActive} />
+        <CustomerApp onLogout={handleLogout} companionTarget={customerCompanionTarget} />
+        <JarmalAIChat role="customer" page="customer-workspace" onNavigate={setCustomerCompanionTarget} />
       </>
     );
   }
