@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
   if (message.length > 2000) return json({ error: "السؤال طويل جدًا، اختصره قليلًا" }, 400);
 
   const apiKey = Deno.env.get("OPENAI_API_KEY");
-  const model = Deno.env.get("OPENAI_MODEL") || "gpt-5-mini";
+  const model = Deno.env.get("OPENAI_MODEL") || "gpt-6-luna";
 
   if (!apiKey) {
     return json({
@@ -55,6 +55,21 @@ Deno.serve(async (req) => {
 
   const role = body?.role || "customer";
   const context = body?.context || {};
+
+  // Deterministic, non-destructive intent hints. These never mutate data.
+  const normalized = message.toLowerCase();
+  const action =
+    role === "customer" && (normalized.includes("طلب") || normalized.includes("طلبات"))
+      ? { type: "navigate", target: "orders", label: "فتح طلباتي" }
+      : role === "customer" && (normalized.includes("محفظ") || normalized.includes("دفع"))
+        ? { type: "navigate", target: "wallet", label: "فتح المحفظة" }
+        : role === "customer" && (normalized.includes("خدمات") || normalized.includes("خدمة"))
+          ? { type: "navigate", target: "services", label: "فتح الخدمات" }
+          : role === "driver" && (normalized.includes("طلب") || normalized.includes("طلبات"))
+            ? { type: "navigate", target: "active", label: "فتح الطلب الحالي" }
+            : role === "merchant" && (normalized.includes("طلب") || normalized.includes("طلبات"))
+              ? { type: "navigate", target: "incoming", label: "فتح الطلبات الواردة" }
+              : null;
 
   const system = [
     "أنت رفيق جَرْمَل، المساعد الذكي الرسمي لمنصة جَرْمَل للتوصيل والطلبات في اليمن.",
@@ -104,5 +119,5 @@ Deno.serve(async (req) => {
       : "";
 
   if (!reply) return json({ configured: true, error: "لم تصل إجابة صالحة من خدمة الذكاء الاصطناعي" }, 502);
-  return json({ configured: true, reply });
+  return json({ configured: true, reply, action });
 });
