@@ -2310,7 +2310,7 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
           {categories.map((c) => (<button key={c.id} onClick={() => setActiveCategory(c.id)} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === c.id ? 'bg-[#e3fe00] text-black' : 'bg-[#f4f6f1] text-[#596159]'}`}>{c.name}</button>))}
         </div>
       )}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="jarmal-store-product-grid mt-5 grid grid-cols-2 gap-3 sm:gap-4">
         {shown.filter((p) => p.is_available).map((product) => {
           const productVariants = variants.filter((v) => v.product_id === product.id && v.is_available);
           const isFav = favorites.includes(product.id);
