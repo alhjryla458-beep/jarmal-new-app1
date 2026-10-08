@@ -22,8 +22,7 @@ export function JarmalHomeDiscovery({
   onNavigate,
   onStoreCategory
 }: DiscoveryProps) {
-  const availableProducts = products.filter((p) => p.is_available);
-  const popularProducts = popularProductsProp && popularProductsProp.length > 0 ? popularProductsProp : availableProducts.slice(0, 6);
+  const popularProducts = popularProductsProp ?? [];
   const storeTypes = Array.from(new Set(stores.map((store) => store.store_type).filter(Boolean))).slice(0, 6);
 
   return (
