@@ -2686,7 +2686,7 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
             <p className="text-sm font-black text-[#171a16]">تحويل المبلغ إلى حساب جَرْمَل</p>
             {method.account_number && <p className="mt-2 text-lg font-black tracking-wide text-[#687500]" dir="ltr">{method.account_number}</p>}
             {method.instructions && <p className="mt-2 whitespace-pre-wrap text-xs leading-6 text-[#747b72]">{method.instructions}</p>}
-            <p className="mt-3 text-[11px] font-bold text-[#8a9189]">إذا كانت المحفظة مرتبطة بالدفع الآلي، سيفتحها جَرْمَل بالعملية المجهزة، وبعد التأكيد سيجري التحقق تلقائيًا دون انتظار موافقة الإدارة.</p>
+            <p className="mt-3 text-[11px] font-bold text-[#8a9189]">بعد التحويل، أدخل رقم العملية/المرجع ثم أرسل الطلب. ستظهر العملية بحالة قيد المراجعة حتى يتم التحقق منها.</p>
             <div className="mt-3"><Field label="رقم العملية (فقط عند الحاجة)" value={referenceNumber} onChange={setReferenceNumber} placeholder="رقم العملية / المرجع" /></div>
           </div>;
         })()}
@@ -2696,7 +2696,7 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
           <div className="flex items-center justify-between text-sm"><span className="text-[#747b72]">قيمة المنتجات</span><span className="font-bold">{total.toLocaleString('ar-YE')} {CURRENCY}</span></div>
           <p className="mt-2 text-[11px] leading-5 text-[#8a9189]">رسوم التوصيل تُحسب آليًا حسب إعدادات جَرْمَل وموقع التوصيل، ويظهر المبلغ النهائي بعد إنشاء الطلب.</p>
         </div>
-        <button disabled={busy || cart.length === 0 || (!cashAllowed && !electronicAllowed) || !paymentCode} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? (paymentCode === 'cash' ? 'جارٍ إرسال الطلب...' : 'جارٍ التحقق من الدفع...') : (paymentCode === 'cash' ? 'تأكيد الطلب' : 'الدفع الآن')}</button>
+        <button disabled={busy || cart.length === 0 || (!cashAllowed && !electronicAllowed) || !paymentCode} onClick={confirmOrder} className="mt-2 w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black hover:bg-white disabled:opacity-50">{busy ? 'جارٍ إرسال الطلب...' : (paymentCode === 'cash' ? 'تأكيد الطلب' : 'إرسال الطلب')}</button>
       </div>
     </div>
   );
