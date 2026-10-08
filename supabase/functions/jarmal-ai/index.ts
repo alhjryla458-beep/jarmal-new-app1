@@ -11,6 +11,7 @@ type RequestBody = {
   role?: "customer" | "driver" | "merchant" | "admin";
   page?: string;
   context?: Record<string, unknown>;
+  history?: Array<{ role: 'user' | 'assistant'; text: string }>;
 };
 
 function json(data: unknown, status = 200) {
@@ -79,6 +80,10 @@ Deno.serve(async (req) => {
       model,
       input: [
         { role: "system", content: [{ type: "input_text", text: system }] },
+        ...history.map((item) => ({
+          role: item.role,
+          content: [{ type: "input_text", text: item.text }],
+        })),
         { role: "user", content: [{ type: "input_text", text: message }] },
       ],
       max_output_tokens: 700,
