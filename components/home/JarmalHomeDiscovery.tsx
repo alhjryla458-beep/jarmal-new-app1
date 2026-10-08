@@ -11,6 +11,7 @@ type DiscoveryProps = {
   stores: DiscoveryStore[];
   onNavigate: (screen: string) => void;
   onStoreCategory: (category: string) => void;
+  onOpenStore?: (storeId: string) => void;
 };
 
 export function JarmalHomeDiscovery({
@@ -20,7 +21,8 @@ export function JarmalHomeDiscovery({
   popularProducts: popularProductsProp,
   stores,
   onNavigate,
-  onStoreCategory
+  onStoreCategory,
+  onOpenStore
 }: DiscoveryProps) {
   const popularProducts = popularProductsProp ?? [];
   const storeTypes = Array.from(new Set(stores.map((store) => store.store_type).filter(Boolean))).slice(0, 6);
@@ -91,7 +93,7 @@ export function JarmalHomeDiscovery({
           </div>
           <div className="jarmal-product-rail">
             {popularProducts.map((product) => (
-              <article key={product.id} className="jarmal-discovery-product">
+              <button key={product.id} type="button" onClick={() => { const store = stores.find((item) => products.some((p) => p.id === product.id && p.store_id === item.id)); if (store) onOpenStore?.(store.id); }} className="jarmal-discovery-product text-right">
                 <div className="jarmal-discovery-product-icon"><ShoppingBag size={22} /></div>
                 <div className="min-w-0">
                   <strong>{product.name}</strong>
@@ -99,7 +101,7 @@ export function JarmalHomeDiscovery({
                   <b>{product.price.toLocaleString('ar-YE')} ر.ي</b>
                 </div>
                 <ChevronLeft size={17} />
-              </article>
+              </button>
             ))}
           </div>
         </section>
