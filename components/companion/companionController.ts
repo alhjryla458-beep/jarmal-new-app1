@@ -8,6 +8,12 @@ export type CompanionCommand =
   | { type: 'peek' }
   | { type: 'jump' }
   | { type: 'climb' }
+  | { type: 'walk' }
+  | { type: 'run' }
+  | { type: 'sit' }
+  | { type: 'point' }
+  | { type: 'usePhone' }
+  | { type: 'carryBox' }
   | { type: 'rideBike' }
   | { type: 'deliver' }
   | { type: 'celebrate' }
@@ -15,7 +21,7 @@ export type CompanionCommand =
 
 export type CompanionMotionState = {
   animation: CompanionAnimation;
-  expression: 'idle' | 'happy' | 'thinking' | 'searching' | 'surprised' | 'success' | 'apology' | 'delivery';
+  expression: 'idle' | 'happy' | 'thinking' | 'searching' | 'surprised' | 'success' | 'apology' | 'delivery' | 'confirmed' | 'greeting';
   visible: boolean;
   x: number;
   y: number;
@@ -42,7 +48,9 @@ export function commandToMotion(command: CompanionCommand, context: CompanionCon
     command.type === 'think' ? 'thinking' :
     command.type === 'search' ? 'searching' :
     command.type === 'celebrate' || command.type === 'wave' ? 'happy' :
-    command.type === 'deliver' ? 'delivery' :
+    command.type === 'point' ? 'confirmed' :
+    command.type === 'usePhone' ? 'searching' :
+    command.type === 'carryBox' || command.type === 'deliver' ? 'delivery' :
     command.type === 'exit' ? 'idle' : 'idle';
 
   return {
@@ -101,6 +109,12 @@ export class CompanionController {
   peek(context: CompanionContext) { this.command({ type: 'peek' }, context); }
   jump(context: CompanionContext) { this.command({ type: 'jump' }, context); }
   climb(context: CompanionContext) { this.command({ type: 'climb' }, context); }
+  walk(context: CompanionContext) { this.command({ type: 'walk' }, context); }
+  run(context: CompanionContext) { this.command({ type: 'run' }, context); }
+  sit(context: CompanionContext) { this.command({ type: 'sit' }, context); }
+  point(context: CompanionContext) { this.command({ type: 'point' }, context); }
+  usePhone(context: CompanionContext) { this.command({ type: 'usePhone' }, context); }
+  carryBox(context: CompanionContext) { this.command({ type: 'carryBox' }, context); }
   rideBike(context: CompanionContext) { this.command({ type: 'rideBike' }, context); }
   deliver(context: CompanionContext) { this.command({ type: 'deliver' }, context); }
   celebrate(context: CompanionContext) { this.command({ type: 'celebrate' }, context); }
