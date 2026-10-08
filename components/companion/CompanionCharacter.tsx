@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { Bike, Package, Search, Sparkles } from 'lucide-react';
+import { Bike, Package, Phone, Search, Sparkles } from 'lucide-react';
 import type { CompanionContext } from './companionEngine';
 import type { CompanionMotionState } from './companionController';
 import './companionCharacter.css';
@@ -92,7 +92,8 @@ export function CompanionCharacter({ context, motion, onClick }: Props) {
       {context.role === 'driver' && <span className="jc3-bike"><Bike size={40} /></span>}
       {motion.animation === 'search' && <span className="jc3-badge"><Search size={17} /></span>}
       {motion.animation === 'celebrate' && <span className="jc3-spark"><Sparkles size={20} /></span>}
-      {motion.animation === 'deliver' && <span className="jc3-delivery-package"><Package size={17} /></span>}
+      {(motion.animation === 'deliver' || motion.animation === 'carryBox') && <span className="jc3-delivery-package"><Package size={17} /></span>}
+      {motion.animation === 'usePhone' && <span className="jc3-phone"><Phone size={18} /></span>}
     </button>
   );
 }
