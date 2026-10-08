@@ -200,3 +200,10 @@
 .jarmal-app .jarmal-store-status-dot{width:6px;height:6px;border-radius:999px;background:#a2aaa0}
 .jarmal-app .jarmal-store-status.is-open .jarmal-store-status-dot{background:#8ea000}
 @media(max-width:420px){.jarmal-app .jarmal-store-card{border-radius:20px!important}.jarmal-app .jarmal-store-card-top{padding:12px}.jarmal-app .jarmal-store-icon{width:46px;height:46px;border-radius:16px}}
+
+/* Marketplace content refinements */
+.jarmal-app .jarmal-story-card{border-color:#dfff00!important;box-shadow:0 9px 24px rgba(23,26,22,.07)!important}
+.jarmal-app .jarmal-ad-card,.jarmal-app .jarmal-offer-card{background:#fff!important;border-color:#e1e5dc!important}
+.jarmal-app .jarmal-ad-card:focus-visible,.jarmal-app .jarmal-offer-card:focus-visible,.jarmal-app .jarmal-story-card:focus-visible{outline:3px solid rgba(223,255,0,.55);outline-offset:2px}
+.jarmal-app .jarmal-offer-discount{background:#dfff00!important;color:#171a16!important;font-weight:900}
+@media(max-width:420px){.jarmal-app .jarmal-ad-card,.jarmal-app .jarmal-offer-card{flex-basis:88vw;min-height:142px}.jarmal-app .jarmal-ad-card .jarmal-home-content-image,.jarmal-app .jarmal-offer-card .jarmal-home-content-image{min-height:142px}}
