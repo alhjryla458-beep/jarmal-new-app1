@@ -121,3 +121,17 @@
   background: var(--jarmal-lime) !important;
   color: #171a16 !important;
 }
+
+/* Auth + splash contrast cleanup */
+.jarmal-app input,
+.jarmal-app textarea,
+.jarmal-app select { color: #171a16 !important; }
+.jarmal-app input::placeholder,
+.jarmal-app textarea::placeholder { color: #9aa097 !important; }
+.jarmal-app button { -webkit-tap-highlight-color: transparent; }
+.jarmal-app .text-white\/55,
+.jarmal-app .text-white\/40,
+.jarmal-app .text-white\/30,
+.jarmal-app .text-white\/20 { color: #6b7169 !important; }
+.jarmal-app .bg-black\/10 { background: rgba(23,26,22,.08) !important; }
+
