@@ -1,6 +1,6 @@
 import { Zap, WalletCards, ReceiptText, PackageSearch, Store, ShoppingBag, ChevronLeft } from 'lucide-react';
 
-type DiscoveryProduct = { id: string; name: string; description: string | null; price: number; is_available: boolean };
+type DiscoveryProduct = { id: string; name: string; description: string | null; price: number; image_url: string | null; is_available: boolean };
 type DiscoveryStore = { id: string; name: string; store_type: string };
 
 type DiscoveryProps = {
@@ -94,7 +94,7 @@ export function JarmalHomeDiscovery({
           <div className="jarmal-product-rail">
             {popularProducts.map((product) => (
               <button key={product.id} type="button" onClick={() => { const store = stores.find((item) => products.some((p) => p.id === product.id && p.store_id === item.id)); if (store) onOpenStore?.(store.id); }} className="jarmal-discovery-product text-right">
-                <div className="jarmal-discovery-product-icon"><ShoppingBag size={22} /></div>
+                <div className="jarmal-discovery-product-icon">{product.image_url ? <img src={product.image_url} alt="" loading="lazy" /> : <ShoppingBag size={22} />}</div>
                 <div className="min-w-0">
                   <strong>{product.name}</strong>
                   <small>{product.description || 'منتج متاح من متجر معتمد'}</small>
