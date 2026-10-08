@@ -1414,8 +1414,21 @@ function SideNav({
   );
 }
 
-function MapCard({ latitude, longitude, address }: { latitude?: number | null; longitude?: number | null; address?: string | null }) {
+function MapCard({
+  latitude,
+  longitude,
+  address,
+  driverLatitude,
+  driverLongitude
+}: {
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string | null;
+  driverLatitude?: number | null;
+  driverLongitude?: number | null;
+}) {
   const hasDestination = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const hasDriver = Number.isFinite(driverLatitude) && Number.isFinite(driverLongitude);
   const mapsUrl = hasDestination
     ? `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
     : 'https://www.google.com/maps';
@@ -1429,6 +1442,8 @@ function MapCard({ latitude, longitude, address }: { latitude?: number | null; l
             {hasDestination ? 'موقع التسليم الحقيقي' : 'موقع التسليم غير محدد'}
           </p>
           {address && <p className="mt-1 truncate text-xs text-[#747b72]">{address}</p>}
+          {hasDriver && <p className="mt-1 text-[11px] font-bold text-[#687500]">موقع المندوب متاح ويتحدث تلقائيًا.</p>}
+          {!hasDriver && <p className="mt-1 text-[11px] text-[#747b72]">موقع المندوب غير متاح حاليًا.</p>}
         </div>
         {hasDestination && (
           <a
@@ -1442,7 +1457,14 @@ function MapCard({ latitude, longitude, address }: { latitude?: number | null; l
         )}
       </div>
       {hasDestination ? (
-        <LocationMap latitude={Number(latitude)} longitude={Number(longitude)} interactive={false} title="موقع التسليم" />
+        <LocationMap
+          latitude={Number(latitude)}
+          longitude={Number(longitude)}
+          driverLatitude={hasDriver ? Number(driverLatitude) : null}
+          driverLongitude={hasDriver ? Number(driverLongitude) : null}
+          interactive={false}
+          title="موقع التسليم"
+        />
       ) : (
         <div className="flex h-64 items-center justify-center bg-[#f5f6f3] px-5 text-center text-sm text-[#747b72]">
           لا توجد إحداثيات حقيقية محفوظة لهذا الطلب.
@@ -1854,6 +1876,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRow[]>([]);
   const [invoicesReal, setInvoicesReal] = useState<InvoiceRow[]>([]);
   const [profileReal, setProfileReal] = useState<{ full_name: string | null; phone_number: string | null }>({ full_name: null, phone_number: null });
+  const [driverLocation, setDriverLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const loadAll = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -1874,6 +1897,39 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
   };
 
   useEffect(() => { loadAll(); }, []);
+
+  const activeTrackingOrder = ordersReal.find((order) => !['delivered', 'cancelled'].includes(order.status));
+
+  useEffect(() => {
+    let stopped = false;
+    const refreshDriverLocation = async () => {
+      if (!activeTrackingOrder?.id || !activeTrackingOrder.driver_id) {
+        setDriverLocation(null);
+        return;
+      }
+      const { data, error: locationError } = await supabase.rpc('get_customer_order_driver_location', {
+        p_order_id: activeTrackingOrder.id
+      });
+      if (stopped) return;
+      if (locationError) {
+        setDriverLocation(null);
+        return;
+      }
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row?.driver_latitude != null && row?.driver_longitude != null) {
+        setDriverLocation({ latitude: Number(row.driver_latitude), longitude: Number(row.driver_longitude) });
+      } else {
+        setDriverLocation(null);
+      }
+    };
+
+    void refreshDriverLocation();
+    const timer = window.setInterval(() => { void refreshDriverLocation(); }, 15000);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [activeTrackingOrder?.id, activeTrackingOrder?.driver_id, activeTrackingOrder?.status]);
 
   const toggleFavorite = async (productId: string) => {
     await supabase.rpc('toggle_favorite', { p_product_id: productId });
@@ -2145,6 +2201,8 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
                     latitude={activeOrder.delivery_latitude}
                     longitude={activeOrder.delivery_longitude}
                     address={activeOrder.delivery_address}
+                    driverLatitude={driverLocation?.latitude ?? null}
+                    driverLongitude={driverLocation?.longitude ?? null}
                   />
                 ) : (
                   <div className="rounded-3xl border border-dashed border-white/10 bg-white/[.02] py-20 text-center text-sm text-white/45">
@@ -2258,12 +2316,16 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
 function LocationMap({
   latitude,
   longitude,
+  driverLatitude = null,
+  driverLongitude = null,
   onChange,
   interactive = true,
   title = 'موقع التسليم'
 }: {
   latitude: number | null;
   longitude: number | null;
+  driverLatitude?: number | null;
+  driverLongitude?: number | null;
   onChange?: (latitude: number, longitude: number) => void;
   interactive?: boolean;
   title?: string;
@@ -2271,6 +2333,7 @@ function LocationMap({
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+  const driverMarkerRef = useRef<any>(null);
   const [locating, setLocating] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState('');
@@ -2312,7 +2375,14 @@ function LocationMap({
       }).addTo(map);
       mapInstanceRef.current = map;
       if (latitude !== null && longitude !== null) {
-        markerRef.current = L.marker([latitude, longitude]).addTo(map);
+        markerRef.current = L.marker([latitude, longitude]).addTo(map).bindTooltip(title, { permanent: false });
+      }
+      if (driverLatitude !== null && driverLongitude !== null) {
+        driverMarkerRef.current = L.circleMarker([driverLatitude, driverLongitude], {
+          radius: 8,
+          weight: 3,
+          fillOpacity: 0.85
+        }).addTo(map).bindTooltip('موقع المندوب', { permanent: false });
       }
       if (interactive && onChange) {
         map.on('click', (event: any) => {
@@ -2335,8 +2405,30 @@ function LocationMap({
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      markerRef.current = null;
+      driverMarkerRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !mapReady) return;
+    const L = (window as any).L;
+    if (driverLatitude === null || driverLongitude === null) {
+      if (driverMarkerRef.current) {
+        driverMarkerRef.current.remove();
+        driverMarkerRef.current = null;
+      }
+      return;
+    }
+    if (driverMarkerRef.current) driverMarkerRef.current.setLatLng([driverLatitude, driverLongitude]);
+    else {
+      driverMarkerRef.current = L.circleMarker([driverLatitude, driverLongitude], {
+        radius: 8,
+        weight: 3,
+        fillOpacity: 0.85
+      }).addTo(mapInstanceRef.current).bindTooltip('موقع المندوب', { permanent: false });
+    }
+  }, [driverLatitude, driverLongitude, mapReady]);
 
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady || latitude === null || longitude === null) return;
@@ -2924,6 +3016,36 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   };
 
   useEffect(() => { loadAll(); }, []);
+
+  useEffect(() => {
+    if (!profile || profile.verification_status !== 'approved' || (!profile.is_available && !activeOrder)) return;
+    let stopped = false;
+
+    const sendLocation = () => {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          if (stopped) return;
+          const { error: locationError } = await supabase.rpc('update_driver_location', {
+            p_latitude: Number(position.coords.latitude.toFixed(7)),
+            p_longitude: Number(position.coords.longitude.toFixed(7))
+          });
+          if (locationError && !stopped) setError('تعذر تحديث موقعك الآن.');
+        },
+        () => {
+          if (!stopped && activeOrder) setError('تعذر قراءة موقع المندوب من الجهاز.');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 15000 }
+      );
+    };
+
+    sendLocation();
+    const timer = window.setInterval(sendLocation, 20000);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [profile?.is_available, profile?.verification_status, activeOrder?.id, activeOrder?.status]);
 
   const toggleAvailability = async () => {
     if (profile?.verification_status !== 'approved') {
