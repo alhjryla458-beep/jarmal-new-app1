@@ -2999,8 +2999,11 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
   );
 }
 
-function DriverApp({ onLogout }: { onLogout: () => void }) {
+function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; companionTarget?: string | null }) {
   const [active, setActive] = useState('available');
+  useEffect(() => {
+    if (companionTarget) setActive(companionTarget);
+  }, [companionTarget]);
   const [profile, setProfile] = useState<DriverProfileRow | null>(null);
   const [wallet, setWallet] = useState<{ balance: number; reserved_balance: number }>({ balance: 0, reserved_balance: 0 });
   const [driverPaymentMethods, setDriverPaymentMethods] = useState<PaymentMethodRow[]>([]);
@@ -3433,8 +3436,11 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
   );
 }
 
-function MerchantApp({ onLogout }: { onLogout: () => void }) {
+function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; companionTarget?: string | null }) {
   const [active, setActive] = useState('dashboard');
+  useEffect(() => {
+    if (companionTarget) setActive(companionTarget);
+  }, [companionTarget]);
   const [store, setStore] = useState<MyStoreRow | null>(null);
   const [incoming, setIncoming] = useState<FullOrderRow[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, OrderItemRow[]>>({});
@@ -3950,6 +3956,9 @@ export default function App() {
     );
   }
 
+  const [driverCompanionTarget, setDriverCompanionTarget] = useState<string | null>(null);
+  const [merchantCompanionTarget, setMerchantCompanionTarget] = useState<string | null>(null);
+
   const handleLogout = () => {
     void supabase.auth.signOut();
     setSession(null);
@@ -3960,8 +3969,8 @@ export default function App() {
     if (role === 'driver') {
       return (
         <>
-          <DriverApp onLogout={handleLogout} />
-          <JarmalAIChat role="driver" page="driver-workspace" />
+          <DriverApp onLogout={handleLogout} companionTarget={driverCompanionTarget} />
+          <JarmalAIChat role="driver" page="driver-workspace" onNavigate={setDriverCompanionTarget} />
         </>
       );
     }
@@ -3969,8 +3978,8 @@ export default function App() {
     if (role === 'merchant') {
       return (
         <>
-          <MerchantApp onLogout={handleLogout} />
-          <JarmalAIChat role="merchant" page="merchant-workspace" />
+          <MerchantApp onLogout={handleLogout} companionTarget={merchantCompanionTarget} />
+          <JarmalAIChat role="merchant" page="merchant-workspace" onNavigate={setMerchantCompanionTarget} />
         </>
       );
     }
