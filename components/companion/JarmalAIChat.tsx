@@ -4,11 +4,13 @@ import { supabase } from '@/lib/supabase';
 
 type Role = 'customer' | 'driver' | 'merchant' | 'admin';
 type Message = { id: string; from: 'user' | 'assistant'; text: string };
+type AssistantAction = { type: 'navigate'; target: string; label: string } | null;
 
 type Props = {
   role: Role;
   page: string;
   visible?: boolean;
+  onNavigate?: (target: string) => void;
 };
 
 const suggestionsByRole: Record<Role, string[]> = {
@@ -18,10 +20,11 @@ const suggestionsByRole: Record<Role, string[]> = {
   admin: ['ما الذي يحتاج مراجعة؟', 'اشرح لي هذا القسم', 'أحتاج مساعدة'],
 };
 
-export function JarmalAIChat({ role, page, visible = true }: Props) {
+export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pendingAction, setPendingAction] = useState<AssistantAction>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -126,6 +129,7 @@ export function JarmalAIChat({ role, page, visible = true }: Props) {
         data?.reply ||
           'أستطيع مساعدتك في وظائف جَرْمَل، لكن خدمة المحادثة الذكية غير مفعلة على الخادم حاليًا.'
       );
+      setPendingAction(data?.action || null);
     } catch {
       push('assistant', 'تعذر الوصول إلى رفيق جَرْمَل الآن. حاول مرة أخرى بعد قليل.');
     } finally {
@@ -191,6 +195,23 @@ export function JarmalAIChat({ role, page, visible = true }: Props) {
               </div>
             )}
           </div>
+
+          {pendingAction && onNavigate && (
+            <div className="jarmal-assistant-action">
+              <button
+                type="button"
+                onClick={() => {
+                  const action = pendingAction;
+                  setPendingAction(null);
+                  onNavigate(action.target);
+                  setOpen(false);
+                }}
+              >
+                {pendingAction.label}
+                <ChevronLeft size={15} />
+              </button>
+            </div>
+          )}
 
           <div className="jarmal-assistant-suggestions">
             {suggestions.map((suggestion) => (
