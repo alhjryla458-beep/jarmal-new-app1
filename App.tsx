@@ -3396,7 +3396,8 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
   const [incoming, setIncoming] = useState<FullOrderRow[]>([]);
   const [orderItems, setOrderItems] = useState<Record<string, OrderItemRow[]>>({});
   const [myProducts, setMyProducts] = useState<MerchantProductRow[]>([]);
-  const [wallet, setWallet] = useState<{ balance: number }>({ balance: 0 });
+  const [wallet, setWallet] = useState<{ balance: number; reserved_balance: number }>({ balance: 0, reserved_balance: 0 });
+  const [merchantPaymentMethods, setMerchantPaymentMethods] = useState<PaymentMethodRow[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawMethod, setWithdrawMethod] = useState('');
@@ -3470,8 +3471,15 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
         supabase.from('product_inventory').select('id, store_id, product_id, variant_id, quantity_on_hand, quantity_reserved, reorder_level, unit_label, updated_at').eq('store_id', row.id).then(({ data: inventory }) => { if (inventory) setInventoryRows(inventory as InventoryRow[]); });
         supabase.from('inventory_movements').select('id, product_id, movement_type, quantity, quantity_before, quantity_after, reason, created_at').eq('store_id', row.id).order('created_at', { ascending: false }).limit(50).then(({ data: movements }) => { if (movements) setInventoryMovements(movements as InventoryMovementRow[]); });
     }
-    supabase.from('merchant_wallets').select('balance, reserved_balance').eq('merchant_id', userId).maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number }); });
+    supabase.from('merchant_wallets').select('balance, reserved_balance').eq('merchant_id', userId).maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
     supabase.from('merchant_withdrawal_requests').select('id, amount, payment_method_code, account_number, status, note, created_at, admin_note').eq('merchant_id', userId).order('created_at', { ascending: false }).limit(10).then(({ data }) => { if (data) setWithdrawals(data || []); });
+    supabase.from('payment_methods').select('id, name, code, account_number, instructions, checkout_url, deep_link, verification_mode, auto_verify_enabled').eq('is_active', true).neq('code', 'cash').then(({ data }) => {
+      if (data) {
+        const methods = data as PaymentMethodRow[];
+        setMerchantPaymentMethods(methods);
+        setWithdrawMethod((current) => current || methods[0]?.code || '');
+      }
+    });
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -3792,7 +3800,9 @@ function MerchantApp({ onLogout }: { onLogout: () => void }) {
                   <input value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder="المبلغ" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]" />
                   <select value={withdrawMethod} onChange={e=>setWithdrawMethod(e.target.value)} className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]">
                     <option value="">وسيلة السحب</option>
-                    <option value="onecash">OneCash</option><option value="jawalak">Jawalak</option><option value="flousak">Flousak</option><option value="jeeb">Jeeb</option>
+                    {merchantPaymentMethods.map((method) => (
+                      <option key={method.id} value={method.code}>{method.name}</option>
+                    ))}
                   </select>
                   <input value={withdrawAccount} onChange={e=>setWithdrawAccount(e.target.value)} inputMode="tel" placeholder="رقم المحفظة / الحساب" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]" />
                   <input value={withdrawNote} onChange={e=>setWithdrawNote(e.target.value)} placeholder="ملاحظة (اختياري)" className="rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-3 py-3 outline-none focus:border-[#e3fe00]" />
