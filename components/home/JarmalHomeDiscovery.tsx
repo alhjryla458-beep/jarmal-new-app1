@@ -85,8 +85,8 @@ export function JarmalHomeDiscovery({
         <section className="jarmal-discovery-section">
           <div className="jarmal-section-heading">
             <div>
-              <p>منتجات متاحة حاليًا</p>
-              <h2>منتجات جَرْمَل</h2>
+              <p>الأكثر طلبًا من عملاء جَرْمَل</p>
+              <h2>الأكثر طلبًا</h2>
             </div>
             <PackageSearch size={20} />
           </div>
