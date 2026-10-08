@@ -7,6 +7,7 @@ type DiscoveryProps = {
   providersCount: number;
   packagesCount: number;
   products: DiscoveryProduct[];
+  popularProducts?: DiscoveryProduct[];
   stores: DiscoveryStore[];
   onNavigate: (screen: string) => void;
   onStoreCategory: (category: string) => void;
@@ -16,12 +17,13 @@ export function JarmalHomeDiscovery({
   providersCount,
   packagesCount,
   products,
+  popularProducts: popularProductsProp,
   stores,
   onNavigate,
   onStoreCategory
 }: DiscoveryProps) {
   const availableProducts = products.filter((p) => p.is_available);
-  const popularProducts = availableProducts.slice(0, 6);
+  const popularProducts = popularProductsProp && popularProductsProp.length > 0 ? popularProductsProp : availableProducts.slice(0, 6);
   const storeTypes = Array.from(new Set(stores.map((store) => store.store_type).filter(Boolean))).slice(0, 6);
 
   return (
