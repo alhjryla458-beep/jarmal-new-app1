@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
         { role: "system", content: [{ type: "input_text", text: system }] },
         ...history.map((item) => ({
           role: item.role,
-          content: [{ type: "input_text", text: item.text }],
+          content: [{ type: item.role === "assistant" ? "output_text" : "input_text", text: item.text }],
         })),
         { role: "user", content: [{ type: "input_text", text: message }] },
       ],
