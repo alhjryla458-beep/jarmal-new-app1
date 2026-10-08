@@ -2349,9 +2349,9 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
             </div>
           );
         })}
-        {shown.length === 0 && <p className="text-sm text-white/40">لا توجد منتجات في هذا القسم</p>}
+        {shown.length === 0 && <p className="text-sm text-[#747b72]">لا توجد منتجات في هذا القسم</p>}
       </div>
-      <div className="mt-8 rounded-2xl border border-dashed border-white/15 p-4">
+      <div className="jarmal-store-custom-request mt-8 rounded-2xl p-4">
         {!showCustom ? (
           <button onClick={() => setShowCustom(true)} className="text-sm font-bold text-[#e3fe00]">+ طلب منتج غير موجود بالقائمة</button>
         ) : (
