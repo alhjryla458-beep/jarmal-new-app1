@@ -1,4 +1,4 @@
-import { Zap, WalletCards, ReceiptText, PackageSearch, Store, ShoppingBag, ChevronLeft } from 'lucide-react';
+import { Zap, WalletCards, ReceiptText, PackageSearch, Store, ShoppingBag, ChevronLeft, ClipboardList } from 'lucide-react';
 
 type DiscoveryProduct = { id: string; store_id: string; name: string; description: string | null; price: number; image_url: string | null; is_available: boolean };
 type DiscoveryStore = { id: string; name: string; store_type: string };
@@ -54,10 +54,10 @@ export function JarmalHomeDiscovery({
             <strong>الباقات والخدمات</strong>
             <small>{packagesCount > 0 ? `${packagesCount} خدمة متاحة` : 'استكشف الخدمات المتاحة'}</small>
           </button>
-          <button type="button" onClick={() => onNavigate('home')} className="jarmal-service-card">
-            <span><ShoppingBag size={21} /></span>
-            <strong>تسوق الآن</strong>
-            <small>{stores.length} متجرًا معتمدًا</small>
+          <button type="button" onClick={() => onNavigate('orders')} className="jarmal-service-card">
+            <span><ClipboardList size={21} /></span>
+            <strong>طلباتي</strong>
+            <small>تابع طلباتك وحالتها من مكان واحد</small>
           </button>
         </div>
       </section>
