@@ -11,7 +11,7 @@ type RequestBody = {
   role?: "customer" | "driver" | "merchant" | "admin";
   page?: string;
   context?: Record<string, unknown>;
-  history?: Array<{ role: 'user' | 'assistant'; text: string }>;
+  history?: Array<{ role: "user" | "assistant"; text: string }>;
 };
 
 function json(data: unknown, status = 200) {
@@ -55,8 +55,8 @@ Deno.serve(async (req) => {
 
   const role = body?.role || "customer";
   const context = body?.context || {};
+  const history = Array.isArray(body?.history) ? body.history.slice(-8) : [];
 
-  // Deterministic, non-destructive intent hints. These never mutate data.
   const normalized = message.toLowerCase();
   const action =
     role === "customer" && (normalized.includes("طلب") || normalized.includes("طلبات"))
