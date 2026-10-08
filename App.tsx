@@ -1006,52 +1006,35 @@ function Auth({
 function Topbar({
   role,
   onLogout,
+  onSettings,
+  onNotifications,
   title
 }: {
   role: Role;
   onLogout: () => void;
+  onSettings?: () => void;
+  onNotifications?: () => void;
   title: string;
 }) {
   return (
-    <header className="jarmal-topbar sticky top-0 z-20 border-b px-5 py-3.5 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <div className="flex items-center gap-4">
+    <header className="jarmal-topbar sticky top-0 z-20 border-b px-4 py-3 sm:px-5 sm:py-3.5 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <Logo />
-
           <span className="hidden h-5 w-px bg-white/20 sm:block" />
-
           <div className="hidden sm:block">
             <span className="text-sm font-black">{title}</span>
             <span className="mt-0.5 block text-[10px] font-medium text-white/35">منصة جَرْمَل</span>
           </div>
         </div>
-
-        <div className="flex items-center gap-4">
-          <button className="relative rounded-xl p-2 text-white/60">
-            <Bell size={19} />
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#e3fe00]" />
-          </button>
-
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          {onNotifications && <button type="button" onClick={onNotifications} aria-label="الإشعارات" title="الإشعارات" className="relative rounded-xl p-2 text-white/60 hover:bg-black/5"><Bell size={19} /><span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#e3fe00]" /></button>}
+          {onSettings && <button type="button" onClick={onSettings} aria-label="الإعدادات" title="الإعدادات" className="rounded-xl p-2 text-white/70 hover:bg-black/5 hover:text-black"><Settings2 size={19} /></button>}
           <div className="hidden items-center gap-2 text-sm font-bold sm:flex">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e3fe00] text-black">
-              <UserRound size={17} />
-            </div>
-
-            <span>
-              {role === 'customer'
-                ? 'أهلاً بك'
-                : role === 'driver'
-                  ? 'مندوب جَرْمَل'
-                  : 'متجرك'}
-            </span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e3fe00] text-black"><UserRound size={17} /></div>
+            <span>{role === 'customer' ? 'أهلاً بك' : role === 'driver' ? 'مندوب جَرْمَل' : 'متجرك'}</span>
           </div>
-
-          <button
-            onClick={onLogout}
-            className="rounded-xl p-2 text-white/40 hover:text-red-400"
-          >
-            <LogOut size={18} />
-          </button>
+          <button onClick={onLogout} aria-label="تسجيل الخروج" title="تسجيل الخروج" className="rounded-xl p-2 text-white/40 hover:text-red-400"><LogOut size={18} /></button>
         </div>
       </div>
     </header>
@@ -1338,6 +1321,7 @@ function SideNav({
   merchantCanManageTeam?: boolean;
   merchantCanManageInventory?: boolean;
 }) {
+  const [showMore, setShowMore] = useState(false);
   const items: [string, string, React.ElementType][] =
     role === 'customer'
       ? [
@@ -1370,6 +1354,7 @@ function SideNav({
             ['settings', 'إعدادات المتجر', Settings2],
             ...(merchantCanManageTeam ? [['team', 'فريق المتجر', UserRound] as [string, string, React.ElementType]] : [])
           ];
+  const mobilePrimaryIds = role === 'customer' ? ['home', 'services', 'wallet', 'profile'] : role === 'driver' ? ['available', 'active', 'history', 'wallet'] : ['dashboard', 'incoming', 'products', 'wallet'];
 
   return (
     <>
@@ -1397,19 +1382,28 @@ function SideNav({
         </nav>
       </aside>
 
-      <nav className="jarmal-bottom-nav fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        {items.map(([id, label, Icon]) => (
-          <button
-            key={id}
-            onClick={() => onActive(id)}
-            className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-bold ${
-              active === id ? 'text-[#e3fe00]' : 'text-white/40'
-            }`}
-          >
-            <Icon size={19} />
-            <span className="truncate px-1">{label}</span>
+
+      {showMore && <button aria-label="إغلاق القائمة الإضافية" className="fixed inset-0 z-30 bg-black/20 lg:hidden" onClick={() => setShowMore(false)} />}
+      {showMore && (
+        <div className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] z-40 rounded-2xl border border-[#e5e8e2] bg-white p-2 shadow-2xl lg:hidden">
+          {items.filter(([id]) => !mobilePrimaryIds.includes(id) && id !== 'settings').map(([id, label, Icon]) => (
+            <button key={id} onClick={() => { onActive(id); setShowMore(false); }} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold ${active === id ? 'bg-[#e3fe00] text-black' : 'text-[#596159] hover:bg-[#f4f6f1]'}`}>
+              <Icon size={18} />{label}
+            </button>
+          ))}
+        </div>
+      )}
+      <nav className="jarmal-bottom-nav fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        {items.filter(([id]) => mobilePrimaryIds.includes(id)).map(([id, label, Icon]) => (
+          <button key={id} onClick={() => { onActive(id); setShowMore(false); }} className={`flex min-w-0 flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-bold ${active === id ? 'text-[#e3fe00]' : 'text-white/50'}`}>
+            <Icon size={19} /><span className="max-w-full truncate px-1">{label}</span>
           </button>
         ))}
+        {items.some(([id]) => !mobilePrimaryIds.includes(id) && id !== 'settings') && (
+          <button onClick={() => setShowMore(value => !value)} aria-expanded={showMore} className={`flex min-w-0 flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-bold ${showMore ? 'text-[#e3fe00]' : 'text-white/50'}`}>
+            <Menu size={19} /><span>المزيد</span>
+          </button>
+        )}
       </nav>
     </>
   );
@@ -2132,7 +2126,7 @@ function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; comp
 
   return (
     <div className="jarmal-app min-h-screen">
-      <Topbar role="customer" title="مساحة العميل" onLogout={onLogout} />
+      <Topbar role="customer" title="مساحة العميل" onLogout={onLogout} onSettings={() => setActive('settings')} onNotifications={() => setActive('notifications')} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="customer" active={active} onActive={setActive} />
         <main className="jarmal-page min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
@@ -3245,7 +3239,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
 
   return (
     <div className="jarmal-app min-h-screen">
-      <Topbar role="driver" title="مساحة المندوب" onLogout={onLogout} />
+      <Topbar role="driver" title="مساحة المندوب" onLogout={onLogout} onSettings={() => setActive('settings')} onNotifications={() => setActive('notifications')} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="driver" active={active} onActive={setActive} />
         <main className="jarmal-page min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
@@ -3685,7 +3679,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
 
   return (
     <div className="jarmal-app min-h-screen">
-      <Topbar role="merchant" title="مساحة التاجر" onLogout={onLogout} />
+      <Topbar role="merchant" title="مساحة التاجر" onLogout={onLogout} onSettings={() => setActive('settings')} onNotifications={() => setActive('notifications')} />
       <div className="mx-auto flex max-w-7xl">
         <SideNav role="merchant" active={active} onActive={setActive} merchantCanManageTeam={isOwner} merchantCanManageInventory={canManageInventory} />
         <main className="jarmal-page min-w-0 flex-1 p-5 pb-24 sm:p-8 lg:pb-8">
