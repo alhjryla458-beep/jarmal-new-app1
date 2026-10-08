@@ -14,6 +14,7 @@ export type CompanionCommand =
   | { type: 'point' }
   | { type: 'usePhone' }
   | { type: 'carryBox' }
+  | { type: 'apologize' }
   | { type: 'rideBike' }
   | { type: 'deliver' }
   | { type: 'celebrate' }
@@ -51,6 +52,7 @@ export function commandToMotion(command: CompanionCommand, context: CompanionCon
     command.type === 'point' ? 'confirmed' :
     command.type === 'usePhone' ? 'searching' :
     command.type === 'carryBox' || command.type === 'deliver' ? 'delivery' :
+    command.type === 'apologize' ? 'apology' :
     command.type === 'exit' ? 'idle' : 'idle';
 
   return {
