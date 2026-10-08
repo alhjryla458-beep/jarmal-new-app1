@@ -187,3 +187,16 @@
 .jarmal-app .jarmal-store-product-grid{align-items:start}.jarmal-app .jarmal-store-product-grid .jarmal-product-card{min-width:0}.jarmal-app .jarmal-store-product-grid .jarmal-product-card .jarmal-product-art{height:170px}.jarmal-app .jarmal-store-product-grid .jarmal-product-card .font-black{line-height:1.45}.jarmal-app .jarmal-store-product-grid .jarmal-product-card .bg-\[\#e3fe00\]{padding-left:12px;padding-right:12px}
 .jarmal-app .jarmal-store-custom-request{border:1px dashed #dfe4da!important;background:#fff!important}.jarmal-app .jarmal-store-custom-request button{color:#687500!important}
 @media(max-width:420px){.jarmal-app .jarmal-store-product-grid{gap:10px}.jarmal-app .jarmal-store-product-grid .jarmal-product-card .jarmal-product-art{height:142px}.jarmal-app .jarmal-store-product-grid .jarmal-product-card>div:first-child{padding:10px 10px 0}.jarmal-app .jarmal-store-product-grid .jarmal-product-card>div:nth-last-child(2),.jarmal-app .jarmal-store-product-grid .jarmal-product-card>div:last-child{padding-left:10px;padding-right:10px}.jarmal-app .jarmal-store-product-grid .jarmal-product-card .line-clamp-2{font-size:10px}.jarmal-app .jarmal-store-product-grid .jarmal-product-card .font-black{font-size:13px}}
+
+/* Home storefront cards: light marketplace presentation */
+.jarmal-app .jarmal-store-card{border-radius:24px!important;overflow:hidden!important;min-height:190px}
+.jarmal-app .jarmal-store-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px;background:linear-gradient(135deg,#dfff00 0%,#eef5bd 62%,#f7f9f5 100%);border-bottom:1px solid #e5e9df}
+.jarmal-app .jarmal-store-icon{width:52px;height:52px;display:grid;place-items:center;border-radius:18px;background:#fff;color:#687500;box-shadow:0 8px 18px rgba(23,26,22,.10)}
+.jarmal-app .jarmal-store-card h3{color:#171a16!important}
+.jarmal-app .jarmal-store-card p{color:#747b72!important}
+.jarmal-app .jarmal-store-card .jarmal-rating{color:#687500!important;font-weight:900}
+.jarmal-app .jarmal-store-card .jarmal-store-type{white-space:nowrap}
+.jarmal-app .jarmal-store-card .jarmal-store-status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 8px;border:1px solid #e1e5dc;font-size:10px;font-weight:800}
+.jarmal-app .jarmal-store-status-dot{width:6px;height:6px;border-radius:999px;background:#a2aaa0}
+.jarmal-app .jarmal-store-status.is-open .jarmal-store-status-dot{background:#8ea000}
+@media(max-width:420px){.jarmal-app .jarmal-store-card{border-radius:20px!important}.jarmal-app .jarmal-store-card-top{padding:12px}.jarmal-app .jarmal-store-icon{width:46px;height:46px;border-radius:16px}}
