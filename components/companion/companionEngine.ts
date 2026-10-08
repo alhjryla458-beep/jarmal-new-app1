@@ -2,6 +2,7 @@ export type CompanionRole = 'customer' | 'merchant' | 'driver' | 'admin';
 export type CompanionAnimation =
   | 'idle' | 'wave' | 'think' | 'search' | 'success' | 'error'
   | 'peek' | 'enterBottom' | 'enterSide' | 'jump' | 'climb'
+  | 'walk' | 'run' | 'sit' | 'point' | 'usePhone' | 'carryBox'
   | 'rideBike' | 'deliver' | 'celebrate' | 'exit';
 
 export type CompanionContext = {
