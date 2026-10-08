@@ -187,3 +187,6 @@
 @keyframes jc3-carry-arm-a{50%{transform:rotate(-28deg)}}
 @keyframes jc3-carry-arm-b{50%{transform:rotate(28deg)}}
 @keyframes jc3-box-bob{50%{transform:translateY(-3px)}}
+
+.jc-motion-apologize .jc3-head{animation:jc3-apologize .8s ease-in-out}
+@keyframes jc3-apologize{0%,100%{transform:rotate(0)}50%{transform:translateY(3px) rotate(-7deg)}}
