@@ -2122,6 +2122,10 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
                 stores={storesReal}
                 onNavigate={setActive}
                 onStoreCategory={setStoreCategory}
+                onOpenStore={(storeId) => {
+                  const store = storesReal.find((item) => item.id === storeId);
+                  if (store) setSelectedStore(store);
+                }}
               />
               <section className="mt-10">
                 <div className="flex items-end justify-between gap-3"><div><h2 className="text-xl font-black">متاجر جَرْمَل</h2><p className="mt-1 text-sm text-black/45">اختر المتجر ثم تصفح المنتجات والخدمات</p></div></div>
