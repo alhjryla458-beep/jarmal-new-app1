@@ -130,7 +130,7 @@ body {
   color: var(--jarmal-muted) !important;
 }
 
-.jarmal-app nav.fixed .text-[#e3fe00] {
+.jarmal-app nav.fixed [class*="text-[#e3fe00]"] {
   color: #7e8f00 !important;
 }
 
