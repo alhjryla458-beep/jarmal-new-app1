@@ -2350,13 +2350,13 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
                 <div className="mt-3 flex flex-wrap gap-2">
                   {productVariants.map((v) => (
                     <button key={v.id} onClick={() => onAdd({ product_id: product.id, variant_id: v.id, name: `${product.name} - ${v.variant_name}`, price: v.price, payment_options: product.payment_options || 'both' })} className="rounded-xl border border-[#e2e6df] bg-[#f8faf7] px-3 py-2 text-xs font-bold text-[#596159] hover:border-[#b8c400] hover:bg-[#f1f5df]">
-                      {v.variant_name} • {v.price.toLocaleString('ar-YE')} {CURRENCY}
+                      {v.variant_name} • {Number(v.price || 0).toLocaleString('ar-YE')} {CURRENCY}
                     </button>
                   ))}
                 </div>
               ) : (
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="font-black text-[#687500]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</span>
+                  <span className="font-black text-[#687500]">{Number(product.price || 0).toLocaleString('ar-YE')} {CURRENCY}</span>
                   <button onClick={() => onAdd({ product_id: product.id, name: product.name, price: product.price, payment_options: product.payment_options || 'both' })} className="rounded-xl bg-[#e3fe00] px-4 py-2 text-sm font-black text-black hover:bg-white">إضافة</button>
                 </div>
               )}
@@ -2664,7 +2664,7 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
         <div className="space-y-3">
           {cart.map((item) => (
             <div key={item.key} className="flex items-center justify-between gap-3 rounded-2xl border border-[#e4e8e1] bg-[#fafbf9] p-3.5">
-              <div><p className="font-bold">{item.name}</p><p className="text-xs text-white/40">{item.price.toLocaleString('ar-YE')} {CURRENCY} × {item.quantity}</p></div>
+              <div><p className="font-bold">{item.name}</p><p className="text-xs text-white/40">{Number(item.price || 0).toLocaleString('ar-YE')} {CURRENCY} × {item.quantity}</p></div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setCart((c) => c.map((x) => x.key === item.key ? { ...x, quantity: x.quantity - 1 } : x).filter((x) => x.quantity > 0))} className="h-7 w-7 rounded-lg bg-white/10 font-black">−</button>
                 <span className="w-5 text-center font-bold">{item.quantity}</span>
@@ -2831,7 +2831,7 @@ function Orders({ orders, onRefresh, onReorder }: { orders: OrderRow[]; onRefres
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-xs font-bold text-[#8a9189]">طلب #{order.id.slice(0, 8).toUpperCase()}</p>
-                <p className="mt-1 text-xl font-black text-[#171a16]">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</p>
+                <p className="mt-1 text-xl font-black text-[#171a16]">{Number(order.total_amount || 0).toLocaleString('ar-YE')} {CURRENCY}</p>
               </div>
               <span className="shrink-0 rounded-full bg-[#f1f5df] px-3 py-1.5 text-xs font-black text-[#667400]">{statusLabels[order.status] || order.status}</span>
             </div>
@@ -2942,7 +2942,7 @@ function ServicesView({ providers, packages, paymentMethods, onRefresh }: { prov
         <div className="mt-6 space-y-4">
           {providerPackages.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
-              {providerPackages.map((pkg) => (<button key={pkg.id} onClick={() => setPackageId(pkg.id)} className={`rounded-xl border p-3 text-xs font-bold ${packageId === pkg.id ? 'border-[#e3fe00] bg-[#e3fe00]/10 text-[#e3fe00]' : 'border-white/10 text-white/60'}`}>{pkg.name}<br />{pkg.price.toLocaleString('ar-YE')} {CURRENCY}</button>))}
+              {providerPackages.map((pkg) => (<button key={pkg.id} onClick={() => setPackageId(pkg.id)} className={`rounded-xl border p-3 text-xs font-bold ${packageId === pkg.id ? 'border-[#e3fe00] bg-[#e3fe00]/10 text-[#e3fe00]' : 'border-white/10 text-white/60'}`}>{pkg.name}<br />{Number(pkg.price || 0).toLocaleString('ar-YE')} {CURRENCY}</button>))}
             </div>
           )}
           {!packageId && <Field label="المبلغ" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} placeholder="أدخل المبلغ" />}
@@ -2987,12 +2987,12 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
       <div className="mt-7 grid gap-4 sm:grid-cols-2">
         <div className="jarmal-balance-card rounded-3xl bg-[#e3fe00] p-7 text-black">
           <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
-          <p className="mt-4 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+          <p className="mt-4 text-4xl font-black">{Number(wallet.balance || 0).toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
           <button onClick={() => setShow(true)} className="mt-6 rounded-xl bg-black px-5 py-3 text-sm font-black text-white">شحن المحفظة</button>
         </div>
         <div className="rounded-3xl border border-white/10 bg-[#0d0d0d] p-7">
           <span className="text-sm font-bold text-white/50">نقاطك</span>
-          <p className="mt-4 text-4xl font-black text-[#e3fe00]">{wallet.points}</p>
+          <p className="mt-4 text-4xl font-black text-[#e3fe00]">{Number(wallet.points || 0).toLocaleString('ar-YE')}</p>
           <p className="mt-2 text-xs text-white/40">تُستبدل بخصومات على منتجات مختارة</p>
         </div>
       </div>
@@ -3262,7 +3262,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
                 {available.map((order) => (
                   <div key={order.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5">
                     <div className="flex items-center justify-between">
-                      <span className="font-black">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+                      <span className="font-black">{Number(order.total_amount || 0).toLocaleString('ar-YE')} {CURRENCY}</span>
                       <span className="text-xs text-[#747b72]">{order.courier_distance ? `${order.courier_distance} كم` : ''}</span>
                     </div>
                     <p className="mt-2 text-xs text-[#747b72]">{order.fulfillment_type === 'pickup' ? 'استلام من المتجر فقط' : order.delivery_address}</p>
@@ -3316,7 +3316,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
                 {history.map((order) => (
                   <div key={order.id} className="rounded-2xl border border-[#e1e5de] bg-white p-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+                      <span className="font-bold">{Number(order.total_amount || 0).toLocaleString('ar-YE')} {CURRENCY}</span>
                       <span className="text-xs text-[#747b72]">{new Date(order.created_at).toLocaleDateString('ar-YE')}</span>
                     </div>
                   </div>
@@ -3332,7 +3332,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
               <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
                 <span className="text-sm font-bold text-black/60">الرصيد الإجمالي</span>
-                <p className="mt-6 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+                <p className="mt-6 text-4xl font-black">{Number(wallet.balance || 0).toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
                 <p className="mt-2 text-sm font-bold text-black/60">المحجوز لطلبات السحب: {Number(wallet.reserved_balance || 0).toLocaleString('ar-YE')} {CURRENCY}</p>
                 <p className="mt-1 text-xs text-black/55">المتاح للسحب: {Math.max(0, Number(wallet.balance || 0) - Number(wallet.reserved_balance || 0)).toLocaleString('ar-YE')} {CURRENCY}</p>
               </div>
@@ -3720,7 +3720,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                   return (
                     <div key={order.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5">
                       <div className="flex items-center justify-between">
-                        <span className="font-black">{order.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+                        <span className="font-black">{Number(order.total_amount || 0).toLocaleString('ar-YE')} {CURRENCY}</span>
                         <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#687500]">{statusLabels[order.status] || order.status}</span>
                       </div>
                       <div className="mt-3 space-y-1 text-sm text-[#667067]">
@@ -3881,7 +3881,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
               <div className="mt-7 rounded-3xl bg-[#e3fe00] p-7 text-black">
                 <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
-                <p className="mt-6 text-4xl font-black">{wallet.balance.toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+                <p className="mt-6 text-4xl font-black">{Number(wallet.balance || 0).toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
               </div>
               <div className="mt-5 rounded-2xl border border-[#e1e5de] bg-white p-5">
                 <h2 className="text-xl font-black">طلب سحب</h2>
