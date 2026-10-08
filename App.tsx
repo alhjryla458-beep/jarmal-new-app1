@@ -1474,7 +1474,7 @@ function MapCard({
     </div>
   );
 }
-function NotificationsView() {
+function NotificationsView({ onOpenOrder }: { onOpenOrder?: () => void }) {
   type NotificationRow = {
     id: string;
     type: string;
@@ -1505,7 +1505,11 @@ function NotificationsView() {
     if (data) setItems(data as NotificationRow[]);
   };
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => { void load(); }, 30000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const markRead = async (id: string) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -1554,7 +1558,10 @@ function NotificationsView() {
         {items.map(item => (
           <button
             key={item.id}
-            onClick={() => !item.is_read && markRead(item.id)}
+            onClick={() => {
+              if (!item.is_read) void markRead(item.id);
+              if (item.order_id) onOpenOrder?.();
+            }}
             className={`w-full rounded-2xl border p-4 text-right transition ${item.is_read ? 'border-[#e7eae5] bg-white' : 'border-[#e3fe00]/50 bg-[#e3fe00]/10'}`}
           >
             <div className="flex items-start gap-3">
@@ -2234,7 +2241,7 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
           )}
           {active === 'orders' && <Orders orders={ordersReal} onRefresh={loadAll} onReorder={reorderToCart} />}
           {active === 'invoices' && <CustomerInvoicesView invoices={invoicesReal} />}
-          {active === 'notifications' && <NotificationsView />}
+          {active === 'notifications' && <NotificationsView onOpenOrder={() => setActive('orders')} />}
           {active === 'services' && <ServicesView providers={providers} packages={packages} paymentMethods={paymentMethods} onRefresh={loadAll} />}
           {active === 'wallet' && <ClientWalletView wallet={wallet} paymentMethods={paymentMethods} onRefresh={loadAll} />}
           {active === 'map' && (() => {
