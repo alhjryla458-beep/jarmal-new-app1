@@ -156,14 +156,14 @@ function Welcome({
   ];
 
   return (
-    <main className="jarmal-app relative min-h-screen overflow-hidden px-5 py-7">
-      <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-[#e3fe00]/10 blur-[120px]" />
+    <main className="min-h-screen overflow-hidden bg-[#f5f6f3] px-5 py-7 text-[#171a16]">
+      <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-[#dfff00]/20 blur-[120px]" />
 
       <header className="relative mx-auto flex max-w-6xl items-center justify-between">
         <Logo />
 
-        <div className="flex items-center gap-2 text-xs text-white/55">
-          <ShieldCheck size={15} className="text-[#e3fe00]" />
+        <div className="flex items-center gap-2 text-xs text-[#6b7169]">
+          <ShieldCheck size={15} className="text-[#171a16]" />
           توصيل موثوق داخل اليمن
         </div>
       </header>
@@ -172,13 +172,13 @@ function Welcome({
         <div className="max-w-3xl animate-slide-up">
           <Pill>أسرع من توقعك</Pill>
 
-          <h1 className="mt-6 text-5xl font-black leading-[1.12] tracking-[-.05em] sm:text-7xl">
+          <h1 className="mt-6 text-5xl font-black leading-[1.12] tracking-[-.05em] sm:text-[#171a16] sm:text-7xl">
             طلبك عند بابك،
             <br />
-            <span className="text-[#e3fe00]">بسرعة جَرْمَل.</span>
+            <span className="text-[#171a16]">بسرعة جَرْمَل.</span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg leading-8 text-white/55">
+          <p className="mt-6 max-w-xl text-lg leading-8 text-[#6b7169]">
             كل ما تحتاجه من متاجر حيك، في مكان واحد. اختر حسابك وابدأ رحلتك معنا.
           </p>
         </div>
@@ -188,46 +188,46 @@ function Welcome({
             <button
               key={role}
               onClick={() => onSelect(role)}
-              className="group rounded-2xl border border-white/10 bg-white/[.04] p-5 text-right transition-all duration-300 hover:-translate-y-1 hover:border-[#e3fe00]/60 hover:bg-[#e3fe00] hover:text-black animate-slide-up"
+              className="group rounded-2xl border border-[#e5e8e2] bg-white shadow-[0_10px_30px_rgba(23,26,22,.05)] p-5 text-right transition-all duration-300 hover:-translate-y-1 hover:border-[#dfff00] hover:bg-[#dfff00] hover:text-[#171a16] animate-slide-up"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="mb-10 flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#e3fe00] text-black transition-colors group-hover:bg-black group-hover:text-[#e3fe00]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#dfff00] text-black transition-colors group-hover:bg-black group-hover:text-[#171a16]">
                   <Icon size={24} />
                 </div>
 
                 <ArrowLeft
-                  className="text-white/30 group-hover:text-black"
+                  className="text-[#9aa097] group-hover:text-black"
                   size={20}
                 />
               </div>
 
               <h2 className="text-2xl font-black">{title}</h2>
 
-              <p className="mt-2 text-sm text-white/50 group-hover:text-black/65">
+              <p className="mt-2 text-sm text-[#6b7169] group-hover:text-[#171a16]/75">
                 {desc}
               </p>
 
-              <p className="mt-5 text-xs font-bold text-[#e3fe00] group-hover:text-black">
+              <p className="mt-5 text-xs font-bold text-[#171a16] group-hover:text-black">
                 ابدأ الآن
               </p>
             </button>
           ))}
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center gap-6 text-xs text-white/35">
+        <div className="mt-12 flex flex-wrap items-center gap-6 text-xs text-[#6b7169]">
           <span className="flex items-center gap-2">
-            <Zap size={15} className="text-[#e3fe00]" />
+            <Zap size={15} className="text-[#171a16]" />
             توصيل سريع
           </span>
 
           <span className="flex items-center gap-2">
-            <CheckCircle2 size={15} className="text-[#e3fe00]" />
+            <CheckCircle2 size={15} className="text-[#171a16]" />
             متاجر موثوقة
           </span>
 
           <span className="flex items-center gap-2">
-            <Navigation size={15} className="text-[#e3fe00]" />
+            <Navigation size={15} className="text-[#171a16]" />
             تحديد موقع التسليم
           </span>
 
