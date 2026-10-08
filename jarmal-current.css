@@ -164,3 +164,11 @@
 .jarmal-app .jarmal-discovery-product{border-radius:20px!important}.jarmal-app .jarmal-discovery-product-icon{background:#f2f7d9!important;color:#687500!important;border-radius:16px!important}
 @media(max-width:560px){.jarmal-app .jarmal-ad-card,.jarmal-app .jarmal-offer-card{flex-basis:88vw}.jarmal-app .jarmal-story-card{flex-basis:74px;height:98px}}
 @media(prefers-reduced-motion:reduce){.jarmal-app .jarmal-stories-rail,.jarmal-app .jarmal-ad-rail,.jarmal-app .jarmal-offers-rail{scroll-behavior:auto}}
+
+/* Storefront visual layer: marketplace-style, Jarmal branded */
+.jarmal-app .jarmal-store-category-rail{scrollbar-width:none}.jarmal-app .jarmal-store-category-rail::-webkit-scrollbar{display:none}
+.jarmal-app .jarmal-store-category-rail button{border:1px solid #e3e7df;box-shadow:0 4px 12px rgba(23,26,22,.04);transition:.2s ease}.jarmal-app .jarmal-store-category-rail button:hover{border-color:#d9e39a;transform:translateY(-1px)}
+.jarmal-app .jarmal-product-card{overflow:hidden;border-radius:22px!important;padding:0!important}.jarmal-app .jarmal-product-card>div:first-child{padding:14px 14px 0}.jarmal-app .jarmal-product-card .jarmal-product-art{width:100%;height:180px;border-radius:17px!important;background:linear-gradient(145deg,#f5f7ef,#edf3d0)!important}.jarmal-app .jarmal-product-card .jarmal-product-art svg{width:42px;height:42px}.jarmal-app .jarmal-product-card>div:nth-last-child(2){padding:0 14px 14px}.jarmal-app .jarmal-product-card>div:last-child{margin:0!important;padding:0 14px 14px;border-top:1px solid #eef0eb}
+.jarmal-app .jarmal-product-card .font-black{font-size:15px}.jarmal-app .jarmal-product-card .line-clamp-2{font-size:11px}.jarmal-app .jarmal-product-card button:not([aria-label]){transition:.18s ease}.jarmal-app .jarmal-product-card button:not([aria-label]):hover{transform:translateY(-1px)}
+.jarmal-app .jarmal-product-card .bg-\[\#e3fe00\]{box-shadow:0 7px 16px rgba(110,125,0,.12)}
+@media(max-width:640px){.jarmal-app .jarmal-product-card .jarmal-product-art{height:155px}.jarmal-app .jarmal-product-card{border-radius:20px!important}}
