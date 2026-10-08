@@ -1947,6 +1947,22 @@ function CustomerApp({ onLogout }: { onLogout: () => void }) {
 
   useEffect(() => { loadAll(); }, []);
 
+  useEffect(() => {
+    let stopped = false;
+    const refreshOrders = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || stopped) return;
+      const { data } = await supabase
+        .from('orders')
+        .select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, order_type, fulfillment_type, points_earned, payment_status, payment_method')
+        .eq('customer_id', user.id)
+        .order('created_at', { ascending: false });
+      if (!stopped && data) setOrdersReal(data as OrderRow[]);
+    };
+    const timer = window.setInterval(() => { void refreshOrders(); }, 30000);
+    return () => { stopped = true; window.clearInterval(timer); };
+  }, []);
+
   const activeTrackingOrder = ordersReal.find((order) => !['delivered', 'cancelled'].includes(order.status));
 
   useEffect(() => {
@@ -2858,8 +2874,8 @@ function Orders({ orders, onRefresh, onReorder }: { orders: OrderRow[]; onRefres
             )}
             {order.status === 'delivered' && (
               <div className="mt-3 flex gap-2">
-                <button onClick={() => setRatingFor(order.id)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]">قيّم الطلب</button>
-                <button onClick={() => void onReorder(order)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:border-[#e3fe00]">إعادة الطلب</button>
+                <button onClick={() => setRatingFor(order.id)} className="rounded-lg border border-[#e1e5de] px-3 py-2 text-xs font-bold text-[#596159] hover:border-[#e3fe00]">قيّم الطلب</button>
+                <button onClick={() => void onReorder(order)} className="rounded-lg border border-[#e1e5de] px-3 py-2 text-xs font-bold text-[#596159] hover:border-[#e3fe00]">إعادة الطلب</button>
               </div>
             )}
           </div>
@@ -2867,11 +2883,11 @@ function Orders({ orders, onRefresh, onReorder }: { orders: OrderRow[]; onRefres
       </div>
       {ratingFor && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 p-5 backdrop-blur">
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111] p-6">
-            <div className="flex items-center justify-between"><h2 className="text-xl font-black">تقييم الطلب</h2><button onClick={() => setRatingFor(null)}><X size={20} className="text-white/40" /></button></div>
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white p-6">
+            <div className="flex items-center justify-between"><h2 className="text-xl font-black">تقييم الطلب</h2><button onClick={() => setRatingFor(null)}><X size={20} className="text-[#8a9189]" /></button></div>
             <div className="mt-5 space-y-4">
-              <div><p className="mb-2 text-sm font-bold">تقييم المندوب</p><div className="flex gap-2">{[1, 2, 3, 4, 5].map((n) => (<button key={n} onClick={() => setDriverRating(n)} className={n <= driverRating ? 'text-[#e3fe00]' : 'text-white/20'}>★</button>))}</div></div>
-              <div><p className="mb-2 text-sm font-bold">تقييم المتجر</p><div className="flex gap-2">{[1, 2, 3, 4, 5].map((n) => (<button key={n} onClick={() => setMerchantRating(n)} className={n <= merchantRating ? 'text-[#e3fe00]' : 'text-white/20'}>★</button>))}</div></div>
+              <div><p className="mb-2 text-sm font-bold">تقييم المندوب</p><div className="flex gap-2">{[1, 2, 3, 4, 5].map((n) => (<button key={n} onClick={() => setDriverRating(n)} className={n <= driverRating ? 'text-[#667400]' : 'text-white/20'}>★</button>))}</div></div>
+              <div><p className="mb-2 text-sm font-bold">تقييم المتجر</p><div className="flex gap-2">{[1, 2, 3, 4, 5].map((n) => (<button key={n} onClick={() => setMerchantRating(n)} className={n <= merchantRating ? 'text-[#667400]' : 'text-white/20'}>★</button>))}</div></div>
               <Field label="تعليق (اختياري)" value={comment} onChange={setComment} placeholder="اكتب رأيك" />
               <button disabled={busy} onClick={submitRating} className="w-full rounded-xl bg-[#e3fe00] py-3 font-black text-black">{busy ? 'جارٍ الإرسال...' : 'إرسال التقييم'}</button>
             </div>
