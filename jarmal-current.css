@@ -172,3 +172,13 @@
 .jarmal-app .jarmal-product-card .font-black{font-size:15px}.jarmal-app .jarmal-product-card .line-clamp-2{font-size:11px}.jarmal-app .jarmal-product-card button:not([aria-label]){transition:.18s ease}.jarmal-app .jarmal-product-card button:not([aria-label]):hover{transform:translateY(-1px)}
 .jarmal-app .jarmal-product-card .bg-\[\#e3fe00\]{box-shadow:0 7px 16px rgba(110,125,0,.12)}
 @media(max-width:640px){.jarmal-app .jarmal-product-card .jarmal-product-art{height:155px}.jarmal-app .jarmal-product-card{border-radius:20px!important}}
+
+/* Marketplace storefront header */
+.jarmal-app .jarmal-storefront-head{position:relative;overflow:hidden;border:1px solid #e2e6df;border-radius:28px;background:#fff;box-shadow:0 14px 34px rgba(23,26,22,.07)}
+.jarmal-app .jarmal-storefront-head::before{content:'';position:absolute;inset:0 0 auto;height:76px;background:linear-gradient(135deg,#dfff00,#eef6bd);opacity:.8}
+.jarmal-app .jarmal-storefront-head-inner{position:relative;padding:58px 18px 18px;display:flex;align-items:flex-end;gap:14px}
+.jarmal-app .jarmal-storefront-avatar{width:76px;height:76px;flex:0 0 76px;display:grid;place-items:center;overflow:hidden;border:5px solid #fff;border-radius:24px;background:#f1f5df;color:#687500;box-shadow:0 8px 20px rgba(23,26,22,.12)}
+.jarmal-app .jarmal-storefront-avatar img{width:100%;height:100%;object-fit:cover}
+.jarmal-app .jarmal-storefront-meta{min-width:0;flex:1}.jarmal-app .jarmal-storefront-meta h2{margin:0;font-size:21px;font-weight:950;color:#171a16}.jarmal-app .jarmal-storefront-meta p{margin:5px 0 0;font-size:11px;color:#747b72;line-height:1.6}
+.jarmal-app .jarmal-storefront-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.jarmal-app .jarmal-storefront-badges span{padding:5px 8px;border-radius:999px;background:#f4f6f1;border:1px solid #e3e7df;color:#687168;font-size:10px;font-weight:800}.jarmal-app .jarmal-storefront-badges .open{background:#f1f7d6;border-color:#dfe8a5;color:#687500}
+@media(max-width:560px){.jarmal-app .jarmal-storefront-head-inner{padding-top:52px}.jarmal-app .jarmal-storefront-avatar{width:68px;height:68px;flex-basis:68px}.jarmal-app .jarmal-storefront-meta h2{font-size:18px}}
