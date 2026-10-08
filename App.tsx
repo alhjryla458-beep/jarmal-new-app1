@@ -1644,6 +1644,44 @@ function JarmalAssistant({
     ]);
   };
 
+  const askAi = async (value: string) => {
+    const history = messages
+      .slice(-8)
+      .map((item) => ({
+        role: item.from,
+        text: item.text
+      }));
+
+    const { data, error } = await supabase.functions.invoke('jarmal-ai', {
+      body: {
+        message: value,
+        role: 'customer',
+        page: active,
+        context: {
+          activeOrders: orders.slice(0, 5).map((order) => ({
+            status: order.status,
+            total_amount: order.total_amount,
+            payment_status: order.payment_status,
+            payment_method: order.payment_method
+          }))
+        },
+        history
+      }
+    });
+
+    if (error) throw error;
+
+    if (data?.reply) {
+      pushMessage('assistant', data.reply);
+      return;
+    }
+
+    pushMessage(
+      'assistant',
+      'أقدر أساعدك في وظائف جَرْمَل الحالية، لكن المحادثة الذكية العامة غير مفعلة على الخادم حتى الآن.'
+    );
+  };
+
   const handleCommand = async (raw: string) => {
     const value = raw.trim();
     if (!value || busy) return;
@@ -1689,34 +1727,33 @@ function JarmalAssistant({
         return;
       }
 
-      if (
-        normalized.includes('محفظ') ||
-        normalized.includes('دفع')
-      ) {
+      if (normalized.includes('محفظ') || normalized.includes('دفع')) {
         pushMessage('assistant', 'فتحت لك المحفظة. ستظهر لك طرق الدفع المتاحة فعليًا في جَرْمَل.');
         onNavigate('wallet');
         return;
       }
 
-      if (
-        normalized.includes('خدمات') ||
-        normalized.includes('خدمة')
-      ) {
+      if (normalized.includes('خدمات') || normalized.includes('خدمة')) {
         pushMessage('assistant', 'هذه صفحة الخدمات المتاحة في جَرْمَل.');
         onNavigate('services');
         return;
       }
 
-      const term = value
-        .replace(/ابحث عن|ابحث لي عن|أريد|اريد|من فضلك|لو سمحت|منتج|شيء|شيs*/gi, '')
+      const searchTerm = value
+        .replace(/ابحث عن|ابحث لي عن|أريد|اريد|من فضلك|لو سمحت|منتج|شيء/gi, '')
         .trim();
 
-      if (term.length >= 2) {
+      if (searchTerm.length >= 2 && (
+        normalized.includes('ابحث') ||
+        normalized.includes('منتج') ||
+        normalized.includes('اشتر') ||
+        normalized.includes('أريد')
+      )) {
         const { data, error } = await supabase
           .from('products')
           .select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost')
           .eq('is_available', true)
-          .ilike('name', `%${term}%`)
+          .ilike('name', `%${searchTerm}%`)
           .limit(6);
 
         if (error) throw error;
@@ -1725,18 +1762,20 @@ function JarmalAssistant({
         setResults(found);
 
         if (found.length > 0) {
-          pushMessage('assistant', `وجدت لك ${found.length} نتيجة حقيقية مطابقة لـ «${term}».`);
+          pushMessage('assistant', `وجدت لك ${found.length} نتيجة حقيقية مطابقة لـ «${searchTerm}».`);
         } else {
-          pushMessage('assistant', `لم أجد «${term}» ضمن المنتجات المتاحة حاليًا. يمكنك استخدام «اطلب منتج غير موجود» من صفحة المتجر.`);
+          pushMessage('assistant', `لم أجد «${searchTerm}» ضمن المنتجات المتاحة حاليًا. يمكنك استخدام «اطلب منتج غير موجود» من صفحة المتجر.`);
         }
         return;
       }
 
-      pushMessage('assistant', pageHint);
+      await askAi(value);
     } catch (error) {
       pushMessage(
         'assistant',
-        error instanceof Error ? 'تعذر تنفيذ الطلب الآن. حاول مرة أخرى.' : 'حدث خطأ غير متوقع.'
+        error instanceof Error
+          ? 'تعذر الوصول إلى رفيق جَرْمَل الذكي الآن. أستطيع الاستمرار في مساعدتك بالوظائف المتاحة داخل التطبيق.'
+          : 'حدث خطأ غير متوقع.'
       );
     } finally {
       setBusy(false);
