@@ -1352,7 +1352,7 @@ function SideNav({
         ]
       : role === 'driver'
         ? [
-            ['available', 'الطلبات القريبة', Navigation],
+            ['available', 'الطلبات الجاهزة للاستلام', Navigation],
             ['active', 'الطلب الحالي', Truck],
           ['notifications', 'الإشعارات', Bell],
             ['history', 'سجل التوصيلات', ClipboardList],
@@ -3161,7 +3161,7 @@ function DriverApp({ onLogout }: { onLogout: () => void }) {
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-black">الطلبات القريبة</h2>
+                  <h2 className="text-2xl font-black">الطلبات الجاهزة للاستلام</h2>
                   {profile?.verification_status !== 'approved' && (
                     <p className="mt-2 text-sm text-orange-600">حالة الحساب: {profile?.verification_status === 'pending' ? 'بانتظار اعتماد الإدارة' : profile?.verification_status === 'rejected' ? 'تم رفض الاعتماد' : 'تم إيقاف الاعتماد'}</p>
                   )}
