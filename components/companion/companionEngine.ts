@@ -2,7 +2,7 @@ export type CompanionRole = 'customer' | 'merchant' | 'driver' | 'admin';
 export type CompanionAnimation =
   | 'idle' | 'wave' | 'think' | 'search' | 'success' | 'error'
   | 'peek' | 'enterBottom' | 'enterSide' | 'jump' | 'climb'
-  | 'walk' | 'run' | 'sit' | 'point' | 'usePhone' | 'carryBox'
+  | 'walk' | 'run' | 'sit' | 'point' | 'usePhone' | 'carryBox' | 'apologize'
   | 'rideBike' | 'deliver' | 'celebrate' | 'exit';
 
 export type CompanionContext = {
@@ -44,19 +44,23 @@ export function decideCompanion(event: CompanionEvent, context: CompanionContext
   if (context.enabled === false) return { animation: 'idle', durationMs: 0, interactive: false };
   if (context.reducedMotion) {
     if (event.type === 'success') return { animation: 'success', message: event.message, durationMs: 350, interactive: true };
-    if (event.type === 'error') return { animation: 'error', message: event.message, durationMs: 350, interactive: true };
+    if (event.type === 'error') return { animation: 'apologize', message: event.message, durationMs: 350, interactive: true };
     return { animation: 'idle', message: pageMessages[context.page], durationMs: 250, interactive: true };
   }
 
   switch (event.type) {
     case 'open_assistant': return { animation: 'wave', message: pageMessages[context.page], durationMs: 900, interactive: true };
     case 'success': return { animation: 'celebrate', message: event.message, durationMs: 1300, interactive: true };
-    case 'error': return { animation: 'error', message: event.message, durationMs: 1000, interactive: true };
+    case 'error': return { animation: 'apologize', message: event.message, durationMs: 1000, interactive: true };
     case 'notification': return { animation: 'peek', message: event.message, durationMs: 900, interactive: true };
     case 'order_update': return { animation: context.hasActiveOrder ? 'deliver' : 'wave', durationMs: 1100, interactive: true };
     case 'page_enter':
       if (context.page === 'orders' && context.hasActiveOrder) return { animation: 'rideBike', message: 'طلبك في المتابعة، خلني أساعدك.', durationMs: 1200, interactive: true };
       if (context.page === 'home') return { animation: 'enterBottom', message: pageMessages.home, durationMs: 900, interactive: true };
+      if (context.page === 'services') return { animation: 'search', message: pageMessages.services, durationMs: 900, interactive: true };
+      if (context.page === 'wallet') return { animation: 'usePhone', message: pageMessages.wallet, durationMs: 900, interactive: true };
+      if (context.page === 'notifications') return { animation: 'peek', message: pageMessages.notifications, durationMs: 900, interactive: true };
+      if (context.page === 'settings') return { animation: 'think', message: pageMessages.settings, durationMs: 900, interactive: true };
       return { animation: 'enterSide', message: pageMessages[context.page], durationMs: 800, interactive: true };
   }
 }
