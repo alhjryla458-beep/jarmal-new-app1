@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import JarmalCompanion from './JarmalCompanion';
+import { JarmalCompanion } from './JarmalCompanion';
 
 export default function CompanionBridge() {
   const [visible, setVisible] = useState(false);
