@@ -3,7 +3,7 @@ import {
   ArrowLeft, ArrowRight, BarChart3, Bell, Bike, Boxes, Check, CheckCircle2,
   ClipboardList, FileText, Home, LogOut, MapPin,
   Menu, Navigation, Plus, Settings2, ShieldCheck,
-  ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap, Search, Send, ChevronLeft
+  ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap, Search, ChevronLeft
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
