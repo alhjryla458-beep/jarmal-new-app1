@@ -16,6 +16,103 @@ type Role = 'customer' | 'driver' | 'merchant';
 type Screen = 'welcome' | 'auth' | 'app';
 type AuthMode = 'login' | 'signup';
 
+const CURRENCY = 'ر.ي';
+
+const businessCategories = [
+  'بقالة', 'مطعم', 'بوفيه', 'سوبرماركت', 'صيدلية', 'خضار وفواكه', 'حلويات', 'ملابس', 'إلكترونيات'
+];
+
+type StoreRow = {
+  id: string;
+  name: string;
+  store_type: string;
+  address_description: string | null;
+  is_open: boolean;
+  rating: number | null;
+};
+type CategoryRow = { id: string; store_id: string; name: string; sort_order: number };
+type VariantRow = { id: string; product_id: string; variant_name: string; price: number; is_available: boolean };
+type ProductRow = {
+  id: string;
+  store_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  is_available: boolean;
+  category_id: string | null;
+  redemption_points_cost: number | null;
+};
+type OrderRow = {
+  id: string;
+  status: string;
+  total_amount: number;
+  delivery_fee: number;
+  created_at: string;
+  store_id: string | null;
+  order_type: string;
+  fulfillment_type: string;
+  points_earned: number;
+};
+type ServiceProviderRow = {
+  id: string;
+  service_type: string;
+  name: string;
+  account_number_length: number | null;
+  region: string | null;
+};
+type ServicePackageRow = { id: string; provider_id: string; name: string; face_value: number | null; price: number };
+type PaymentMethodRow = { id: string; name: string; code: string; account_number: string | null; instructions: string | null };
+type ClientWalletRow = { balance: number; points: number };
+type FullOrderRow = {
+  id: string;
+  status: string;
+  total_amount: number;
+  delivery_fee: number;
+  created_at: string;
+  store_id: string | null;
+  driver_id: string | null;
+  delivery_address: string | null;
+  notes: string | null;
+  courier_distance: number | null;
+  fulfillment_type: string;
+  payment_status: string;
+};
+type OrderItemRow = { id: string; order_id: string; product_id: string | null; custom_name: string | null; unit_price: number; quantity: number };
+type DriverProfileRow = {
+  is_available: boolean;
+  vehicle_type: string | null;
+  vehicle_plate_number: string | null;
+  rating: number | null;
+};
+type MyStoreRow = {
+  id: string;
+  name: string;
+  is_open: boolean;
+  rating: number | null;
+  commission_rate: number | null;
+};
+type MerchantProductRow = {
+  id: string;
+  store_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  is_available: boolean;
+};
+type CartLine = {
+  key: string;
+  product_id?: string;
+  variant_id?: string;
+  custom_name?: string;
+  custom_price?: number;
+  name: string;
+  price: number;
+  quantity: number;
+};
+
+
+
 const statusLabels: Record<string, string> = {
   pending: 'بانتظار موافقة المتجر',
   accepted: 'تم القبول',
