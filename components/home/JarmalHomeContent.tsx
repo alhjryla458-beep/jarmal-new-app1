@@ -27,8 +27,9 @@ function isWithinSchedule(row: { starts_at?: string | null; ends_at?: string | n
 }
 
 function HomeImage({ src, fallback }: { src?: string | null; fallback: React.ReactNode }) {
-  if (!src) return <div className="jarmal-home-content-fallback">{fallback}</div>;
-  return <img src={src} alt="" loading="lazy" className="jarmal-home-content-image" />;
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  if (!src || failedSrc === src) return <div className="jarmal-home-content-fallback">{fallback}</div>;
+  return <img src={src} alt="" loading="lazy" onError={() => setFailedSrc(src)} className="jarmal-home-content-image" />;
 }
 
 export function JarmalHomeContent({ onNavigate, onOpenAssistant, onOpenStore }: HomeContentProps) {
