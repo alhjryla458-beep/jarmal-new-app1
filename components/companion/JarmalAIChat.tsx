@@ -20,14 +20,6 @@ const suggestionsByRole: Record<Role, string[]> = {
   admin: ['ما الذي يحتاج مراجعة؟', 'اشرح لي هذا القسم', 'أحتاج مساعدة'],
 };
 
-function compactContext(value: unknown) {
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return '{}';
-  }
-}
-
 export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
