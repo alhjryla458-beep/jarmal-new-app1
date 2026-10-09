@@ -112,6 +112,10 @@ type DriverSettlementRow = {
   requested_at: string;
   processed_at: string | null;
 };
+type LeafletLayer = { addTo: (map: LeafletMap) => LeafletLayer; bindTooltip: (text: string, options?: { permanent?: boolean }) => LeafletLayer; setLatLng: (position: [number, number]) => LeafletLayer; remove: () => void };
+type LeafletMap = { setView: (center: [number, number], zoom: number) => LeafletMap; on: (event: 'click', handler: (event: { latlng: { lat: number; lng: number } }) => void) => LeafletMap; invalidateSize: () => void; remove: () => void; getZoom: () => number };
+type LeafletApi = { map: (element: HTMLElement, options: { zoomControl: boolean; scrollWheelZoom: boolean }) => LeafletMap; tileLayer: (url: string, options: { attribution: string; maxZoom: number }) => LeafletLayer; marker: (position: [number, number]) => LeafletLayer; circleMarker: (position: [number, number], options: { radius: number; weight: number; fillOpacity: number }) => LeafletLayer };
+
 
 
 const statusLabels: Record<string, string> = {
@@ -438,30 +442,6 @@ function Auth({
     return membership ? 'merchant' : fallbackRole;
   };
 
-  // Invitation verification uses the shared phone OTP flow below.
-  const sendInviteOtp = async () => {
-    setError('');
-    if (form.phone.length !== 9) {
-      setError('أدخل رقم هاتف يمني صحيح مكوناً من 9 أرقام');
-      return;
-    }
-
-    setBusy(true);
-    try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        phone: `+967${form.phone}`
-      });
-      if (otpError) throw otpError;
-      setOtpSent(true);
-      setOtpVerified(false);
-      setStep(2);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'تعذر إرسال رمز التحقق');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const verifyPhoneOtp = async () => {
     setError('');
     if (form.otp.length !== 6) {
@@ -514,7 +494,6 @@ function Auth({
     }
   };
 
-  // Kept as the secure RPC handler for invitation acceptance.
   const acceptInvitation = async () => {
     setError('');
     if (!otpVerified) {
@@ -969,6 +948,18 @@ function Auth({
                   <ArrowLeft size={18} />
                 </button>
               </div>
+            </div>
+          )}
+
+          {mode === 'signup' && inviteMode && step === 3 && (
+            <div className="space-y-4">
+              <div className="mb-2 text-center">
+                <h2 className="text-xl font-black">قبول دعوة المتجر</h2>
+                <p className="mt-1 text-sm text-white/40">تم التحقق من رقم هاتفك. أدخل رمز الدعوة المرسل لك من المتجر.</p>
+              </div>
+              <input required value={form.accessCode} onChange={(e) => update('accessCode', e.target.value.toUpperCase())} placeholder="رمز دعوة المتجر" className="w-full rounded-xl border border-[#e3fe00]/40 bg-black px-4 py-3.5 text-left font-bold tracking-widest text-[#e3fe00] outline-none placeholder:text-white/20 focus:border-[#e3fe00]" />
+              {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+              <button type="button" disabled={busy || form.accessCode.trim().length < 6} onClick={() => void acceptInvitation()} className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-50">{busy ? 'جارٍ قبول الدعوة...' : 'قبول الدعوة والدخول'}</button>
             </div>
           )}
 
@@ -1686,318 +1677,6 @@ function NotificationsView({ onOpenOrder }: { onOpenOrder?: () => void }) {
 }
 
 
-type AssistantMessage = {
-  id: string;
-  from: 'assistant' | 'user';
-  text: string;
-};
-
-function JarmalAssistant({
-  active,
-  orders,
-  onNavigate
-}: {
-  active: string;
-  orders: OrderRow[];
-  onNavigate: (screen: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [results, setResults] = useState<ProductRow[]>([]);
-  const [messages, setMessages] = useState<AssistantMessage[]>([
-    {
-      id: 'welcome',
-      from: 'assistant',
-      text: 'هلا بك 👋 أنا رفيق جَرْمَل. أقدر أبحث لك عن منتج أو أساعدك في معرفة حالة طلبك.'
-    }
-  ]);
-
-  useEffect(() => {
-    const openAssistant = () => setOpen(true);
-    window.addEventListener('jarmal-open-assistant', openAssistant);
-    return () => window.removeEventListener('jarmal-open-assistant', openAssistant);
-  }, []);
-
-  const pageHint =
-    active === 'orders'
-      ? 'خلني أشوف طلباتك الحالية.'
-      : active === 'services'
-        ? 'أقدر أساعدك في الوصول إلى الخدمات.'
-        : active === 'wallet'
-          ? 'أقدر أشرح لك خيارات المحفظة والدفع.'
-          : active === 'notifications'
-            ? 'خلني أساعدك في متابعة التنبيهات.'
-            : 'ماذا تريد أن تطلب اليوم؟';
-
-  const suggestions =
-    active === 'orders'
-      ? ['أين طلبي؟', 'عرض طلباتي', 'أحتاج مساعدة']
-      : active === 'services'
-        ? ['عرض الخدمات', 'أحتاج مساعدة']
-        : active === 'wallet'
-          ? ['عرض المحفظة', 'طرق الدفع', 'أحتاج مساعدة']
-          : ['ابحث عن منتج', 'أين طلبي؟', 'عرض المتاجر', 'أحتاج مساعدة'];
-
-  const pushMessage = (from: AssistantMessage['from'], text: string) => {
-    setMessages((current) => [
-      ...current.slice(-7),
-      { id: `${Date.now()}-${from}`, from, text }
-    ]);
-  };
-
-  const askAi = async (value: string) => {
-    const history = messages
-      .slice(-8)
-      .map((item) => ({
-        role: item.from,
-        text: item.text
-      }));
-
-    const { data, error } = await supabase.functions.invoke('jarmal-ai', {
-      body: {
-        message: value,
-        role: 'customer',
-        page: active,
-        context: {
-          activeOrders: orders.slice(0, 5).map((order) => ({
-            status: order.status,
-            total_amount: order.total_amount,
-            payment_status: order.payment_status,
-            payment_method: order.payment_method
-          }))
-        },
-        history
-      }
-    });
-
-    if (error) throw error;
-
-    if (data?.reply) {
-      pushMessage('assistant', data.reply);
-      return;
-    }
-
-    pushMessage(
-      'assistant',
-      'أقدر أساعدك في وظائف جَرْمَل الحالية، لكن المحادثة الذكية العامة غير مفعلة على الخادم حتى الآن.'
-    );
-  };
-
-  const handleCommand = async (raw: string) => {
-    const value = raw.trim();
-    if (!value || busy) return;
-
-    setInput('');
-    setResults([]);
-    pushMessage('user', value);
-    setBusy(true);
-
-    try {
-      const normalized = value.toLowerCase();
-
-      if (
-        normalized.includes('أين طلبي') ||
-        normalized.includes('اين طلبي') ||
-        normalized.includes('حالة طلب') ||
-        normalized.includes('طلبات')
-      ) {
-        const activeOrder = orders.find(
-          (order) => !['delivered', 'cancelled'].includes(order.status)
-        );
-
-        if (!activeOrder) {
-          pushMessage('assistant', 'لا يوجد لديك طلب نشط حاليًا. أقدر أساعدك في اختيار متجر أو منتج.');
-          return;
-        }
-
-        pushMessage(
-          'assistant',
-          `طلبك الحالي حالته: ${statusLabels[activeOrder.status] || activeOrder.status}. إجمالي الطلب ${Number(activeOrder.total_amount || 0).toLocaleString('ar-YE')} ${CURRENCY}.`
-        );
-        onNavigate('orders');
-        return;
-      }
-
-      if (
-        normalized.includes('متجر') ||
-        normalized.includes('مطعم') ||
-        normalized.includes('صيدلية')
-      ) {
-        pushMessage('assistant', 'أكيد. فتحت لك قائمة المتاجر، واختر المتجر الذي يناسبك.');
-        onNavigate('home');
-        return;
-      }
-
-      if (normalized.includes('محفظ') || normalized.includes('دفع')) {
-        pushMessage('assistant', 'فتحت لك المحفظة. ستظهر لك طرق الدفع المتاحة فعليًا في جَرْمَل.');
-        onNavigate('wallet');
-        return;
-      }
-
-      if (normalized.includes('خدمات') || normalized.includes('خدمة')) {
-        pushMessage('assistant', 'هذه صفحة الخدمات المتاحة في جَرْمَل.');
-        onNavigate('services');
-        return;
-      }
-
-      const searchTerm = value
-        .replace(/ابحث عن|ابحث لي عن|أريد|اريد|من فضلك|لو سمحت|منتج|شيء/gi, '')
-        .trim();
-
-      if (searchTerm.length >= 2 && (
-        normalized.includes('ابحث') ||
-        normalized.includes('منتج') ||
-        normalized.includes('اشتر') ||
-        normalized.includes('أريد')
-      )) {
-        const { data, error } = await supabase
-          .from('products')
-          .select('id, store_id, name, description, price, is_available, category_id, redemption_points_cost')
-          .eq('is_available', true)
-          .ilike('name', `%${searchTerm}%`)
-          .limit(6);
-
-        if (error) throw error;
-
-        const found = (data || []) as ProductRow[];
-        setResults(found);
-
-        if (found.length > 0) {
-          pushMessage('assistant', `وجدت لك ${found.length} نتيجة حقيقية مطابقة لـ «${searchTerm}».`);
-        } else {
-          pushMessage('assistant', `لم أجد «${searchTerm}» ضمن المنتجات المتاحة حاليًا. يمكنك استخدام «اطلب منتج غير موجود» من صفحة المتجر.`);
-        }
-        return;
-      }
-
-      await askAi(value);
-    } catch (error) {
-      pushMessage(
-        'assistant',
-        error instanceof Error
-          ? 'تعذر الوصول إلى رفيق جَرْمَل الذكي الآن. أستطيع الاستمرار في مساعدتك بالوظائف المتاحة داخل التطبيق.'
-          : 'حدث خطأ غير متوقع.'
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <>
-      {open && (
-        <div className="jarmal-assistant-overlay" onClick={() => setOpen(false)} aria-hidden="true" />
-      )}
-
-      {open && (
-        <section
-          className="jarmal-assistant-panel"
-          dir="rtl"
-          role="dialog"
-          aria-label="رفيق جَرْمَل"
-        >
-          <div className="jarmal-assistant-head">
-            <div className="jarmal-assistant-avatar" aria-hidden="true">
-              <Sparkles size={22} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h2>رفيق جَرْمَل</h2>
-                <span>متاح</span>
-              </div>
-              <p>{pageHint}</p>
-            </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="jarmal-assistant-close"
-              aria-label="إغلاق المساعد"
-            >
-              <X size={19} />
-            </button>
-          </div>
-
-          <div className="jarmal-assistant-messages">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`jarmal-assistant-message ${message.from === 'user' ? 'is-user' : 'is-assistant'}`}
-              >
-                {message.text}
-              </div>
-            ))}
-
-            {results.length > 0 && (
-              <div className="jarmal-assistant-results">
-                {results.map((product) => (
-                  <div key={product.id} className="jarmal-assistant-result">
-                    <div>
-                      <strong>{product.name}</strong>
-                      <small>{product.description || 'منتج متاح في جَرْمَل'}</small>
-                    </div>
-                    <b>{Number(product.price || 0).toLocaleString('ar-YE')} {CURRENCY}</b>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {busy && (
-              <div className="jarmal-assistant-typing">
-                <span />
-                <span />
-                <span />
-                أبحث لك...
-              </div>
-            )}
-          </div>
-
-          <div className="jarmal-assistant-suggestions">
-            {suggestions.map((suggestion) => (
-              <button key={suggestion} onClick={() => void handleCommand(suggestion)}>
-                {suggestion}
-                <ChevronLeft size={14} />
-              </button>
-            ))}
-          </div>
-
-          <form
-            className="jarmal-assistant-input"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handleCommand(input);
-            }}
-          >
-            <Search size={18} />
-            <input
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="اكتب ما تحتاجه..."
-              aria-label="اكتب ما تحتاجه"
-            />
-            <button type="submit" disabled={!input.trim() || busy} aria-label="إرسال">
-              <Send size={17} />
-            </button>
-          </form>
-        </section>
-      )}
-
-      <button
-        className={`jarmal-assistant-launcher ${open ? 'is-open' : ''}`}
-        onClick={() => setOpen((value) => !value)}
-        aria-label="فتح رفيق جَرْمَل"
-      >
-        <span className="jarmal-assistant-launcher-icon">
-          <Sparkles size={21} />
-        </span>
-        <span className="jarmal-assistant-launcher-copy">
-          <strong>رفيق جَرْمَل</strong>
-          <small>كيف أساعدك؟</small>
-        </span>
-      </button>
-    </>
-  );
-}
-
 function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; companionTarget?: string | null }) {
   const [active, setActive] = useState('home');
   const [storeCategory, setStoreCategory] = useState<string>('الكل');
@@ -2034,7 +1713,7 @@ function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; comp
     supabase.rpc('get_customer_home_popular_products', { p_limit: 6 }).then(({ data }) => { if (data) setPopularProducts(data as ProductRow[]); });
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
     supabase.from('product_variants').select('id, product_id, variant_name, price, is_available').then(({ data }) => { if (data) setVariantsReal(data as VariantRow[]); });
-    supabase.from('favorites').select('product_id').eq('customer_id', user.id).then(({ data }) => { if (data) setFavorites(data.map((f: any) => f.product_id)); });
+    supabase.from('favorites').select('product_id').eq('customer_id', user.id).then(({ data }) => { if (data) setFavorites(data.map((f: { product_id: string }) => f.product_id)); });
     supabase.from('orders').select('id, status, total_amount, delivery_fee, created_at, store_id, driver_id, delivery_address, delivery_latitude, delivery_longitude, order_type, fulfillment_type, points_earned, payment_status, payment_method').eq('customer_id', user.id).order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrdersReal(data as OrderRow[]); });
     supabase.from('client_wallets').select('balance, points').eq('user_id', user.id).maybeSingle().then(({ data }) => { if (data) setWallet(data as ClientWalletRow); });
     supabase.from('customer_invoices').select('id, invoice_number, customer_id, order_id, store_id, issued_at, billing_month, subtotal, delivery_fee, total_amount, payment_method, payment_reference, payment_status, items').eq('customer_id', user.id).order('issued_at', { ascending: false }).limit(200).then(({ data }) => { if (data) setInvoicesReal(data as InvoiceRow[]); });
@@ -2099,7 +1778,7 @@ function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; comp
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase.from('favorites').select('product_id').eq('customer_id', user.id);
-    if (data) setFavorites(data.map((f: any) => f.product_id));
+    if (data) setFavorites(data.map((f: { product_id: string }) => f.product_id));
   };
 
   const addToCart = (storeId: string, line: Omit<CartLine, 'key' | 'quantity'>) => {
@@ -2500,9 +2179,9 @@ function LocationMap({
   title?: string;
 }) {
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
-  const driverMarkerRef = useRef<any>(null);
+  const mapInstanceRef = useRef<LeafletMap | null>(null);
+  const markerRef = useRef<LeafletLayer | null>(null);
+  const driverMarkerRef = useRef<LeafletLayer | null>(null);
   const [locating, setLocating] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState('');
@@ -2517,7 +2196,7 @@ function LocationMap({
         link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
         document.head.appendChild(link);
       }
-      if (!(window as any).L) {
+      if (!(window as Window & { L?: LeafletApi }).L) {
         await new Promise<void>((resolve, reject) => {
           const existing = document.getElementById('jarmal-leaflet-js');
           if (existing) {
@@ -2534,8 +2213,8 @@ function LocationMap({
           document.body.appendChild(script);
         });
       }
-      if (cancelled || !mapRef.current || !(window as any).L) return;
-      const L = (window as any).L;
+      if (cancelled || !mapRef.current || !(window as Window & { L?: LeafletApi }).L) return;
+      const L = (window as Window & { L?: LeafletApi }).L;
       const center: [number, number] = latitude !== null && longitude !== null ? [latitude, longitude] : [0, 0];
       const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false }).setView(center, latitude !== null && longitude !== null ? 16 : 2);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -2554,7 +2233,7 @@ function LocationMap({
         }).addTo(map).bindTooltip('موقع المندوب', { permanent: false });
       }
       if (interactive && onChange) {
-        map.on('click', (event: any) => {
+        map.on('click', (event) => {
           const lat = Number(event.latlng.lat.toFixed(7));
           const lng = Number(event.latlng.lng.toFixed(7));
           if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
@@ -2581,7 +2260,7 @@ function LocationMap({
 
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady) return;
-    const L = (window as any).L;
+    const L = (window as Window & { L?: LeafletApi }).L;
     if (driverLatitude === null || driverLongitude === null) {
       if (driverMarkerRef.current) {
         driverMarkerRef.current.remove();
@@ -2602,8 +2281,10 @@ function LocationMap({
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady || latitude === null || longitude === null) return;
     const map = mapInstanceRef.current;
+    const L = (window as Window & { L?: LeafletApi }).L;
+    if (!L) return;
     if (markerRef.current) markerRef.current.setLatLng([latitude, longitude]);
-    else markerRef.current = (window as any).L.marker([latitude, longitude]).addTo(map);
+    else markerRef.current = L.marker([latitude, longitude]).addTo(map);
     map.setView([latitude, longitude], Math.max(map.getZoom(), 16));
   }, [latitude, longitude, mapReady]);
 
@@ -3595,7 +3276,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
   const [myProducts, setMyProducts] = useState<MerchantProductRow[]>([]);
   const [wallet, setWallet] = useState<{ balance: number; reserved_balance: number }>({ balance: 0, reserved_balance: 0 });
   const [merchantPaymentMethods, setMerchantPaymentMethods] = useState<PaymentMethodRow[]>([]);
-  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Array<{ id: string; amount: number | string; payment_method_code: string | null; created_at: string; status: string }>>([]);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawMethod, setWithdrawMethod] = useState('');
   const [withdrawAccount, setWithdrawAccount] = useState('');
