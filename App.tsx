@@ -2200,7 +2200,15 @@ function LocationMap({
         await new Promise<void>((resolve, reject) => {
           const existing = document.getElementById('jarmal-leaflet-js');
           if (existing) {
-            existing.addEventListener('load', () => resolve(), { once: true });
+            if ((window as Window & { L?: LeafletApi }).L) {
+              resolve();
+              return;
+            }
+            const onLoad = () => {
+              if ((window as Window & { L?: LeafletApi }).L) resolve();
+              else reject(new Error('تم تحميل ملف الخريطة لكن المكتبة غير متاحة'));
+            };
+            existing.addEventListener('load', onLoad, { once: true });
             existing.addEventListener('error', () => reject(new Error('تعذر تحميل الخريطة')), { once: true });
             return;
           }
