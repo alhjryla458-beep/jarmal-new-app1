@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeft, BarChart3, Check, ClipboardList, Landmark, Lock,
-  Package, ShieldCheck, Truck, UserRound, Users, WalletCards, X, Zap, Settings2, Save, Eye, EyeOff,
+  Package, ShieldCheck, Truck, UserRound, Users, WalletCards, X, Zap, Settings2, Save,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
@@ -167,7 +167,7 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`rounded-full px-3 py-1 text-[10px] font-black ${map[status] || 'bg-white/10 text-white/50'}`}>{labels[status] || status}</span>;
 }
 
-export default function AdminApp({ session, onLogout }: { session: Session; onLogout: () => void }) {
+export default function AdminApp({ onLogout }: { session: Session; onLogout: () => void }) {
   const [tab, setTab] = useState<AdminTab>('stats');
   const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'active' | 'pending' | 'accepted' | 'preparing' | 'ready_for_pickup' | 'picked_up' | 'on_the_way' | 'delivered' | 'cancelled'>('all');
   const [loading, setLoading] = useState(true);
