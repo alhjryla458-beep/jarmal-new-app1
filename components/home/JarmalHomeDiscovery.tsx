@@ -17,7 +17,6 @@ type DiscoveryProps = {
 export function JarmalHomeDiscovery({
   providersCount,
   packagesCount,
-  products,
   popularProducts: popularProductsProp,
   stores,
   onNavigate,
