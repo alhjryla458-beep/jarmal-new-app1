@@ -3664,7 +3664,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
             </div>
           )}
 
-          {active === 'wallet' && (
+          {active === 'wallet' && isOwner && (
             <section className="max-w-3xl">
               <p className="text-sm text-[#747b72]">الرصيد وطلبات التحويل إلى محفظتك المحلية</p>
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
