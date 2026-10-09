@@ -2910,7 +2910,7 @@ function ServicesView({ providers, packages, paymentMethods, onRefresh }: { prov
   const providerList = providers.filter((p) => p.service_type === tab || (tab === 'bill_payment' && p.service_type !== 'mobile_recharge'));
   const providerPackages = packages.filter((p) => p.provider_id === providerId);
   const selectedProvider = providers.find((p) => p.id === providerId);
-  const electronicMethods = paymentMethods.filter((m) => m.code !== 'cash');
+  const electronicMethods = safePaymentMethods.filter((m) => m.code !== 'cash');
 
   const submit = async () => {
     setError(''); setBusy(true);
@@ -2962,7 +2962,9 @@ function ServicesView({ providers, packages, paymentMethods, onRefresh }: { prov
   );
 }
 
-function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: ClientWalletRow; paymentMethods: PaymentMethodRow[]; onRefresh: () => void }) {
+function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: ClientWalletRow | null; paymentMethods: PaymentMethodRow[] | null; onRefresh: () => void }) {
+  const safeWallet = wallet && typeof wallet === 'object' ? wallet : { balance: 0, points: 0 };
+  const safePaymentMethods = Array.isArray(paymentMethods) ? paymentMethods : [];
   const [show, setShow] = useState(false);
   const [amount, setAmount] = useState('');
   const [methodCode, setMethodCode] = useState('');
@@ -2987,12 +2989,12 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
       <div className="mt-7 grid gap-4 sm:grid-cols-2">
         <div className="jarmal-balance-card rounded-3xl bg-[#e3fe00] p-7 text-black">
           <span className="text-sm font-bold text-black/60">الرصيد المتاح</span>
-          <p className="mt-4 text-4xl font-black">{Number(wallet.balance || 0).toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
+          <p className="mt-4 text-4xl font-black">{Number(safeWallet.balance || 0).toLocaleString('ar-YE')} <span className="text-lg">{CURRENCY}</span></p>
           <button onClick={() => setShow(true)} className="mt-6 rounded-xl bg-black px-5 py-3 text-sm font-black text-white">شحن المحفظة</button>
         </div>
         <div className="rounded-3xl border border-white/10 bg-[#0d0d0d] p-7">
           <span className="text-sm font-bold text-white/50">نقاطك</span>
-          <p className="mt-4 text-4xl font-black text-[#e3fe00]">{Number(wallet.points || 0).toLocaleString('ar-YE')}</p>
+          <p className="mt-4 text-4xl font-black text-[#e3fe00]">{Number(safeWallet.points || 0).toLocaleString('ar-YE')}</p>
           <p className="mt-2 text-xs text-white/40">تُستبدل بخصومات على منتجات مختارة</p>
         </div>
       </div>
@@ -3008,8 +3010,8 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
                   {electronicMethods.map((m) => (<option key={m.id} value={m.code}>{m.name}</option>))}
                 </select>
               </div>
-              {paymentMethods.find((m) => m.code === methodCode)?.instructions && <p className="text-xs text-white/40">{paymentMethods.find((m) => m.code === methodCode)?.instructions}</p>}
-              {methodCode && !paymentMethods.find((m) => m.code === methodCode)?.auto_verify_enabled && <Field label="رقم مرجع التحويل" value={reference} onChange={setReference} placeholder="رقم العملية / إثبات التحويل" />}
+              {safePaymentMethods.find((m) => m.code === methodCode)?.instructions && <p className="text-xs text-white/40">{safePaymentMethods.find((m) => m.code === methodCode)?.instructions}</p>}
+              {methodCode && !safePaymentMethods.find((m) => m.code === methodCode)?.auto_verify_enabled && <Field label="رقم مرجع التحويل" value={reference} onChange={setReference} placeholder="رقم العملية / إثبات التحويل" />}
               {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
               <button disabled={busy || !amount || !methodCode} onClick={submit} className="w-full rounded-xl bg-[#e3fe00] py-4 font-black text-black disabled:opacity-50">{busy ? 'جارٍ الإرسال...' : 'إرسال طلب الشحن'}</button>
             </div>
