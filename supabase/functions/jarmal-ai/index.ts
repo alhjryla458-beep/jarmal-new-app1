@@ -6,6 +6,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+type ResponseContentPart = { text?: string };
+type ResponseOutputItem = { content?: ResponseContentPart[] };
+type OpenAIResponse = { output_text?: unknown; output?: ResponseOutputItem[] };
+
 type RequestBody = {
   message?: string;
   role?: "customer" | "driver" | "merchant" | "admin";
@@ -111,7 +115,7 @@ Deno.serve(async (req) => {
     return json({ configured: true, error: "تعذر الوصول إلى خدمة الذكاء الاصطناعي الآن" }, 502);
   }
 
-  const result = await response.json();
+  const result = await response.json() as OpenAIResponse;
   const reply = typeof result.output_text === "string"
     ? result.output_text.trim()
     : Array.isArray(result.output)
