@@ -1,4 +1,4 @@
-import { Component, useEffect, useRef, useState } from 'react';
+import { Component, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, BarChart3, Bell, Bike, Boxes, Check, CheckCircle2,
   ClipboardList, FileText, Home, LogOut, MapPin,
@@ -1147,7 +1147,7 @@ function StoreTeamView({ storeId }: { storeId: string }) {
     warehouse_employee: 'موظف المخزون'
   };
 
-  const loadTeam = async () => {
+  const loadTeam = useCallback(async () => {
     const { data: memberRows } = await supabase
       .from('store_members')
       .select('id, user_id, member_role, is_active')
@@ -1173,9 +1173,9 @@ function StoreTeamView({ storeId }: { storeId: string }) {
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
     setInvitations((inviteRows as StoreInvitationRow[] | null) || []);
-  };
+  }, [storeId]);
 
-  useEffect(() => { void loadTeam(); }, [storeId]);
+  useEffect(() => { void loadTeam(); }, [loadTeam]);
 
   const createInvitation = async () => {
     setError('');
@@ -1306,7 +1306,7 @@ function StoreAuditLogView({ storeId }: { storeId: string }) {
     staff_member_reactivated: 'إعادة تفعيل موظف'
   };
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
       .from('store_audit_logs')
@@ -1316,9 +1316,9 @@ function StoreAuditLogView({ storeId }: { storeId: string }) {
       .limit(50);
     setLogs((data as StoreAuditRow[] | null) || []);
     setLoading(false);
-  };
+  }, [storeId]);
 
-  useEffect(() => { void loadLogs(); }, [storeId]);
+  useEffect(() => { void loadLogs(); }, [loadLogs]);
 
   return (
     <section className="max-w-5xl">
@@ -1573,7 +1573,7 @@ function NotificationsView({ onOpenOrder }: { onOpenOrder?: () => void }) {
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [busy, setBusy] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setItems([]);
@@ -1588,13 +1588,13 @@ function NotificationsView({ onOpenOrder }: { onOpenOrder?: () => void }) {
       .limit(50);
 
     if (data) setItems(data as NotificationRow[]);
-  };
+  }, []);
 
   useEffect(() => {
     void load();
     const timer = window.setInterval(() => { void load(); }, 30000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [load]);
 
   const markRead = async (id: string) => {
     const { data: { user } } = await supabase.auth.getUser();
