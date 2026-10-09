@@ -2971,7 +2971,7 @@ function ClientWalletView({ wallet, paymentMethods, onRefresh }: { wallet: Clien
   const [reference, setReference] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const electronicMethods = paymentMethods.filter((m) => m.code !== 'cash');
+  const electronicMethods = safePaymentMethods.filter((m) => m.code !== 'cash');
 
   const submit = async () => {
     setError(''); setBusy(true);
