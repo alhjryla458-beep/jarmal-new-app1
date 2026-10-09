@@ -1,9 +1,9 @@
 import { Component, useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, BarChart3, Bell, Bike, Boxes, Check, CheckCircle2,
-  ClipboardList, Clock3, FileText, Home, ListChecks, LogOut, MapPin,
-  Menu, Minus, Navigation, Package, Phone, Plus, Settings2, ShieldCheck,
-  ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap, MessageCircle, Search, Send, ChevronLeft
+  ClipboardList, FileText, Home, LogOut, MapPin,
+  Menu, Navigation, Plus, Settings2, ShieldCheck,
+  ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap, Search, Send, ChevronLeft
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
@@ -100,7 +100,7 @@ const statusLabels: Record<string, string> = {
   cancelled: 'ملغي'
 };
 
-function Logo({ dark = false, size = 'sm' }: { dark?: boolean; size?: 'sm' | 'lg' }) {
+function Logo({ size = 'sm' }: { dark?: boolean; size?: 'sm' | 'lg' }) {
   return (
     <img
       src="/jarmal-logo-full.svg"
@@ -412,6 +412,7 @@ function Auth({
     return membership ? 'merchant' : fallbackRole;
   };
 
+  // Invitation verification uses the shared phone OTP flow below.
   const sendInviteOtp = async () => {
     setError('');
     if (form.phone.length !== 9) {
@@ -487,6 +488,7 @@ function Auth({
     }
   };
 
+  // Kept as the secure RPC handler for invitation acceptance.
   const acceptInvitation = async () => {
     setError('');
     if (!otpVerified) {
@@ -3104,7 +3106,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
   const [profile, setProfile] = useState<DriverProfileRow | null>(null);
   const [wallet, setWallet] = useState<{ balance: number; reserved_balance: number }>({ balance: 0, reserved_balance: 0 });
   const [driverPaymentMethods, setDriverPaymentMethods] = useState<PaymentMethodRow[]>([]);
-  const [driverWithdrawals, setDriverWithdrawals] = useState<any[]>([]);
+  const [driverWithdrawals, setDriverWithdrawals] = useState<Array<Record<string, unknown>>>([]);
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [withdrawalMethod, setWithdrawalMethod] = useState('');
   const [withdrawalAccount, setWithdrawalAccount] = useState('');
@@ -3116,11 +3118,11 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
   const [topupReference, setTopupReference] = useState('');
   const [topupBusy, setTopupBusy] = useState(false);
   const [topupError, setTopupError] = useState('');
-  const [driverWalletTransactions, setDriverWalletTransactions] = useState<any[]>([]);
+  const [driverWalletTransactions, setDriverWalletTransactions] = useState<Array<Record<string, unknown>>>([]);
   const [available, setAvailable] = useState<FullOrderRow[]>([]);
   const [activeOrder, setActiveOrder] = useState<FullOrderRow | null>(null);
   const [history, setHistory] = useState<FullOrderRow[]>([]);
-  const [driverSettlements, setDriverSettlements] = useState<any[]>([]);
+  const [driverSettlements, setDriverSettlements] = useState<Array<Record<string, unknown>>>([]);
   const [driverCashOutstanding, setDriverCashOutstanding] = useState(0);
   const [settlementAmount, setSettlementAmount] = useState('');
   const [settlementNote, setSettlementNote] = useState('');
@@ -3839,7 +3841,6 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                 {myProducts.map((product) => {
                   const inv = inventoryRows.find((row) => row.product_id === product.id && row.variant_id === null);
                   const available = (inv?.quantity_on_hand ?? 0) - (inv?.quantity_reserved ?? 0);
-                  const low = available <= (inv?.reorder_level ?? 0) && available > 0;
                   return (
                     <div key={product.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5">
                       <div className="flex items-center justify-between gap-3">
@@ -4021,7 +4022,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
 function AppContent() {
   const [screen, setScreen] = useState<Screen>('welcome');
   const [role, setRole] = useState<Role>('customer');
-  const [session, setSession] = useState<Session | null>(null);
+  const [, setSession] = useState<Session | null>(null);
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
