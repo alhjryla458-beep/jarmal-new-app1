@@ -86,6 +86,32 @@ type InventoryMovementRow = {
   id: string; inventory_id: string; product_id: string; variant_id: string | null; movement_type: string;
   quantity: number; quantity_before: number; quantity_after: number; reason: string | null; created_at: string;
 };
+type DriverWalletTransactionRow = {
+  id: string | number;
+  transaction_type: string;
+  amount: number | string | null;
+  payment_method: string | null;
+  transaction_status: string | null;
+};
+type DriverWithdrawalRow = {
+  id: string;
+  amount: number | string | null;
+  payment_method_code: string | null;
+  account_number: string | null;
+  status: string;
+  note: string | null;
+  admin_note: string | null;
+  created_at: string;
+  processed_at: string | null;
+};
+type DriverSettlementRow = {
+  id: string;
+  amount: number | string | null;
+  status: string;
+  note: string | null;
+  requested_at: string;
+  processed_at: string | null;
+};
 
 
 const statusLabels: Record<string, string> = {
@@ -3106,7 +3132,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
   const [profile, setProfile] = useState<DriverProfileRow | null>(null);
   const [wallet, setWallet] = useState<{ balance: number; reserved_balance: number }>({ balance: 0, reserved_balance: 0 });
   const [driverPaymentMethods, setDriverPaymentMethods] = useState<PaymentMethodRow[]>([]);
-  const [driverWithdrawals, setDriverWithdrawals] = useState<Array<Record<string, unknown>>>([]);
+  const [driverWithdrawals, setDriverWithdrawals] = useState<DriverWithdrawalRow[]>([]);
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [withdrawalMethod, setWithdrawalMethod] = useState('');
   const [withdrawalAccount, setWithdrawalAccount] = useState('');
@@ -3118,11 +3144,11 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
   const [topupReference, setTopupReference] = useState('');
   const [topupBusy, setTopupBusy] = useState(false);
   const [topupError, setTopupError] = useState('');
-  const [driverWalletTransactions, setDriverWalletTransactions] = useState<Array<Record<string, unknown>>>([]);
+  const [driverWalletTransactions, setDriverWalletTransactions] = useState<DriverWalletTransactionRow[]>([]);
   const [available, setAvailable] = useState<FullOrderRow[]>([]);
   const [activeOrder, setActiveOrder] = useState<FullOrderRow | null>(null);
   const [history, setHistory] = useState<FullOrderRow[]>([]);
-  const [driverSettlements, setDriverSettlements] = useState<Array<Record<string, unknown>>>([]);
+  const [driverSettlements, setDriverSettlements] = useState<DriverSettlementRow[]>([]);
   const [driverCashOutstanding, setDriverCashOutstanding] = useState(0);
   const [settlementAmount, setSettlementAmount] = useState('');
   const [settlementNote, setSettlementNote] = useState('');
