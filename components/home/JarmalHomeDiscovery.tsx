@@ -98,7 +98,7 @@ export function JarmalHomeDiscovery({
                 <div className="min-w-0">
                   <strong>{product.name}</strong>
                   <small>{product.description || 'منتج متاح من متجر معتمد'}</small>
-                  <b>{product.price.toLocaleString('ar-YE')} ر.ي</b>
+                  <b>{Number(product.price || 0).toLocaleString('ar-YE')} ر.ي</b>
                 </div>
                 <ChevronLeft size={17} />
               </button>
