@@ -8,7 +8,7 @@ const corsHeaders = {
 
 type ResponseContentPart = { text?: string };
 type ResponseOutputItem = { content?: ResponseContentPart[] };
-type OpenAIResponse = { output_text?: unknown; output?: ResponseOutputItem[] };
+type OpenAIResponse = { output_text?: string; output?: ResponseOutputItem[] };
 
 type RequestBody = {
   message?: string;
@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
   const reply = typeof result.output_text === "string"
     ? result.output_text.trim()
     : Array.isArray(result.output)
-      ? result.output.flatMap((item: any) => item?.content || []).map((item: any) => item?.text || "").filter(Boolean).join("\n").trim()
+      ? result.output.flatMap((item) => item.content || []).map((item) => item.text || "").filter(Boolean).join("\n").trim()
       : "";
 
   if (!reply) return json({ configured: true, error: "لم تصل إجابة صالحة من خدمة الذكاء الاصطناعي" }, 502);
