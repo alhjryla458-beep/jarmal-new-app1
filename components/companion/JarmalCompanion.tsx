@@ -24,7 +24,10 @@ export function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssi
   ) ?? false;
   const runtimeContext = useMemo(() => ({ ...context, reducedMotion }), [context, reducedMotion]);
 
-  useEffect(() => companionController.subscribe(setMotion), []);
+  useEffect(() => {
+    const unsubscribe = companionController.subscribe(setMotion);
+    return () => { unsubscribe(); };
+  }, []);
 
   useEffect(() => {
     const listeners: Array<[string, EventListener]> = [];
