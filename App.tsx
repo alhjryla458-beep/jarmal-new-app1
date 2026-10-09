@@ -2068,7 +2068,9 @@ function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; comp
 
   const toggleFavorite = async (productId: string) => {
     await supabase.rpc('toggle_favorite', { p_product_id: productId });
-    const { data } = await supabase.from('favorites').select('product_id').eq('customer_id', userId);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('favorites').select('product_id').eq('customer_id', user.id);
     if (data) setFavorites(data.map((f: any) => f.product_id));
   };
 
@@ -2982,7 +2984,7 @@ function ServicesView({ providers, packages, paymentMethods, onRefresh }: { prov
   const providerList = providers.filter((p) => p.service_type === tab || (tab === 'bill_payment' && p.service_type !== 'mobile_recharge'));
   const providerPackages = packages.filter((p) => p.provider_id === providerId);
   const selectedProvider = providers.find((p) => p.id === providerId);
-  const electronicMethods = safePaymentMethods.filter((m) => m.code !== 'cash');
+  const electronicMethods = (Array.isArray(paymentMethods) ? paymentMethods : []).filter((m) => m.code !== 'cash');
 
   const submit = async () => {
     setError(''); setBusy(true);
@@ -3127,7 +3129,10 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const loadAll = () => {
+  const loadAll = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    if (!userId) return;
     supabase.from('driver_profiles').select('is_available, vehicle_type, vehicle_plate_number, rating, verification_status').eq('id', userId).maybeSingle().then(({ data }) => { if (data) setProfile(data as DriverProfileRow); });
     supabase.from('driver_wallets').select('balance, reserved_balance').eq('user_id', userId).maybeSingle().then(({ data }) => { if (data) setWallet(data as { balance: number; reserved_balance: number }); });
     supabase.from('payment_methods').select('id, name, code, account_number, instructions, checkout_url, deep_link, verification_mode, auto_verify_enabled').eq('is_active', true).neq('code', 'cash').then(({ data }) => {
