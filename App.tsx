@@ -31,7 +31,7 @@ type VariantRow = { id: string; product_id: string; variant_name: string; price:
 type ProductRow = {
   id: string; store_id: string; name: string; description: string | null; price: number;
   is_available: boolean; category_id: string | null; redemption_points_cost: number | null;
-  image_url?: string | null; payment_options?: string[] | null;
+  image_url: string | null; payment_options?: string | null;
 };
 type OrderRow = {
   id: string; status: string; total_amount: number; delivery_fee: number; created_at: string;
@@ -50,7 +50,7 @@ type FullOrderRow = {
   id: string; status: string; total_amount: number; delivery_fee: number; created_at: string;
   store_id: string | null; driver_id: string | null; delivery_address: string | null; notes: string | null;
   courier_distance: number | null; fulfillment_type: string; payment_status: string;
-  delivery_latitude?: number | null; delivery_longitude?: number | null;
+  delivery_latitude: number | null; delivery_longitude: number | null;
 };
 type OrderItemRow = { id: string; order_id: string; product_id: string | null; custom_name: string | null; unit_price: number; quantity: number };
 type DriverProfileRow = {
@@ -64,7 +64,7 @@ type MyStoreRow = {
 type MerchantProductRow = { id: string; store_id: string; name: string; description: string | null; price: number; image_url: string | null; is_available: boolean };
 type CartLine = {
   key: string; product_id?: string; variant_id?: string; custom_name?: string; custom_price?: number;
-  name: string; price: number; quantity: number; payment_options?: string[] | null;
+  name: string; price: number; quantity: number; payment_options?: string | null;
 };
 type StoreMemberContext = { store_id: string; member_role: 'owner' | 'manager' | 'orders_employee' | 'warehouse_employee' };
 type StoreTeamMemberRow = {
@@ -76,11 +76,11 @@ type StoreAuditRow = { id: string; action: string; entity_type: string; entity_i
 type InvoiceRow = {
   id: string; invoice_number: string; customer_id: string; order_id: string | null; store_id: string | null;
   issued_at: string; billing_month: string | null; subtotal: number; delivery_fee: number; total_amount: number;
-  payment_method: string | null; payment_reference: string | null; payment_status: string; items: unknown;
+  payment_method: string | null; payment_reference: string | null; payment_status: string; items: Array<{ id?: string; name?: string; quantity?: number; line_total?: number }> | null;
 };
 type InventoryRow = {
   id: string; store_id: string; product_id: string; variant_id: string | null; quantity_on_hand: number;
-  quantity_reserved: number; reorder_level: number; updated_at?: string;
+  quantity_reserved: number; reorder_level: number; unit_label?: string | null; updated_at?: string;
 };
 type InventoryMovementRow = {
   id: string; inventory_id: string; product_id: string; variant_id: string | null; movement_type: string;
@@ -2708,9 +2708,9 @@ function Cart({ cart, setCart, total, storeId, paymentMethods, onClose, onOrdere
 
         const rawUrl = selectedMethod?.deep_link || selectedMethod?.checkout_url || '';
         const paymentUrl = rawUrl
-          .replaceAll('{order_id}', encodeURIComponent(orderId))
-          .replaceAll('{amount}', encodeURIComponent(String(Number((createdOrder as { total_amount?: number } | null)?.total_amount ?? total))))
-          .replaceAll('{currency}', encodeURIComponent(CURRENCY));
+          .replace(/\{order_id\}/g, encodeURIComponent(orderId))
+          .replace(/\{amount\}/g, encodeURIComponent(String(Number((createdOrder as { total_amount?: number } | null)?.total_amount ?? total))))
+          .replace(/\{currency\}/g, encodeURIComponent(CURRENCY));
 
         if (paymentUrl) {
           window.open(paymentUrl, '_blank', 'noopener,noreferrer');
@@ -3405,7 +3405,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
             </div>
           )}
 
-          {active === 'wallet' && isOwner && (
+          {active === 'wallet' && (
             <section>
               <p className="text-sm text-[#747b72]">أموالك بين يديك</p>
               <h1 className="mt-1 text-3xl font-black">محفظتي</h1>
