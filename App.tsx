@@ -2215,6 +2215,7 @@ function LocationMap({
       }
       if (cancelled || !mapRef.current || !(window as Window & { L?: LeafletApi }).L) return;
       const L = (window as Window & { L?: LeafletApi }).L;
+      if (!L) return;
       const center: [number, number] = latitude !== null && longitude !== null ? [latitude, longitude] : [0, 0];
       const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false }).setView(center, latitude !== null && longitude !== null ? 16 : 2);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -2261,6 +2262,7 @@ function LocationMap({
   useEffect(() => {
     if (!mapInstanceRef.current || !mapReady) return;
     const L = (window as Window & { L?: LeafletApi }).L;
+    if (!L) return;
     if (driverLatitude === null || driverLongitude === null) {
       if (driverMarkerRef.current) {
         driverMarkerRef.current.remove();
