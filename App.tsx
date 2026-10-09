@@ -3765,12 +3765,12 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                     <div key={product.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0"><h3 className="truncate font-black">{product.name}</h3><p className="mt-1 text-xs text-[#747b72]">{Number(product.price || 0).toLocaleString('ar-YE')} {CURRENCY}</p></div>
-                        <div className="text-left"><p className="text-2xl font-black text-[#687500]">{available.toLocaleString('ar-YE')}</p><p className="text-[11px] text-[#7f867d]">{inv?.unit_label || 'قطعة'} متاحة</p></div>
+                        <div className="text-left"><p className="text-2xl font-black text-[#687500]">{Number(available || 0).toLocaleString('ar-YE')}</p><p className="text-[11px] text-[#7f867d]">{inv?.unit_label || 'قطعة'} متاحة</p></div>
                       </div>
                       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">الموجود</p><p className="mt-1 font-bold">{(inv?.quantity_on_hand ?? 0).toLocaleString('ar-YE')}</p></div>
-                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">محجوز</p><p className="mt-1 font-bold">{(inv?.quantity_reserved ?? 0).toLocaleString('ar-YE')}</p></div>
-                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">إعادة الطلب</p><p className="mt-1 font-bold">{(inv?.reorder_level ?? 0).toLocaleString('ar-YE')}</p></div>
+                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">الموجود</p><p className="mt-1 font-bold">{Number(inv?.quantity_on_hand ?? 0).toLocaleString('ar-YE')}</p></div>
+                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">محجوز</p><p className="mt-1 font-bold">{Number(inv?.quantity_reserved ?? 0).toLocaleString('ar-YE')}</p></div>
+                        <div className="rounded-xl bg-[#f4f6f1] p-3"><p className="text-[#7f867d]">إعادة الطلب</p><p className="mt-1 font-bold">{Number(inv?.reorder_level ?? 0).toLocaleString('ar-YE')}</p></div>
                       </div>
                       <div className="mt-4 flex gap-2">
                         <button disabled={busy} onClick={() => adjustInventory(product.id, 'in')} className="flex-1 rounded-xl bg-[#e3fe00] py-3 text-sm font-black text-black disabled:opacity-50">+ إضافة</button>
@@ -3810,10 +3810,10 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                           <p className="mt-1 text-xs text-[#7f867d]">{label}{movement.reason ? ' • ' + movement.reason : ''}</p>
                         </div>
                         <div className={isIn ? 'text-[#687500]' : isReservation ? 'text-amber-300' : 'text-red-300'}>
-                          {isIn ? '+' : isReservation ? 'حجز ' : '−'}{Math.abs(movement.quantity).toLocaleString('ar-YE')}
+                          {isIn ? '+' : isReservation ? 'حجز ' : '−'}{Math.abs(Number(movement.quantity || 0)).toLocaleString('ar-YE')}
                         </div>
                         <div className="text-left text-[11px] text-[#7f867d]">
-                          <div>{movement.quantity_before.toLocaleString('ar-YE')} ← {movement.quantity_after.toLocaleString('ar-YE')}</div>
+                          <div>{Number(movement.quantity_before || 0).toLocaleString('ar-YE')} ← {Number(movement.quantity_after || 0).toLocaleString('ar-YE')}</div>
                           <div className="mt-1">{new Date(movement.created_at).toLocaleString('ar-YE')}</div>
                         </div>
                       </div>
