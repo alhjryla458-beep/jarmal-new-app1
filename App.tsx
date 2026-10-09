@@ -23,94 +23,69 @@ const businessCategories = [
 ];
 
 type StoreRow = {
-  id: string;
-  name: string;
-  store_type: string;
-  address_description: string | null;
-  is_open: boolean;
-  rating: number | null;
+  id: string; name: string; store_type: string; address_description: string | null;
+  is_open: boolean; rating: number | null; approval_status?: string;
 };
 type CategoryRow = { id: string; store_id: string; name: string; sort_order: number };
 type VariantRow = { id: string; product_id: string; variant_name: string; price: number; is_available: boolean };
 type ProductRow = {
-  id: string;
-  store_id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  is_available: boolean;
-  category_id: string | null;
-  redemption_points_cost: number | null;
+  id: string; store_id: string; name: string; description: string | null; price: number;
+  is_available: boolean; category_id: string | null; redemption_points_cost: number | null;
+  image_url?: string | null; payment_options?: string[] | null;
 };
 type OrderRow = {
-  id: string;
-  status: string;
-  total_amount: number;
-  delivery_fee: number;
-  created_at: string;
-  store_id: string | null;
-  order_type: string;
-  fulfillment_type: string;
-  points_earned: number;
+  id: string; status: string; total_amount: number; delivery_fee: number; created_at: string;
+  store_id: string | null; order_type: string; fulfillment_type: string; points_earned: number;
+  driver_id?: string | null; delivery_address?: string | null; delivery_latitude?: number | null;
+  delivery_longitude?: number | null; payment_status?: string; payment_method?: string | null;
 };
-type ServiceProviderRow = {
-  id: string;
-  service_type: string;
-  name: string;
-  account_number_length: number | null;
-  region: string | null;
-};
+type ServiceProviderRow = { id: string; service_type: string; name: string; account_number_length: number | null; region: string | null };
 type ServicePackageRow = { id: string; provider_id: string; name: string; face_value: number | null; price: number };
-type PaymentMethodRow = { id: string; name: string; code: string; account_number: string | null; instructions: string | null };
+type PaymentMethodRow = {
+  id: string; name: string; code: string; account_number: string | null; instructions: string | null;
+  checkout_url?: string | null; deep_link?: string | null; verification_mode?: string | null; auto_verify_enabled?: boolean | null;
+};
 type ClientWalletRow = { balance: number; points: number };
 type FullOrderRow = {
-  id: string;
-  status: string;
-  total_amount: number;
-  delivery_fee: number;
-  created_at: string;
-  store_id: string | null;
-  driver_id: string | null;
-  delivery_address: string | null;
-  notes: string | null;
-  courier_distance: number | null;
-  fulfillment_type: string;
-  payment_status: string;
+  id: string; status: string; total_amount: number; delivery_fee: number; created_at: string;
+  store_id: string | null; driver_id: string | null; delivery_address: string | null; notes: string | null;
+  courier_distance: number | null; fulfillment_type: string; payment_status: string;
+  delivery_latitude?: number | null; delivery_longitude?: number | null;
 };
 type OrderItemRow = { id: string; order_id: string; product_id: string | null; custom_name: string | null; unit_price: number; quantity: number };
 type DriverProfileRow = {
-  is_available: boolean;
-  vehicle_type: string | null;
-  vehicle_plate_number: string | null;
-  rating: number | null;
+  is_available: boolean; vehicle_type: string | null; vehicle_plate_number: string | null;
+  rating: number | null; verification_status?: string | null;
 };
 type MyStoreRow = {
-  id: string;
-  name: string;
-  is_open: boolean;
-  rating: number | null;
-  commission_rate: number | null;
+  id: string; name: string; is_open: boolean; rating: number | null; commission_rate: number | null;
+  approval_status?: string | null;
 };
-type MerchantProductRow = {
-  id: string;
-  store_id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  is_available: boolean;
-};
+type MerchantProductRow = { id: string; store_id: string; name: string; description: string | null; price: number; image_url: string | null; is_available: boolean };
 type CartLine = {
-  key: string;
-  product_id?: string;
-  variant_id?: string;
-  custom_name?: string;
-  custom_price?: number;
-  name: string;
-  price: number;
-  quantity: number;
+  key: string; product_id?: string; variant_id?: string; custom_name?: string; custom_price?: number;
+  name: string; price: number; quantity: number; payment_options?: string[] | null;
 };
-
+type StoreMemberContext = { store_id: string; member_role: 'owner' | 'manager' | 'orders_employee' | 'warehouse_employee' };
+type StoreTeamMemberRow = {
+  id: string; user_id: string; member_role: StoreMemberContext['member_role']; is_active: boolean;
+  profile?: { full_name: string | null; phone_number: string | null } | null;
+};
+type StoreInvitationRow = { id: string; phone_number: string; member_role: Exclude<StoreMemberContext['member_role'], 'owner'>; status: string; expires_at: string; created_at: string };
+type StoreAuditRow = { id: string; action: string; entity_type: string; entity_id: string | null; metadata: Record<string, unknown> | null; created_at: string };
+type InvoiceRow = {
+  id: string; invoice_number: string; customer_id: string; order_id: string | null; store_id: string | null;
+  issued_at: string; billing_month: string | null; subtotal: number; delivery_fee: number; total_amount: number;
+  payment_method: string | null; payment_reference: string | null; payment_status: string; items: unknown;
+};
+type InventoryRow = {
+  id: string; store_id: string; product_id: string; variant_id: string | null; quantity_on_hand: number;
+  quantity_reserved: number; reorder_level: number; updated_at?: string;
+};
+type InventoryMovementRow = {
+  id: string; inventory_id: string; product_id: string; variant_id: string | null; movement_type: string;
+  quantity: number; quantity_before: number; quantity_after: number; reason: string | null; created_at: string;
+};
 
 
 const statusLabels: Record<string, string> = {
