@@ -1713,7 +1713,7 @@ function JarmalAssistant({
 
         pushMessage(
           'assistant',
-          `طلبك الحالي حالته: ${statusLabels[activeOrder.status] || activeOrder.status}. إجمالي الطلب ${activeOrder.total_amount.toLocaleString('ar-YE')} ${CURRENCY}.`
+          `طلبك الحالي حالته: ${statusLabels[activeOrder.status] || activeOrder.status}. إجمالي الطلب ${Number(activeOrder.total_amount || 0).toLocaleString('ar-YE')} ${CURRENCY}.`
         );
         onNavigate('orders');
         return;
@@ -1835,7 +1835,7 @@ function JarmalAssistant({
                       <strong>{product.name}</strong>
                       <small>{product.description || 'منتج متاح في جَرْمَل'}</small>
                     </div>
-                    <b>{product.price.toLocaleString('ar-YE')} {CURRENCY}</b>
+                    <b>{Number(product.price || 0).toLocaleString('ar-YE')} {CURRENCY}</b>
                   </div>
                 ))}
               </div>
@@ -2293,7 +2293,7 @@ function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; comp
       </div>
       {cart.length > 0 && !showCart && (
         <button onClick={() => setShowCart(true)} className="fixed bottom-24 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-[#e3fe00] px-6 py-4 font-black text-black shadow-2xl lg:bottom-6">
-          <ShoppingBag size={18} />عرض السلة ({cart.reduce((n, c) => n + c.quantity, 0)})<span className="mr-2">{cartTotal.toLocaleString('ar-YE')} {CURRENCY}</span>
+          <ShoppingBag size={18} />عرض السلة ({cart.reduce((n, c) => n + c.quantity, 0)})<span className="mr-2">{Number(cartTotal || 0).toLocaleString('ar-YE')} {CURRENCY}</span>
         </button>
       )}
       {showCart && cartStoreId && (
@@ -3283,7 +3283,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
                   <div className="mt-6 rounded-2xl border border-[#e1e5de] bg-white p-5">
                     {error && <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
                     <div className="flex items-center justify-between">
-                      <span className="font-black">{activeOrder.total_amount.toLocaleString('ar-YE')} {CURRENCY}</span>
+                      <span className="font-black">{Number(activeOrder.total_amount || 0).toLocaleString('ar-YE')} {CURRENCY}</span>
                       <span className="rounded-lg bg-[#e3fe00]/10 px-3 py-1 text-xs font-black text-[#687500]">{statusLabels[activeOrder.status] || activeOrder.status}</span>
                     </div>
                     <p className="mt-2 text-sm text-[#667067]">{activeOrder.delivery_address || 'لا يوجد وصف نصي للموقع'}</p>
@@ -3764,7 +3764,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                   return (
                     <div key={product.id} className="rounded-2xl border border-[#e1e5de] bg-white p-5">
                       <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0"><h3 className="truncate font-black">{product.name}</h3><p className="mt-1 text-xs text-[#747b72]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</p></div>
+                        <div className="min-w-0"><h3 className="truncate font-black">{product.name}</h3><p className="mt-1 text-xs text-[#747b72]">{Number(product.price || 0).toLocaleString('ar-YE')} {CURRENCY}</p></div>
                         <div className="text-left"><p className="text-2xl font-black text-[#687500]">{available.toLocaleString('ar-YE')}</p><p className="text-[11px] text-[#7f867d]">{inv?.unit_label || 'قطعة'} متاحة</p></div>
                       </div>
                       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
@@ -3840,7 +3840,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate font-bold">{product.name}</h3>
-                        <p className="mt-1 text-xs text-[#747b72]">{product.price.toLocaleString('ar-YE')} {CURRENCY}</p>
+                        <p className="mt-1 text-xs text-[#747b72]">{Number(product.price || 0).toLocaleString('ar-YE')} {CURRENCY}</p>
                       </div>
                     </div>
                     <button onClick={() => toggleProductAvailable(product.id, product.is_available)} className={`mt-4 w-full rounded-lg py-2 text-xs font-bold ${product.is_available ? 'bg-[#e3fe00]/10 text-[#687500]' : 'bg-white/10 text-[#747b72]'}`}>{product.is_available ? 'متوفر — اضغط للإخفاء' : 'غير متوفر — اضغط للإظهار'}</button>
