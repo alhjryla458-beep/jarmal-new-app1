@@ -292,7 +292,7 @@ export default function AdminApp({ session, onLogout }: { session: Session; onLo
           fixed_amount: Number(driverEarningSettings.fixed_amount) || 0,
           percentage: Number(driverEarningSettings.percentage) || 0,
           minimum_amount: Number(driverEarningSettings.minimum_amount) || 0,
-          maximum_amount: driverEarningSettings.maximum_amount === null || driverEarningSettings.maximum_amount === '' ? null : Number(driverEarningSettings.maximum_amount),
+          maximum_amount: driverEarningSettings.maximum_amount === null ? null : Number(driverEarningSettings.maximum_amount),
           is_active: Boolean(driverEarningSettings.is_active),
         })
         .eq('id', true);
