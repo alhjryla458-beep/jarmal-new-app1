@@ -70,3 +70,9 @@ begin
   return true;
 end;
 $function$;
+
+-- The app calls this only through driver_update_order_status (a SECURITY DEFINER
+-- workflow). Prevent direct RPC calls by customers, merchants, and drivers.
+REVOKE EXECUTE ON FUNCTION public.fulfill_order_inventory(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.fulfill_order_inventory(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.fulfill_order_inventory(uuid) FROM authenticated;
