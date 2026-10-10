@@ -3767,10 +3767,24 @@ function AppContent() {
         return;
       }
 
-      const resolvedRole: Role =
+      let resolvedRole: Role =
         profile.role === 'driver' || profile.role === 'merchant'
           ? profile.role
           : 'customer';
+
+      // A customer may also own/join a store without changing the protected
+      // profile role. Restore the merchant workspace from explicit membership.
+      if (resolvedRole === 'customer') {
+        const { data: membership } = await supabase
+          .from('store_members')
+          .select('store_id')
+          .eq('user_id', data.session.user.id)
+          .eq('is_active', true)
+          .limit(1)
+          .maybeSingle();
+
+        if (membership) resolvedRole = 'merchant';
+      }
 
       setSession(data.session);
       setRole(resolvedRole);
