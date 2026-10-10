@@ -2185,6 +2185,8 @@ function LocationMap({
   const [locating, setLocating] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState('');
+  const latestPropsRef = useRef({ latitude, longitude, driverLatitude, driverLongitude, onChange, interactive, title });
+  latestPropsRef.current = { latitude, longitude, driverLatitude, driverLongitude, onChange, interactive, title };
 
   useEffect(() => {
     let cancelled = false;
@@ -2224,32 +2226,33 @@ function LocationMap({
       if (cancelled || !mapRef.current || !(window as Window & { L?: LeafletApi }).L) return;
       const L = (window as Window & { L?: LeafletApi }).L;
       if (!L) return;
-      const center: [number, number] = latitude !== null && longitude !== null ? [latitude, longitude] : [0, 0];
-      const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false }).setView(center, latitude !== null && longitude !== null ? 16 : 2);
+      const currentProps = latestPropsRef.current;
+      const center: [number, number] = currentProps.latitude !== null && currentProps.longitude !== null ? [currentProps.latitude, currentProps.longitude] : [0, 0];
+      const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false }).setView(center, currentProps.latitude !== null && currentProps.longitude !== null ? 16 : 2);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19
       }).addTo(map);
       mapInstanceRef.current = map;
-      if (latitude !== null && longitude !== null) {
-        markerRef.current = L.marker([latitude, longitude]).addTo(map).bindTooltip(title, { permanent: false });
+      if (currentProps.latitude !== null && currentProps.longitude !== null) {
+        markerRef.current = L.marker([currentProps.latitude, currentProps.longitude]).addTo(map).bindTooltip(currentProps.title, { permanent: false });
       }
-      if (driverLatitude !== null && driverLongitude !== null) {
-        driverMarkerRef.current = L.circleMarker([driverLatitude, driverLongitude], {
+      if (currentProps.driverLatitude !== null && currentProps.driverLongitude !== null) {
+        driverMarkerRef.current = L.circleMarker([currentProps.driverLatitude, currentProps.driverLongitude], {
           radius: 8,
           weight: 3,
           fillOpacity: 0.85
         }).addTo(map).bindTooltip('موقع المندوب', { permanent: false });
       }
-      if (interactive && onChange) {
-        map.on('click', (event) => {
-          const lat = Number(event.latlng.lat.toFixed(7));
-          const lng = Number(event.latlng.lng.toFixed(7));
-          if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
-          else markerRef.current = L.marker([lat, lng]).addTo(map);
-          onChange(lat, lng);
-        });
-      }
+      map.on('click', (event) => {
+        const currentProps = latestPropsRef.current;
+        if (!currentProps.interactive || !currentProps.onChange) return;
+        const lat = Number(event.latlng.lat.toFixed(7));
+        const lng = Number(event.latlng.lng.toFixed(7));
+        if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
+        else markerRef.current = L.marker([lat, lng]).addTo(map);
+        currentProps.onChange(lat, lng);
+      });
       setMapReady(true);
       setTimeout(() => map.invalidateSize(), 50);
     };
