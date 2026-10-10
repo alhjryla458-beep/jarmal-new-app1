@@ -76,3 +76,14 @@ $function$;
 REVOKE EXECUTE ON FUNCTION public.fulfill_order_inventory(uuid) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.fulfill_order_inventory(uuid) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.fulfill_order_inventory(uuid) FROM authenticated;
+
+-- These helpers are called internally by SECURITY DEFINER order workflows.
+-- Do not expose them as direct authenticated RPCs: direct release could free
+-- stock while an order remains active, and direct reserve could duplicate holds.
+REVOKE EXECUTE ON FUNCTION public.reserve_order_inventory(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.reserve_order_inventory(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.reserve_order_inventory(uuid) FROM authenticated;
+
+REVOKE EXECUTE ON FUNCTION public.release_order_inventory(uuid, text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.release_order_inventory(uuid, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.release_order_inventory(uuid, text) FROM authenticated;
