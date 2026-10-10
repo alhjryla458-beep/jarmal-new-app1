@@ -3,7 +3,7 @@ import {
   ArrowLeft, ArrowRight, BarChart3, Bell, Bike, Boxes, Check, CheckCircle2,
   ClipboardList, FileText, Home, LogOut, MapPin,
   Menu, Navigation, Plus, Settings2, ShieldCheck,
-  ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap, Search, ChevronLeft
+  ShoppingBag, Sparkles, Store, Truck, UserRound, WalletCards, X, Zap, Search, ChevronLeft, ImagePlus, Camera
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
@@ -59,7 +59,7 @@ type DriverProfileRow = {
 };
 type MyStoreRow = {
   id: string; name: string; is_open: boolean; rating: number | null; commission_rate: number | null;
-  approval_status?: string | null;
+  approval_status?: string | null; logo_url?: string | null; cover_image_url?: string | null; cover_image_wide_url?: string | null;
 };
 type MerchantProductRow = { id: string; store_id: string; name: string; description: string | null; price: number; image_url: string | null; is_available: boolean };
 type CartLine = {
@@ -193,6 +193,84 @@ function Field({
         />
       </div>
     </div>
+  );
+}
+
+
+function ImageUploadField({ label, folderPath, currentUrl, onUploaded, aspect = 'square', helper }: {
+  label: string; folderPath: string; currentUrl: string; onUploaded: (url: string) => void | Promise<void>;
+  aspect?: 'square' | 'wide'; helper?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const upload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setError('اختر ملف صورة صالحاً'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('حجم الصورة يجب ألا يتجاوز 5 ميجابايت'); return; }
+    setUploading(true); setError('');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('سجّل الدخول أولاً');
+      const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const path = folderPath + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + extension;
+      const { error: uploadError } = await supabase.storage.from('jarmal-media').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('jarmal-media').getPublicUrl(path);
+      await onUploaded(data.publicUrl);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر رفع الصورة، حاول مرة أخرى');
+    } finally { setUploading(false); }
+  };
+  return (
+    <div className="rounded-2xl border border-[#e1e5de] bg-white p-4">
+      <p className="text-sm font-black">{label}</p>
+      {helper && <p className="mt-1 text-xs text-[#747b72]">{helper}</p>}
+      <div className={'mt-3 overflow-hidden rounded-xl border border-dashed border-[#d8ddd4] bg-[#f4f6f1] ' + (aspect === 'wide' ? 'h-32 w-full' : 'h-28 w-28')}>
+        {currentUrl ? <img src={currentUrl} alt={label} className="h-full w-full object-cover" /> : <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-[#747b72]"><ImagePlus size={24} /><span className="text-xs">معاينة الصورة</span></div>}
+      </div>
+      <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#dfff00] px-4 py-3 text-sm font-black text-[#171a16] transition hover:brightness-95">
+        <Camera size={17} />{uploading ? 'جارٍ رفع الصورة...' : currentUrl ? 'تغيير الصورة من المعرض' : 'اختيار صورة من المعرض'}
+        <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(event) => void upload(event)} />
+      </label>
+      {error && <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs font-bold text-red-600">{error}</p>}
+      <p className="mt-2 text-[11px] text-[#747b72]">JPG أو PNG أو WebP • حتى 5 ميجابايت</p>
+    </div>
+  );
+}
+
+function ProfilePhotoEditor() {
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [folderPath, setFolderPath] = useState('');
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !active) return;
+      setFolderPath('profiles/' + user.id + '/avatar');
+      const { data } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).maybeSingle();
+      if (active) setAvatarUrl(data?.avatar_url || '');
+    })();
+    return () => { active = false; };
+  }, []);
+  const saveAvatar = async (url: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('انتهت جلسة الدخول، سجّل الدخول مجدداً');
+    const { error } = await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id);
+    if (error) throw error;
+    setAvatarUrl(url);
+  };
+  return (
+    <section className="rounded-2xl border border-[#e1e5de] bg-white p-5">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-[#e1e5de] bg-[#f4f6f1]">
+          {avatarUrl ? <img src={avatarUrl} alt="الصورة الشخصية" className="h-full w-full object-cover" /> : <UserRound size={25} className="text-[#747b72]" />}
+        </div>
+        <div><h3 className="font-black">الصورة الشخصية</h3><p className="mt-1 text-xs text-[#747b72]">اختر أي صورة من هاتفك</p></div>
+      </div>
+      {folderPath && <ImageUploadField label="صورة الملف الشخصي" folderPath={folderPath} currentUrl={avatarUrl} onUploaded={saveAvatar} />}
+    </section>
   );
 }
 
@@ -2065,6 +2143,7 @@ function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; comp
           {active === 'profile' && (
             <div className="mx-auto max-w-md space-y-4">
               <h2 className="text-2xl font-black">حسابي</h2>
+              <ProfilePhotoEditor />
               <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">الاسم</p><p className="mt-1 font-bold">{profileReal.full_name || '—'}</p></div>
               <div className="jarmal-card rounded-2xl border border-white/10 bg-[#0d0d0d] p-5"><p className="text-sm text-white/40">رقم الهاتف</p><p className="mt-1 font-bold" dir="ltr">{profileReal.phone_number || '—'}</p></div>
               <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-4 font-black text-red-300 hover:bg-red-500/20"><LogOut size={18} />تسجيل الخروج</button>
@@ -3108,7 +3187,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
 
           {active === 'notifications' && <NotificationsView />}
 
-          {active === 'settings' && <SettingsView role="driver" />}
+          {active === 'settings' && <div className="space-y-5"><ProfilePhotoEditor /><SettingsView role="driver" /></div>}
 
           {active === 'history' && (
             <div>
@@ -3302,6 +3381,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
   const [newDesc, setNewDesc] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newImage, setNewImage] = useState('');
+  const [storeMediaError, setStoreMediaError] = useState('');
   const [newPaymentOptions, setNewPaymentOptions] = useState<'cash_only' | 'electronic_only' | 'both'>('both');
   const [addError, setAddError] = useState('');
   const [memberContext, setMemberContext] = useState<StoreMemberContext | null>(null);
@@ -3339,7 +3419,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
 
     const storeBaseQuery = supabase
       .from('stores')
-      .select('id, name, is_open, rating, commission_rate, approval_status');
+      .select('id, name, is_open, rating, commission_rate, approval_status, logo_url, cover_image_url, cover_image_wide_url');
 
     const { data } = resolvedMemberContext
       ? await storeBaseQuery.eq('id', resolvedMemberContext.store_id).maybeSingle()
@@ -3374,6 +3454,14 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
   };
 
   useEffect(() => { loadAll(); }, []);
+
+  const saveStoreMedia = async (field: 'logo_url' | 'cover_image_url' | 'cover_image_wide_url', url: string) => {
+    if (!store || !isOwner) throw new Error('تحتاج إلى صلاحية مالك المتجر لتغيير الصور');
+    const { error } = await supabase.from('stores').update({ [field]: url }).eq('id', store.id);
+    if (error) { setStoreMediaError('تم رفع الصورة لكن تعذر حفظها في بيانات المتجر'); throw error; }
+    setStore({ ...store, [field]: url });
+    setStoreMediaError('');
+  };
 
   const toggleOpen = async () => {
     if (!store || !isOwner || store.approval_status !== 'approved') return;
@@ -3656,7 +3744,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                       <Field label="اسم المنتج" value={newName} onChange={setNewName} placeholder="مثال: وجبة اليوم" icon={<ShoppingBag size={17} />} />
                       <Field label="وصف المنتج" value={newDesc} onChange={setNewDesc} placeholder="اكتب وصفاً مختصراً" icon={<FileText size={17} />} />
                       <Field label="السعر" value={newPrice} onChange={(v) => setNewPrice(v.replace(/\D/g, ''))} placeholder="مثال: 2500" />
-                      <Field label="رابط صورة المنتج (اختياري)" value={newImage} onChange={setNewImage} placeholder="https://..." />
+                      {store && <ImageUploadField label="صورة المنتج (اختياري)" helper="اختر الصورة مباشرة من معرض هاتفك" folderPath={'stores/' + store.id + '/products'} currentUrl={newImage} onUploaded={setNewImage} />}
                       <div>
                         <label className="mb-2 block text-sm font-bold">طريقة الدفع لهذا المنتج</label>
                         <select value={newPaymentOptions} onChange={(e) => setNewPaymentOptions(e.target.value as 'cash_only' | 'electronic_only' | 'both')} className="w-full rounded-xl border border-[#e1e5de] bg-[#fafbf9] px-4 py-3.5 font-bold outline-none focus:border-[#e3fe00]">
@@ -3720,8 +3808,15 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
           {active === 'notifications' && <NotificationsView />}
 
           {active === 'settings' && store && isOwner && (
-            <div className="max-w-md space-y-4">
+            <div className="max-w-2xl space-y-4">
               <h2 className="text-2xl font-black">إعدادات المتجر</h2>
+              <ProfilePhotoEditor />
+              <div className="grid gap-4 md:grid-cols-2">
+                <ImageUploadField label="صورة المتجر المربعة" helper="تظهر كصورة المتجر أو شعاره بجانب الاسم" folderPath={'stores/' + store.id + '/logo'} currentUrl={store.logo_url || ''} onUploaded={(url) => saveStoreMedia('logo_url', url)} />
+                <ImageUploadField label="غلاف المتجر العريض" helper="صورة أفقية عريضة مثل غلاف فيسبوك أو يوتيوب" folderPath={'stores/' + store.id + '/cover-wide'} currentUrl={store.cover_image_wide_url || ''} aspect="wide" onUploaded={(url) => saveStoreMedia('cover_image_wide_url', url)} />
+              </div>
+              <ImageUploadField label="غلاف المتجر المربع" helper="نسخة مربعة مستقلة للعرض في بطاقات المتجر" folderPath={'stores/' + store.id + '/cover-square'} currentUrl={store.cover_image_url || ''} onUploaded={(url) => saveStoreMedia('cover_image_url', url)} />
+              {storeMediaError && <p className="rounded-xl bg-red-50 p-3 text-sm font-bold text-red-600">{storeMediaError}</p>}
               <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5">
                 <p className="text-sm text-[#747b72]">اسم المتجر</p>
                 <p className="mt-1 font-bold">{store.name}</p>
