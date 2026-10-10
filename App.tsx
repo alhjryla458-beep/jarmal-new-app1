@@ -2913,7 +2913,7 @@ function DriverApp({ onLogout, companionTarget }: { onLogout: () => void; compan
       stopped = true;
       window.clearInterval(timer);
     };
-  }, [profile?.is_available, profile?.verification_status, activeOrder?.id, activeOrder?.status]);
+  }, [profile, activeOrder]);
 
   const toggleAvailability = async () => {
     if (profile?.verification_status !== 'approved') {
