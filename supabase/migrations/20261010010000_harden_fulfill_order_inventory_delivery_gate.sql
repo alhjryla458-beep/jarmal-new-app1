@@ -24,29 +24,20 @@ begin
     raise exception 'الطلب غير موجود';
   end if;
 
-  -- Inventory must not be consumed before the order has actually reached delivery.
-  if v_order.status <> 'delivered' then
+  if v_order.status is distinct from 'delivered' then
     raise exception 'لا يمكن إتمام المخزون قبل تسليم الطلب';
   end if;
 
-  -- Customers and store staff must not be able to consume stock by calling this RPC directly.
-  -- The normal path is driver_update_order_status after the assigned driver marks delivery.
   if not (v_order.driver_id = auth.uid() or public.is_admin()) then
     raise exception 'غير مخوّل لإتمام مخزون هذا الطلب';
   end if;
 
   for v_res in
-    select
-      ir.*,
-      pi.store_id,
-      pi.product_id,
-      pi.variant_id,
-      pi.quantity_on_hand,
-      pi.quantity_reserved
+    select ir.*, pi.store_id, pi.product_id, pi.variant_id,
+           pi.quantity_on_hand, pi.quantity_reserved
     from public.inventory_reservations ir
     join public.product_inventory pi on pi.id = ir.inventory_id
-    where ir.order_id = p_order_id
-      and ir.status = 'reserved'
+    where ir.order_id = p_order_id and ir.status = 'reserved'
     for update of ir, pi
   loop
     if v_res.quantity_reserved < v_res.quantity
@@ -61,36 +52,18 @@ begin
     where id = v_res.inventory_id;
 
     update public.inventory_reservations
-    set status = 'fulfilled',
-        fulfilled_at = now()
+    set status = 'fulfilled', fulfilled_at = now()
     where id = v_res.id;
 
     insert into public.inventory_movements (
-      store_id,
-      inventory_id,
-      product_id,
-      variant_id,
-      movement_type,
-      quantity,
-      quantity_before,
-      quantity_after,
-      reason,
-      reference_type,
-      reference_id,
-      actor_user_id
+      store_id, inventory_id, product_id, variant_id, movement_type,
+      quantity, quantity_before, quantity_after, reason, reference_type,
+      reference_id, actor_user_id
     ) values (
-      v_res.store_id,
-      v_res.inventory_id,
-      v_res.product_id,
-      v_res.variant_id,
-      'sale_out',
-      v_res.quantity,
-      v_res.quantity_on_hand,
-      v_res.quantity_on_hand - v_res.quantity,
-      'إتمام طلب',
-      'order',
-      p_order_id,
-      auth.uid()
+      v_res.store_id, v_res.inventory_id, v_res.product_id, v_res.variant_id,
+      'sale_out', v_res.quantity, v_res.quantity_on_hand,
+      v_res.quantity_on_hand - v_res.quantity, 'إتمام طلب',
+      'order', p_order_id, auth.uid()
     );
   end loop;
 
