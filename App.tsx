@@ -1258,7 +1258,7 @@ function StoreTeamView({ storeId }: { storeId: string }) {
   const createInvitation = async () => {
     setError('');
     setInviteCode('');
-    const normalizedPhone = phone.replace(/\\D/g, '');
+    const normalizedPhone = phone.replace(/\D/g, '');
     if (normalizedPhone.length !== 9) {
       setError('أدخل رقم هاتف يمني مكوناً من 9 أرقام');
       return;
@@ -1308,7 +1308,7 @@ function StoreTeamView({ storeId }: { storeId: string }) {
         <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_220px_auto]">
           <input
             value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\\D/g, '').slice(0, 9))}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
             placeholder="7xx xxx xxx"
             dir="ltr"
             className="rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-[#e3fe00]"
