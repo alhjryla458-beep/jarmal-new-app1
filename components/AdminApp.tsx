@@ -388,7 +388,7 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
         setLoading(false);
       }
     })();
-  }, [loadStats, loadTransactions, loadProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadDriverEarningSettings, loadOrders, loadStores]);
+  }, [loadStats, loadTransactions, loadPaymentReceipts, loadProfiles, loadDriverProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadDriverEarningSettings, loadOrders, loadStores]);
 
   const handleTxAction = async (txId: string, action: 'confirm' | 'reject') => {
     setActionLoading(txId + action);
