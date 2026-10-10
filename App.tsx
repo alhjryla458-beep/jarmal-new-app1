@@ -24,7 +24,7 @@ const businessCategories = [
 
 type StoreRow = {
   id: string; name: string; store_type: string; address_description: string | null;
-  is_open: boolean; rating: number | null; approval_status?: string;
+  is_open: boolean; rating: number | null; approval_status?: string; logo_url?: string | null; cover_image_wide_url?: string | null;
 };
 type CategoryRow = { id: string; store_id: string; name: string; sort_order: number };
 type VariantRow = { id: string; product_id: string; variant_name: string; price: number; is_available: boolean };
@@ -1786,7 +1786,7 @@ function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; comp
     if (!user) return;
 
     supabase.from('profiles').select('full_name, phone_number').eq('id', user.id).maybeSingle().then(({ data }) => { if (data) setProfileReal(data); });
-    supabase.from('stores').select('id, name, store_type, address_description, is_open, rating').eq('approval_status', 'approved').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
+    supabase.from('stores').select('id, name, store_type, address_description, is_open, rating, logo_url, cover_image_wide_url').eq('approval_status', 'approved').then(({ data }) => { if (data) setStoresReal(data as StoreRow[]); });
     supabase.from('products').select('id, store_id, name, description, price, image_url, is_available, category_id, redemption_points_cost, payment_options').then(({ data }) => { if (data) setProductsReal(data as ProductRow[]); });
     supabase.rpc('get_customer_home_popular_products', { p_limit: 6 }).then(({ data }) => { if (data) setPopularProducts(data as ProductRow[]); });
     supabase.from('product_categories').select('id, store_id, name, sort_order').then(({ data }) => { if (data) setCategoriesReal(data as CategoryRow[]); });
@@ -2066,8 +2066,9 @@ function CustomerApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                         onClick={() => setSelectedStore(store)}
                         className="jarmal-store-card group overflow-hidden text-right disabled:cursor-not-allowed disabled:opacity-60"
                       >
+                        {store.cover_image_wide_url && <div className="h-24 w-full overflow-hidden"><img src={store.cover_image_wide_url} alt="غلاف متجر" loading="lazy" className="h-full w-full object-cover" /></div>}
                         <div className="jarmal-store-card-top">
-                          <div className="jarmal-store-icon"><StoreIcon size={24} strokeWidth={1.8} /></div>
+                          <div className="jarmal-store-icon">{store.logo_url ? <img src={store.logo_url} alt="" loading="lazy" className="h-full w-full rounded-xl object-cover" /> : <StoreIcon size={24} strokeWidth={1.8} />}</div>
                           <div className={`jarmal-store-status ${store.is_open ? 'is-open' : ''}`}>
                             <span className="jarmal-store-status-dot" />
                             {store.is_open ? 'مفتوح الآن' : 'مغلق'}
@@ -2177,7 +2178,7 @@ function StoreView({ store, products, categories, variants, favorites, onToggleF
   return (
     <div>
       <button onClick={onBack} className="mb-4 flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-bold text-[#697068] hover:bg-[#f4f6f1]"><ArrowRight size={16} />رجوع للمتاجر</button>
-      <div className="jarmal-storefront-head"><div className="jarmal-storefront-head-inner"><div className="jarmal-storefront-avatar"><Store size={30} /></div><div className="jarmal-storefront-meta"><h2>{store.name}</h2><p>{store.address_description || 'متجر متاح للطلب عبر جَرْمَل'}</p><div className="jarmal-storefront-badges"><span className="open">{store.is_open ? 'مفتوح الآن' : 'مغلق الآن'}</span><span>{store.store_type || 'متجر'}</span></div></div></div></div>
+      {store.cover_image_wide_url && <div className="mb-4 h-36 overflow-hidden rounded-2xl"><img src={store.cover_image_wide_url} alt="غلاف متجر" loading="lazy" className="h-full w-full object-cover" /></div>}<div className="jarmal-storefront-head"><div className="jarmal-storefront-head-inner"><div className="jarmal-storefront-avatar">{store.logo_url ? <img src={store.logo_url} alt="" className="h-full w-full rounded-full object-cover" /> : <Store size={30} />}</div><div className="jarmal-storefront-meta"><h2>{store.name}</h2><p>{store.address_description || 'متجر متاح للطلب عبر جَرْمَل'}</p><div className="jarmal-storefront-badges"><span className="open">{store.is_open ? 'مفتوح الآن' : 'مغلق الآن'}</span><span>{store.store_type || 'متجر'}</span></div></div></div></div>
       {categories.length > 0 && (
         <div className="jarmal-store-category-rail no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-2">
           <button onClick={() => setActiveCategory('all')} className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold ${activeCategory === 'all' ? 'bg-[#e3fe00] text-black' : 'bg-[#f4f6f1] text-[#596159]'}`}>الكل</button>
@@ -3815,7 +3816,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
                 <ImageUploadField label="صورة المتجر المربعة" helper="تظهر كصورة المتجر أو شعاره بجانب الاسم" folderPath={'stores/' + store.id + '/logo'} currentUrl={store.logo_url || ''} onUploaded={(url) => saveStoreMedia('logo_url', url)} />
                 <ImageUploadField label="غلاف المتجر العريض" helper="صورة أفقية عريضة مثل غلاف فيسبوك أو يوتيوب" folderPath={'stores/' + store.id + '/cover-wide'} currentUrl={store.cover_image_wide_url || ''} aspect="wide" onUploaded={(url) => saveStoreMedia('cover_image_wide_url', url)} />
               </div>
-              <ImageUploadField label="غلاف المتجر المربع" helper="نسخة مربعة مستقلة للعرض في بطاقات المتجر" folderPath={'stores/' + store.id + '/cover-square'} currentUrl={store.cover_image_url || ''} onUploaded={(url) => saveStoreMedia('cover_image_url', url)} />
+              
               {storeMediaError && <p className="rounded-xl bg-red-50 p-3 text-sm font-bold text-red-600">{storeMediaError}</p>}
               <div className="jarmal-card rounded-2xl border border-[#e1e5de] bg-white p-5">
                 <p className="text-sm text-[#747b72]">اسم المتجر</p>
