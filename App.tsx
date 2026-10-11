@@ -1241,10 +1241,13 @@ function StoreTeamView({ storeId }: { storeId: string }) {
     const rows = (memberRows as StoreTeamMemberRow[] | null) || [];
     if (rows.length) {
       const ids = rows.map((row) => row.user_id);
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profileLoadError } = await supabase
         .from('profiles')
         .select('id, full_name, phone_number')
         .in('id', ids);
+      if (profileLoadError) {
+        setLoadError('تم تحميل أعضاء الفريق، لكن تعذر تحميل أسماء وأرقام الأعضاء.');
+      }
       const byId = new Map((profiles || []).map((profile: { id: string; full_name: string | null; phone_number: string | null }) => [profile.id, profile]));
       rows.forEach((row) => { row.profile = byId.get(row.user_id) || null; });
     }
