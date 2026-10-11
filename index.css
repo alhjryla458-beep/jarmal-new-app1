@@ -2332,3 +2332,54 @@ body { min-height: 100vh; }
   background-color: #ffffff !important;
   color: #171a1f !important;
 }
+
+
+/* App Studio runtime bindings: these variables are scoped to the app, not JARMAL ADMIN. */
+.jarmal-app {
+  background: var(--jarmal-bg, #172b40) !important;
+  font-family: var(--jarmal-font, 'Tajawal'), 'Cairo', system-ui, sans-serif !important;
+}
+.jarmal-app header,
+.jarmal-app aside,
+.jarmal-app nav.fixed,
+.jarmal-app .jarmal-topbar,
+.jarmal-app .jarmal-sidenav,
+.jarmal-app .jarmal-bottom-nav {
+  background: var(--jarmal-secondary, #122337) !important;
+}
+.jarmal-app .jarmal-hero {
+  background: var(--jarmal-primary, #172b40) !important;
+}
+.jarmal-app .jarmal-page .jarmal-card,
+.jarmal-app .jarmal-page .jarmal-product-card,
+.jarmal-app .jarmal-page .jarmal-empty-card,
+.jarmal-app .jarmal-page .jarmal-service-card,
+.jarmal-app .jarmal-page .jarmal-store-card,
+.jarmal-app .jarmal-page .jarmal-ad-card,
+.jarmal-app .jarmal-page .jarmal-home-search,
+.jarmal-app .jarmal-page .jarmal-quick-chip,
+.jarmal-app .jarmal-page .jarmal-category-rail button,
+.jarmal-app .jarmal-page .jarmal-balance-card {
+  background: var(--jarmal-surface, #fff) !important;
+  border-radius: var(--jarmal-radius, 16px) !important;
+}
+.jarmal-app .jarmal-page .jarmal-card *,
+.jarmal-app .jarmal-page .jarmal-product-card *,
+.jarmal-app .jarmal-page .jarmal-empty-card *,
+.jarmal-app .jarmal-page .jarmal-service-card *,
+.jarmal-app .jarmal-page .jarmal-store-card *,
+.jarmal-app .jarmal-page .jarmal-ad-card *,
+.jarmal-app .jarmal-page .jarmal-home-search *,
+.jarmal-app .jarmal-page .jarmal-quick-chip *,
+.jarmal-app .jarmal-page .jarmal-category-rail button *,
+.jarmal-app .jarmal-page .jarmal-balance-card * {
+  color: var(--jarmal-ink, #171a1f) !important;
+}
+.jarmal-app[data-compact="true"] .jarmal-page .jarmal-card,
+.jarmal-app[data-compact="true"] .jarmal-page .jarmal-product-card,
+.jarmal-app[data-compact="true"] .jarmal-page .jarmal-service-card,
+.jarmal-app[data-compact="true"] .jarmal-page .jarmal-store-card,
+.jarmal-app[data-compact="true"] .jarmal-page .jarmal-ad-card {
+  padding: 12px !important;
+}
+.jarmal-app[data-compact="true"] .jarmal-page .grid { gap: 10px !important; }
