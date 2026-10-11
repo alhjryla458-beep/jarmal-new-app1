@@ -73,12 +73,12 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
       const [{ data: profile }, { data: orders }] = await Promise.all([
         supabase
           .from('driver_profiles')
-          .select('verification_status,is_available,current_latitude,current_longitude')
+          .select('verification_status,is_available')
           .eq('id', userId)
           .maybeSingle(),
         supabase
           .from('orders')
-          .select('id,status,total_amount,payment_status,payment_method,store_id,created_at,customer_id,delivery_address,fulfillment_type')
+          .select('id,status,total_amount,payment_status,payment_method,store_id,created_at,fulfillment_type')
           .eq('driver_id', userId)
           .order('created_at', { ascending: false })
           .limit(8),
@@ -97,7 +97,7 @@ export function JarmalAIChat({ role, page, visible = true, onNavigate }: Props) 
       if (storeIds.length) {
         const { data } = await supabase
           .from('orders')
-          .select('id,status,total_amount,payment_status,payment_method,store_id,created_at,customer_id,fulfillment_type')
+          .select('id,status,total_amount,payment_status,payment_method,store_id,created_at,fulfillment_type')
           .in('store_id', storeIds)
           .order('created_at', { ascending: false })
           .limit(10);
