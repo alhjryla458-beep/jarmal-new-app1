@@ -3,18 +3,23 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Tajawal', 'Cairo', system-ui, sans-serif;
+  font-family: var(--jarmal-font, 'Tajawal'), 'Cairo', system-ui, sans-serif;
 }
 
 
 /* ===== JARMAL 2.0 UI SYSTEM ===== */
 :root {
+  --jarmal-primary: #172b40;
+  --jarmal-secondary: #122337;
   --jarmal-lime: #dfff00;
   --jarmal-ink: #171a16;
   --jarmal-muted: #6b7169;
   --jarmal-bg: #f5f6f3;
   --jarmal-surface: #ffffff;
   --jarmal-border: #e5e8e2;
+  --jarmal-radius: 16px;
+  --jarmal-font: 'Tajawal', 'Cairo', system-ui, sans-serif;
+  --jarmal-compact: 0;
 }
 
 html { background: var(--jarmal-bg); }
@@ -29,6 +34,21 @@ body {
   min-height: 100vh;
   background: var(--jarmal-bg) !important;
   color: var(--jarmal-ink) !important;
+  font-family: var(--jarmal-font) !important;
+}
+
+.jarmal-app [class~="bg-[#e3fe00]"],
+.jarmal-app [class~="bg-[#dfff00]"] {
+  background-color: var(--jarmal-lime) !important;
+}
+
+.jarmal-app [class~="text-[#e3fe00]"],
+.jarmal-app [class~="text-[#dfff00]"] {
+  color: var(--jarmal-lime) !important;
+}
+
+.jarmal-app [class~="rounded-2xl"] {
+  border-radius: var(--jarmal-radius) !important;
 }
 
 .jarmal-app header {
