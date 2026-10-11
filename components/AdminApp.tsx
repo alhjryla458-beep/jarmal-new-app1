@@ -8,7 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 
 const CURRENCY = 'ر.ي';
 
-type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'driver_withdrawals' | 'payment_settings' | 'driver_earning_settings' | 'merchant_stores' | 'users' | 'orders';
+type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'driver_withdrawals' | 'payment_settings' | 'driver_earning_settings' | 'merchant_stores' | 'drivers' | 'users' | 'orders';
 
 type ProfileRow = {
   id: string;
@@ -187,6 +187,7 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
   const [paymentDrafts, setPaymentDrafts] = useState<Record<string, { account_number: string; instructions: string; is_active: boolean }>>({});
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [storeStatusFilter, setStoreStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'suspended'>('all');
+  const [driverStatusFilter, setDriverStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'suspended'>('all');
   const [storeSearch, setStoreSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'customer' | 'merchant' | 'driver' | 'admin'>('all');
   const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -567,7 +568,7 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
 
   const navGroups: { title: string; items: [AdminTab, string, React.ElementType][] }[] = [
     { title: 'نظرة عامة', items: [['stats', 'لوحة المعلومات', BarChart3], ['orders', 'متابعة الطلبات', ClipboardList]] },
-    { title: 'التشغيل', items: [['merchant_stores', 'إدارة المتاجر', Landmark], ['users', 'إدارة الحسابات', Users]] },
+    { title: 'التشغيل', items: [['merchant_stores', 'إدارة المتاجر', Landmark], ['drivers', 'إدارة المندوبين', Truck], ['users', 'إدارة الحسابات', Users]] },
     { title: 'المالية', items: [['wallets', 'عمليات المحافظ', WalletCards], ['payment_receipts', 'إيصالات الدفع', WalletCards], ['merchant_withdrawals', 'سحوبات التجار', WalletCards], ['driver_cash_settlements', 'تسويات المندوبين', Truck], ['driver_withdrawals', 'سحوبات المندوبين', WalletCards]] },
     { title: 'الإعدادات', items: [['payment_settings', 'إعدادات الدفع', Settings2], ['driver_earning_settings', 'أجور المندوبين', Settings2]] },
   ];
@@ -1071,6 +1072,83 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
                   ))}
                 </div>
               )}
+            </>
+          )}
+
+          {tab === 'drivers' && (
+            <>
+              <div className="mb-2">
+                <p className="text-sm text-white/40">مراجعة ملفات المندوبين والتحقق من جاهزيتهم قبل السماح لهم بالعمل</p>
+                <h2 className="mt-1 text-3xl font-black">إدارة المندوبين</h2>
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-2">
+                {([
+                  ['all', 'الكل'], ['pending', 'بانتظار المراجعة'], ['approved', 'معتمدون'], ['rejected', 'مرفوضون'], ['suspended', 'موقوفون'],
+                ] as const).map(([key, label]) => (
+                  <button key={key} onClick={() => setDriverStatusFilter(key)} className={"rounded-xl border px-3 py-2 text-xs font-bold " + (driverStatusFilter === key ? 'border-[#e3fe00]/40 bg-[#e3fe00]/10 text-[#e3fe00]' : 'border-white/10 bg-white/[.02] text-white/60')}>
+                    {label} <span className="mr-1 opacity-70">({driverProfiles.filter((d) => key === 'all' ? true : d.verification_status === key).length})</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {driverProfiles.filter((d) => driverStatusFilter === 'all' || d.verification_status === driverStatusFilter).map((driver) => {
+                  const profile = profiles.find((p) => p.id === driver.id);
+                  const driverName = profile?.full_name || 'مندوب دون اسم';
+                  const driverPhone = profile?.phone_number || '—';
+                  return (
+                    <div key={driver.id} className="rounded-2xl border border-white/10 bg-white/[.03] p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="flex min-w-[220px] flex-1 items-start gap-3">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e3fe00]/10 text-[#e3fe00]">
+                            <Truck size={20} />
+                          </div>
+                          <div>
+                            <h3 className="font-black">{driverName}</h3>
+                            <p className="mt-1 text-xs text-white/45" dir="ltr">{driverPhone}</p>
+                            <p className="mt-2 text-xs text-white/35">معرّف الحساب: {driver.id.slice(0, 8)}</p>
+                          </div>
+                        </div>
+                        <StatusBadge status={driver.verification_status} />
+                      </div>
+
+                      <div className="mt-5 grid gap-3 rounded-xl border border-white/5 bg-black/10 p-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                        <div><p className="text-xs text-white/40">نوع المركبة</p><p className="mt-1 font-bold">{driver.vehicle_type || 'غير محدد'}</p></div>
+                        <div><p className="text-xs text-white/40">لوحة المركبة</p><p className="mt-1 font-bold">{driver.vehicle_plate_number || 'غير محددة'}</p></div>
+                        <div><p className="text-xs text-white/40">رقم الهوية</p><p className="mt-1 font-bold">{driver.identity_card_number || 'غير مسجل'}</p></div>
+                        <div><p className="text-xs text-white/40">رقم الرخصة</p><p className="mt-1 font-bold">{driver.license_number || 'غير مسجل'}</p></div>
+                        <div><p className="text-xs text-white/40">التقييم</p><p className="mt-1 font-bold">{driver.rating == null ? 'لا يوجد تقييم' : Number(driver.rating).toLocaleString('ar-YE')}</p></div>
+                        <div><p className="text-xs text-white/40">التوفر</p><p className="mt-1 font-bold">{driver.is_available ? 'متاح' : 'غير متاح'}</p></div>
+                      </div>
+
+                      {driver.verification_note && <p className="mt-3 rounded-xl bg-white/5 p-3 text-xs text-white/55">ملاحظة المراجعة: {driver.verification_note}</p>}
+                      {driver.verified_at && <p className="mt-2 text-xs text-white/30">آخر مراجعة: {new Date(driver.verified_at).toLocaleString('ar-YE')}</p>}
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {driver.verification_status !== 'approved' && (
+                          <button onClick={() => handleDriverReview(driver.id, 'approved')} disabled={actionLoading === driver.id + 'approved'} className="rounded-xl bg-[#e3fe00] px-4 py-2.5 text-xs font-black text-black disabled:opacity-50">
+                            <Check size={14} className="ml-1 inline" />اعتماد المندوب
+                          </button>
+                        )}
+                        {driver.verification_status !== 'rejected' && (
+                          <button onClick={() => handleDriverReview(driver.id, 'rejected')} disabled={actionLoading === driver.id + 'rejected'} className="rounded-xl border border-red-500/30 px-4 py-2.5 text-xs font-bold text-red-300 disabled:opacity-50">رفض الطلب</button>
+                        )}
+                        {driver.verification_status !== 'suspended' && (
+                          <button onClick={() => handleDriverReview(driver.id, 'suspended')} disabled={actionLoading === driver.id + 'suspended'} className="rounded-xl border border-orange-500/30 px-4 py-2.5 text-xs font-bold text-orange-300 disabled:opacity-50">إيقاف المندوب</button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {driverProfiles.filter((d) => driverStatusFilter === 'all' || d.verification_status === driverStatusFilter).length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center">
+                    <Truck size={34} className="mx-auto text-white/25" />
+                    <p className="mt-3 font-bold">لا توجد ملفات مندوبين في هذا التصنيف</p>
+                    <p className="mt-1 text-xs text-white/40">ستظهر طلبات التسجيل هنا عند وصولها.</p>
+                  </div>
+                )}
+              </div>
             </>
           )}
 
