@@ -1436,6 +1436,8 @@ function StoreAuditLogView({ storeId }: { storeId: string }) {
       <div className="mt-7 overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d]">
         {loading ? (
           <div className="p-8 text-center text-sm text-white/40">جارٍ تحميل السجل...</div>
+        ) : loadError ? (
+          <div className="p-8 text-center text-sm text-amber-200">تعذر تحديد محتوى السجل بسبب خطأ في التحميل. أعد المحاولة لعرض العمليات.</div>
         ) : logs.length === 0 ? (
           <div className="p-8 text-center text-sm text-white/40">لا توجد عمليات مسجلة حتى الآن.</div>
         ) : (
