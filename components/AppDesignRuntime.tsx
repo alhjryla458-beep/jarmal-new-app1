@@ -5,10 +5,11 @@ export function AppDesignRuntime() {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      const { data } = await supabase.from('app_design_settings').select('published').eq('id', 1).maybeSingle();
+      const { data } = await supabase.from('app_design_public').select('published').eq('id', 1).maybeSingle();
       if (!active || !data?.published) return;
       const design = data.published as Record<string, unknown>;
-      const root = document.documentElement;
+      const root = document.querySelector('.jarmal-app') as HTMLElement | null;
+      if (!root) return;
       const colors: Record<string, string> = {
         primaryColor: '--jarmal-primary',
         secondaryColor: '--jarmal-secondary',
