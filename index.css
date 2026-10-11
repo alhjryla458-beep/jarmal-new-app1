@@ -1698,3 +1698,109 @@ body {
   .jarmal-ad-rail { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .jarmal-offers-rail { grid-auto-columns:minmax(300px,38%); }
 }
+
+
+/* ===== JARMAL LIGHT NAVY / LIME / WHITE — final accessible palette ===== */
+.jarmal-app {
+  --jarmal-navy: #23496f;
+  --jarmal-navy-2: #dce8f5;
+  --jarmal-surface: #ffffff;
+  --jarmal-surface-2: #f4f8fd;
+  --jarmal-surface-3: #eaf2fb;
+  --jarmal-border: #c8d7e8;
+  --jarmal-border-soft: #dbe5f0;
+  --jarmal-lime: #dfff00;
+  --jarmal-text: #183653;
+  --jarmal-muted: #526a83;
+  --jarmal-muted-2: #6d8299;
+  background: #e7eff8 !important;
+  color: #183653 !important;
+}
+.jarmal-app header,
+.jarmal-app aside,
+.jarmal-app nav.fixed {
+  background: #23496f !important;
+  border-color: #355d83 !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(24,54,83,.12) !important;
+}
+.jarmal-app header [class*="text-white"],
+.jarmal-app aside [class*="text-white"],
+.jarmal-app nav.fixed [class*="text-white"] { color: #fff !important; }
+.jarmal-app main { background: transparent !important; }
+.jarmal-app .jarmal-page,
+.jarmal-app .jarmal-page > section { color: #183653 !important; }
+.jarmal-app .jarmal-card,
+.jarmal-app .jarmal-page .space-y-4 > .rounded-2xl,
+.jarmal-app .jarmal-page .space-y-3 > .rounded-2xl,
+.jarmal-app .jarmal-page .grid > .rounded-2xl,
+.jarmal-app .jarmal-page .grid > button.rounded-2xl {
+  background: #fff !important;
+  color: #183653 !important;
+  border-color: #c8d7e8 !important;
+  box-shadow: 0 8px 24px rgba(24,54,83,.07) !important;
+}
+.jarmal-app [class~="bg-[#0d0d0d]"],
+.jarmal-app [class~="bg-[#111]"],
+.jarmal-app [class~="bg-black"],
+.jarmal-app [class~="bg-[#f4f6f1]"],
+.jarmal-app [class~="bg-[#f5f6f3]"],
+.jarmal-app [class~="bg-[#fbfcfa]"],
+.jarmal-app [class~="bg-white"] {
+  background: #fff !important;
+  color: #183653 !important;
+}
+.jarmal-app [class*="text-[#171a16]"],
+.jarmal-app [class*="text-[#30362f]"],
+.jarmal-app [class*="text-[#596159]"],
+.jarmal-app [class*="text-[#697068]"],
+.jarmal-app [class*="text-[#70776f]"],
+.jarmal-app [class*="text-[#747b72]"],
+.jarmal-app [class*="text-[#788078]"],
+.jarmal-app [class*="text-[#858c84]"],
+.jarmal-app [class*="text-[#8a9189]"],
+.jarmal-app [class*="text-[#9aa097]"] { color: #526a83 !important; }
+.jarmal-app .jarmal-page h1,
+.jarmal-app .jarmal-page h2,
+.jarmal-app .jarmal-page h3,
+.jarmal-app .jarmal-page strong,
+.jarmal-app .jarmal-page label,
+.jarmal-app .jarmal-page p,
+.jarmal-app .jarmal-page span { color: inherit; }
+.jarmal-app input,
+.jarmal-app textarea,
+.jarmal-app select {
+  background: #fff !important;
+  color: #183653 !important;
+  border-color: #c8d7e8 !important;
+}
+.jarmal-app input::placeholder,
+.jarmal-app textarea::placeholder { color: #7589a0 !important; }
+.jarmal-app button[class*="bg-[#e3fe00]"],
+.jarmal-app button[class*="bg-[#dfff00]"],
+.jarmal-app [class*="bg-[#e3fe00]"] button,
+.jarmal-app [class*="bg-[#dfff00]"] button {
+  background: #dfff00 !important;
+  color: #183653 !important;
+}
+.jarmal-app [class*="text-[#e3fe00]"],
+.jarmal-app [class*="text-[#dfff00]"] { color: #23496f !important; }
+.jarmal-app .jarmal-hero {
+  background: linear-gradient(135deg, #dfff00 0%, #f0ff8a 100%) !important;
+  color: #183653 !important;
+}
+.jarmal-app .jarmal-store-card {
+  background: linear-gradient(145deg, #315f8b 0%, #23496f 100%) !important;
+  border-color: #426d98 !important;
+}
+.jarmal-app .jarmal-store-card,
+.jarmal-app .jarmal-store-card h2,
+.jarmal-app .jarmal-store-card h3,
+.jarmal-app .jarmal-store-card p,
+.jarmal-app .jarmal-store-card strong { color: #fff !important; }
+.jarmal-app .jarmal-store-card .jarmal-store-status.is-open,
+.jarmal-app .jarmal-store-card .jarmal-store-icon { color: #dfff00 !important; }
+.jarmal-app .jarmal-page .map-grid { background-color: #e8f0f8 !important; }
+.jarmal-app .jarmal-page button:not([class*="bg-[#e3fe00]"]):not([class*="bg-[#dfff00]"]) { color: inherit; }
+.jarmal-app .jarmal-assistant-launcher,
+.jarmal-app .jarmal-assistant-panel { color: #f7faff !important; }
