@@ -6,3 +6,26 @@
 .jarmal-companion .jc-character { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
 .jarmal-companion.jc-dragging .jc-runtime-character,
 .jarmal-companion.jc-dragging .jc-character { cursor: grabbing; }
+
+/* Reliable touch dragging: the floating companion uses fixed screen coordinates. */
+.jarmal-companion {
+  position: fixed !important;
+  right: auto !important;
+  bottom: auto !important;
+  touch-action: none !important;
+  pointer-events: none;
+  z-index: 9990 !important;
+  will-change: left, top;
+}
+.jarmal-companion > * { pointer-events: auto; }
+.jarmal-companion .jc-runtime-character {
+  pointer-events: auto !important;
+  touch-action: none !important;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.jarmal-companion.jc-dragging { cursor: grabbing; }
+.jarmal-companion.jc-dragging .jc-runtime-character { cursor: grabbing; }
+.jarmal-companion .jc-speech { pointer-events: none; }
