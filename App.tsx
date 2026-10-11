@@ -1217,6 +1217,7 @@ function StoreTeamView({ storeId }: { storeId: string }) {
   const [memberRole, setMemberRole] = useState<Exclude<StoreMemberContext['member_role'], 'owner'>>('orders_employee');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [inviteCode, setInviteCode] = useState('');
 
   const roleLabel: Record<string, string> = {
@@ -1226,12 +1227,17 @@ function StoreTeamView({ storeId }: { storeId: string }) {
   };
 
   const loadTeam = useCallback(async () => {
-    const { data: memberRows } = await supabase
+    setLoadError('');
+    const { data: memberRows, error: memberLoadError } = await supabase
       .from('store_members')
       .select('id, user_id, member_role, is_active')
       .eq('store_id', storeId)
       .order('created_at', { ascending: true });
 
+    if (memberLoadError) {
+      setLoadError('تعذر تحميل أعضاء الفريق. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.');
+      return;
+    }
     const rows = (memberRows as StoreTeamMemberRow[] | null) || [];
     if (rows.length) {
       const ids = rows.map((row) => row.user_id);
@@ -1244,12 +1250,16 @@ function StoreTeamView({ storeId }: { storeId: string }) {
     }
     setMembers(rows);
 
-    const { data: inviteRows } = await supabase
+    const { data: inviteRows, error: inviteLoadError } = await supabase
       .from('store_member_invitations')
       .select('id, phone_number, member_role, status, expires_at, created_at')
       .eq('store_id', storeId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
+    if (inviteLoadError) {
+      setLoadError('تم تحميل أعضاء الفريق، لكن تعذر تحميل الدعوات المعلقة.');
+      return;
+    }
     setInvitations((inviteRows as StoreInvitationRow[] | null) || []);
   }, [storeId]);
 
@@ -1302,6 +1312,7 @@ function StoreTeamView({ storeId }: { storeId: string }) {
         <span className="rounded-full bg-[#e3fe00]/10 px-3 py-2 text-xs font-bold text-[#e3fe00]">المالك فقط</span>
       </div>
 
+      {loadError && <div role="alert" className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">{loadError} <button type="button" onClick={() => void loadTeam()} className="mr-2 font-bold underline">إعادة المحاولة</button></div>}
       <div className="mt-7 rounded-2xl border border-white/10 bg-[#0d0d0d] p-5">
         <h3 className="font-black">دعوة موظف</h3>
         <p className="mt-1 text-xs text-white/40">سيظهر لك رمز دعوة لمرة واحدة. أعطه للموظف عبر قناة موثوقة.</p>
@@ -1376,6 +1387,7 @@ function StoreTeamView({ storeId }: { storeId: string }) {
 function StoreAuditLogView({ storeId }: { storeId: string }) {
   const [logs, setLogs] = useState<StoreAuditRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   const actionLabel: Record<string, string> = {
     staff_invitation_created: 'إنشاء دعوة موظف',
@@ -1386,12 +1398,18 @@ function StoreAuditLogView({ storeId }: { storeId: string }) {
 
   const loadLogs = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    setLoadError('');
+    const { data, error: logsError } = await supabase
       .from('store_audit_logs')
       .select('id, action, entity_type, entity_id, metadata, created_at')
       .eq('store_id', storeId)
       .order('created_at', { ascending: false })
       .limit(50);
+    if (logsError) {
+      setLoadError('تعذر تحميل سجل النشاط. قد تكون صلاحية قراءة السجل غير متاحة لهذا الحساب.');
+      setLoading(false);
+      return;
+    }
     setLogs((data as StoreAuditRow[] | null) || []);
     setLoading(false);
   }, [storeId]);
@@ -1414,6 +1432,7 @@ function StoreAuditLogView({ storeId }: { storeId: string }) {
         </button>
       </div>
 
+      {loadError && <div role="alert" className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">{loadError} <button type="button" onClick={() => void loadLogs()} className="mr-2 font-bold underline">إعادة المحاولة</button></div>}
       <div className="mt-7 overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d]">
         {loading ? (
           <div className="p-8 text-center text-sm text-white/40">جارٍ تحميل السجل...</div>
