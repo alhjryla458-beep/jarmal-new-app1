@@ -20,6 +20,14 @@ export function AppDesignRuntime() {
         const value = design[key];
         if (typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value)) root.style.setProperty(variable, value);
       }
+      const surfaceColor = design.surfaceColor;
+      if (typeof surfaceColor === 'string' && /^#[0-9a-fA-F]{6}$/.test(surfaceColor)) {
+        const red = parseInt(surfaceColor.slice(1, 3), 16);
+        const green = parseInt(surfaceColor.slice(3, 5), 16);
+        const blue = parseInt(surfaceColor.slice(5, 7), 16);
+        const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
+        root.style.setProperty('--jarmal-card-ink', brightness >= 150 ? '#171a1f' : '#f7faff');
+      }
       const radius = Number(design.borderRadius);
       if (Number.isFinite(radius)) root.style.setProperty('--jarmal-radius', Math.max(8, Math.min(28, radius)) + 'px');
       const fonts: Record<string, string> = { Tajawal: 'Tajawal, Cairo, system-ui, sans-serif', Cairo: 'Cairo, Tajawal, system-ui, sans-serif', 'system-ui': 'system-ui, sans-serif' };
