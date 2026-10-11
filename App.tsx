@@ -3405,7 +3405,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
 
     // Resolve the store explicitly. Owners come from stores.merchant_id;
     // staff come from store_members. Never use maybeSingle() on public stores.
-    const { data: membership } = await supabase
+    const { data: membership, error: membershipError } = await supabase
       .from('store_members')
       .select('store_id, member_role')
       .eq('user_id', userId)
