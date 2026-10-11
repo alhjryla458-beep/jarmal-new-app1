@@ -137,7 +137,6 @@ export function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssi
         const target = event.target as HTMLElement;
         if (!target.closest('.jc-runtime-character, .jc-character')) return;
         if (event.pointerType === 'mouse' && event.button !== 0) return;
-        event.preventDefault();
         dragStart.current = { pointerX: event.clientX, pointerY: event.clientY, x: dragPosition.x, y: dragPosition.y };
         didDrag.current = false;
       }}
