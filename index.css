@@ -1955,3 +1955,214 @@ html, body { background: #dce8f5 !important; color: #172b40; }
   border-color: #bfd0e2;
 }
 .jarmal-app .jarmal-page .map-grid { background-color: #dce8f5 !important; }
+
+
+/* JARMAL NAVY CANVAS — WHITE / BLACK / GREY SURFACES (user-approved direction) */
+:root {
+  --jarmal-canvas: #172b40;
+  --jarmal-canvas-deep: #122337;
+  --jarmal-panel: #ffffff;
+  --jarmal-panel-soft: #f1f3f5;
+  --jarmal-panel-muted: #e3e7eb;
+  --jarmal-ink: #171a1f;
+  --jarmal-copy: #303842;
+  --jarmal-copy-muted: #66717d;
+  --jarmal-line: #d5dbe1;
+  --jarmal-accent: #dfff00;
+}
+html, body {
+  background: var(--jarmal-canvas) !important;
+  color: #fff !important;
+}
+body { min-height: 100vh; }
+#root, #app, .jarmal-app {
+  min-height: 100vh;
+  background: var(--jarmal-canvas) !important;
+  color: #fff !important;
+}
+.jarmal-app main,
+.jarmal-app .jarmal-page,
+.jarmal-app .jarmal-page > section {
+  background: transparent !important;
+  color: #fff !important;
+}
+.jarmal-app header,
+.jarmal-app aside,
+.jarmal-app nav.fixed,
+.jarmal-app .jarmal-topbar,
+.jarmal-app .jarmal-sidenav,
+.jarmal-app .jarmal-bottom-nav {
+  background: var(--jarmal-canvas-deep) !important;
+  color: #fff !important;
+  border-color: #34485c !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14) !important;
+}
+.jarmal-app header *,
+.jarmal-app aside *,
+.jarmal-app nav.fixed *,
+.jarmal-app .jarmal-topbar *,
+.jarmal-app .jarmal-sidenav *,
+.jarmal-app .jarmal-bottom-nav * {
+  color: inherit;
+}
+.jarmal-app .jarmal-page h1,
+.jarmal-app .jarmal-page h2,
+.jarmal-app .jarmal-page h3,
+.jarmal-app .jarmal-page > div > h2,
+.jarmal-app .jarmal-section-heading h2,
+.jarmal-app .jarmal-home-content-heading h2 {
+  color: #fff !important;
+}
+.jarmal-app .jarmal-card,
+.jarmal-app .jarmal-page .jarmal-card,
+.jarmal-app .jarmal-page .jarmal-product-card,
+.jarmal-app .jarmal-page .jarmal-empty-card,
+.jarmal-app .jarmal-page .jarmal-balance-card:not([class*="bg-[#e3fe00]"]):not([class*="bg-[#dfff00]"]),
+.jarmal-app .jarmal-page .space-y-4 > .rounded-2xl,
+.jarmal-app .jarmal-page .space-y-3 > .rounded-2xl,
+.jarmal-app .jarmal-page .grid > .rounded-2xl,
+.jarmal-app .jarmal-page .grid > button.rounded-2xl,
+.jarmal-app .jarmal-page .jarmal-service-card,
+.jarmal-app .jarmal-page .jarmal-discovery-product,
+.jarmal-app .jarmal-page .jarmal-ad-card,
+.jarmal-app .jarmal-page .jarmal-home-search,
+.jarmal-app .jarmal-page .jarmal-quick-chip,
+.jarmal-app .jarmal-page .jarmal-category-rail button,
+.jarmal-app .jarmal-page table tr {
+  background: var(--jarmal-panel) !important;
+  color: var(--jarmal-ink) !important;
+  border-color: var(--jarmal-line) !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.09) !important;
+}
+.jarmal-app .jarmal-page .jarmal-card *,
+.jarmal-app .jarmal-page .jarmal-product-card *,
+.jarmal-app .jarmal-page .jarmal-empty-card *,
+.jarmal-app .jarmal-page .jarmal-balance-card:not([class*="bg-[#e3fe00]"]):not([class*="bg-[#dfff00]"]) *,
+.jarmal-app .jarmal-page .space-y-4 > .rounded-2xl *,
+.jarmal-app .jarmal-page .space-y-3 > .rounded-2xl *,
+.jarmal-app .jarmal-page .grid > .rounded-2xl *,
+.jarmal-app .jarmal-page .grid > button.rounded-2xl *,
+.jarmal-app .jarmal-page .jarmal-service-card *,
+.jarmal-app .jarmal-page .jarmal-discovery-product *,
+.jarmal-app .jarmal-page .jarmal-ad-card *,
+.jarmal-app .jarmal-page .jarmal-home-search *,
+.jarmal-app .jarmal-page .jarmal-quick-chip *,
+.jarmal-app .jarmal-page .jarmal-category-rail button *,
+.jarmal-app .jarmal-page table tr * {
+  color: var(--jarmal-ink) !important;
+}
+.jarmal-app .jarmal-page .jarmal-card p,
+.jarmal-app .jarmal-page .jarmal-card small,
+.jarmal-app .jarmal-page .jarmal-product-card small,
+.jarmal-app .jarmal-page .jarmal-empty-card p,
+.jarmal-app .jarmal-page .jarmal-service-card small,
+.jarmal-app .jarmal-page .jarmal-discovery-product small,
+.jarmal-app .jarmal-page .jarmal-ad-card p,
+.jarmal-app .jarmal-page .jarmal-category-rail button small {
+  color: var(--jarmal-copy-muted) !important;
+}
+.jarmal-app .jarmal-page [class*="bg-white"],
+.jarmal-app .jarmal-page [class*="bg-[#f"],
+.jarmal-app .jarmal-page [class*="bg-[#e"] {
+  background-color: var(--jarmal-panel) !important;
+}
+.jarmal-app .jarmal-page [class*="border-white/"],
+.jarmal-app .jarmal-page [class*="border-[#e"],
+.jarmal-app .jarmal-page [class*="border-[#d"] {
+  border-color: var(--jarmal-line) !important;
+}
+.jarmal-app .jarmal-page input,
+.jarmal-app .jarmal-page textarea,
+.jarmal-app .jarmal-page select {
+  background: #fff !important;
+  color: var(--jarmal-ink) !important;
+  border-color: #c5ccd4 !important;
+}
+.jarmal-app .jarmal-page input::placeholder,
+.jarmal-app .jarmal-page textarea::placeholder {
+  color: #737e89 !important;
+}
+.jarmal-app .jarmal-page button:not([class*="bg-[#e3fe00]"]):not([class*="bg-[#dfff00]"]) {
+  border-color: var(--jarmal-line);
+}
+.jarmal-app .jarmal-page button[class*="bg-[#e3fe00]"],
+.jarmal-app .jarmal-page button[class*="bg-[#dfff00]"],
+.jarmal-app .jarmal-page [class*="bg-[#e3fe00]"] button,
+.jarmal-app .jarmal-page [class*="bg-[#dfff00]"] button {
+  background: var(--jarmal-accent) !important;
+  color: var(--jarmal-ink) !important;
+}
+.jarmal-app .jarmal-page [class*="bg-[#e3fe00]"] *,
+.jarmal-app .jarmal-page [class*="bg-[#dfff00]"] * {
+  color: var(--jarmal-ink) !important;
+}
+.jarmal-app .jarmal-page .jarmal-hero {
+  background: #263b50 !important;
+  color: #fff !important;
+  border-color: #3b5065 !important;
+}
+.jarmal-app .jarmal-page .jarmal-hero *,
+.jarmal-app .jarmal-page .jarmal-hero p {
+  color: #fff !important;
+}
+.jarmal-app .jarmal-page .jarmal-hero button {
+  background: var(--jarmal-accent) !important;
+  color: var(--jarmal-ink) !important;
+}
+.jarmal-app .jarmal-page .jarmal-store-card {
+  background: #e3e7eb !important;
+  color: var(--jarmal-ink) !important;
+  border-color: #c4cbd2 !important;
+}
+.jarmal-app .jarmal-page .jarmal-store-card *,
+.jarmal-app .jarmal-page .jarmal-store-card h2,
+.jarmal-app .jarmal-page .jarmal-store-card h3,
+.jarmal-app .jarmal-page .jarmal-store-card p,
+.jarmal-app .jarmal-page .jarmal-store-card strong {
+  color: var(--jarmal-ink) !important;
+}
+.jarmal-app .jarmal-page .jarmal-store-card .jarmal-store-status.is-open,
+.jarmal-app .jarmal-page .jarmal-store-card .jarmal-store-icon {
+  color: #303842 !important;
+}
+.jarmal-app .jarmal-page .map-grid {
+  background-color: #e3e7eb !important;
+  border-color: var(--jarmal-line) !important;
+}
+.jarmal-app .jarmal-page .map-grid [class*="bg-black"] {
+  background: #fff !important;
+  color: var(--jarmal-ink) !important;
+  border-color: var(--jarmal-line) !important;
+}
+.jarmal-app .jarmal-page .jarmal-section-heading p,
+.jarmal-app .jarmal-page .jarmal-home-content-heading > div span {
+  color: #c0cbd6 !important;
+}
+.jarmal-app .jarmal-page .jarmal-category-rail button span,
+.jarmal-app .jarmal-page .jarmal-service-card > span,
+.jarmal-app .jarmal-page .jarmal-discovery-product-icon {
+  background: var(--jarmal-panel-muted) !important;
+  color: var(--jarmal-copy) !important;
+}
+.jarmal-app .jarmal-page .jarmal-story-card > span {
+  background: rgba(18,35,55,.9) !important;
+  color: #fff !important;
+}
+.jarmal-app .jarmal-page .jarmal-offer-card::after {
+  background: linear-gradient(0deg,rgba(18,35,55,.9),rgba(18,35,55,.08) 70%);
+}
+.jarmal-app .jarmal-page .jarmal-offer-copy h3,
+.jarmal-app .jarmal-page .jarmal-offer-copy p { color: #fff !important; }
+.jarmal-app .jarmal-page .jarmal-offer-copy > span {
+  background: var(--jarmal-accent) !important;
+  color: var(--jarmal-ink) !important;
+}
+.jarmal-app .jarmal-page .jarmal-discovery-note {
+  border-color: #607286 !important;
+  color: #c0cbd6 !important;
+}
+.jarmal-app .jarmal-page table td,
+.jarmal-app .jarmal-page table th { border-color: var(--jarmal-line) !important; }
+@media (prefers-reduced-motion: reduce) {
+  .jarmal-app button { transition: none !important; }
+}
