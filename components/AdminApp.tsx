@@ -589,8 +589,8 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
               <ShieldCheck size={22} />
             </div>
             <div>
-              <h1 className="text-lg font-black">لوحة تحكم الإدارة</h1>
-              <p className="text-xs text-white/40">جَرْمَل • مساحة الإدارة</p>
+              <h1 className="text-lg font-black tracking-wide">JARMAL ADMIN</h1>
+              <p className="text-xs text-white/40">إدارة منصة جَرْمَل</p>
             </div>
           </div>
 
@@ -607,6 +607,25 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
           </div>
         </div>
       </header>
+
+      <div className="border-b border-white/10 bg-white/95 px-3 py-2 lg:hidden">
+        <nav aria-label="أقسام الإدارة" className="flex gap-2 overflow-x-auto pb-1">
+          {navGroups.flatMap((group) => group.items).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              onClick={() => { setTab(id); setError(''); }}
+              aria-current={tab === id ? 'page' : undefined}
+              className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition ${tab === id ? 'bg-[#e3fe00] text-black' : 'bg-[#f4f5f2] text-[#4b5149] hover:bg-[#e9ece5]'}`}
+            >
+              <Icon size={15} />
+              <span>{label}</span>
+              {id === 'wallets' && stats && stats.pendingTransactions > 0 && (
+                <span className="rounded-full bg-black/10 px-1.5 py-0.5 text-[10px]">{stats.pendingTransactions}</span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
 
       <div className="mx-auto flex max-w-7xl">
         <aside className="hidden w-60 shrink-0 border-l p-4 lg:block">
