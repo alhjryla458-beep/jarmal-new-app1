@@ -1849,3 +1849,109 @@ body {
 .jarmal-app .jarmal-page button[class*="bg-[#dfff00]"] {
   color: #183653 !important;
 }
+
+/* JARMAL palette v3 — light navy blue, white, lime and black, with readable contrast. */
+:root {
+  --jarmal-navy: #284f77;
+  --jarmal-navy-deep: #172b40;
+  --jarmal-blue-light: #dce8f5;
+  --jarmal-lime: #dfff00;
+  --jarmal-black: #101820;
+  --jarmal-white: #ffffff;
+}
+html, body { background: #dce8f5 !important; color: #172b40; }
+.jarmal-app {
+  background: #dce8f5 !important;
+  color: #172b40 !important;
+}
+.jarmal-app header,
+.jarmal-app aside,
+.jarmal-app nav.fixed {
+  background: #284f77 !important;
+  color: #ffffff !important;
+  border-color: #45698c !important;
+}
+.jarmal-app header *,
+.jarmal-app aside *,
+.jarmal-app nav.fixed * { color: inherit; }
+.jarmal-app header [class*="text-[#e3fe00]"],
+.jarmal-app header [class*="text-[#dfff00]"],
+.jarmal-app aside [class*="text-[#e3fe00]"],
+.jarmal-app aside [class*="text-[#dfff00]"],
+.jarmal-app nav.fixed [class*="text-[#e3fe00]"],
+.jarmal-app nav.fixed [class*="text-[#dfff00]"] { color: #dfff00 !important; }
+.jarmal-app main { background: transparent !important; }
+.jarmal-app .jarmal-page { color: #172b40 !important; }
+.jarmal-app .jarmal-card,
+.jarmal-app .jarmal-page .jarmal-card,
+.jarmal-app .jarmal-page .jarmal-product-card,
+.jarmal-app .jarmal-page .jarmal-empty-card,
+.jarmal-app .jarmal-page .jarmal-balance-card:not([class*="bg-[#e3fe00]"]) {
+  background: #ffffff !important;
+  color: #172b40 !important;
+  border-color: #bfd0e2 !important;
+}
+.jarmal-app .jarmal-page h1,
+.jarmal-app .jarmal-page h2,
+.jarmal-app .jarmal-page h3,
+.jarmal-app .jarmal-page p,
+.jarmal-app .jarmal-page label,
+.jarmal-app .jarmal-page strong,
+.jarmal-app .jarmal-page span,
+.jarmal-app .jarmal-page small { color: inherit; }
+.jarmal-app .jarmal-page [class*="text-white"],
+.jarmal-app .jarmal-page [class*="text-white/"] { color: #405b76 !important; }
+.jarmal-app .jarmal-page [class*="bg-black"],
+.jarmal-app .jarmal-page [class*="bg-[#0d0d0d]"],
+.jarmal-app .jarmal-page [class*="bg-[#111]"] {
+  background: #172b40 !important;
+  color: #ffffff !important;
+}
+.jarmal-app .jarmal-page [class*="bg-black"] *,
+.jarmal-app .jarmal-page [class*="bg-[#0d0d0d]"] *,
+.jarmal-app .jarmal-page [class*="bg-[#111]"] * { color: inherit; }
+.jarmal-app .jarmal-page .jarmal-hero {
+  background: linear-gradient(135deg, #284f77 0%, #172b40 100%) !important;
+  color: #ffffff !important;
+}
+.jarmal-app .jarmal-page .jarmal-hero *,
+.jarmal-app .jarmal-page .jarmal-hero [class*="text-white"] { color: #ffffff !important; }
+.jarmal-app .jarmal-page .jarmal-hero [class*="text-[#e3fe00]"],
+.jarmal-app .jarmal-page .jarmal-hero [class*="text-[#dfff00]"] { color: #dfff00 !important; }
+.jarmal-app .jarmal-page .jarmal-home-search,
+.jarmal-app .jarmal-page .jarmal-quick-chip {
+  background: #ffffff !important;
+  color: #284f77 !important;
+  border-color: #bfd0e2 !important;
+}
+.jarmal-app .jarmal-page .jarmal-store-card {
+  background: linear-gradient(145deg, #315f8b 0%, #172b40 100%) !important;
+  border-color: #45698c !important;
+  color: #ffffff !important;
+}
+.jarmal-app .jarmal-page .jarmal-store-card *,
+.jarmal-app .jarmal-page .jarmal-store-card [class*="text-white"] { color: #ffffff !important; }
+.jarmal-app .jarmal-page .jarmal-store-card [class*="text-[#e3fe00]"],
+.jarmal-app .jarmal-page .jarmal-store-card [class*="text-[#dfff00]"] { color: #dfff00 !important; }
+.jarmal-app .jarmal-page [class*="bg-[#e3fe00]"],
+.jarmal-app .jarmal-page [class*="bg-[#dfff00]"],
+.jarmal-app .jarmal-page .jarmal-balance-card {
+  background: #dfff00 !important;
+  color: #172b40 !important;
+}
+.jarmal-app .jarmal-page [class*="bg-[#e3fe00]"] *,
+.jarmal-app .jarmal-page [class*="bg-[#dfff00]"] *,
+.jarmal-app .jarmal-page .jarmal-balance-card * { color: #172b40 !important; }
+.jarmal-app .jarmal-page input,
+.jarmal-app .jarmal-page textarea,
+.jarmal-app .jarmal-page select {
+  background: #ffffff !important;
+  color: #172b40 !important;
+  border-color: #aebfd2 !important;
+}
+.jarmal-app .jarmal-page input::placeholder,
+.jarmal-app .jarmal-page textarea::placeholder { color: #667d94 !important; }
+.jarmal-app .jarmal-page button:not([class*="bg-[#e3fe00]"]):not([class*="bg-[#dfff00]"]) {
+  border-color: #bfd0e2;
+}
+.jarmal-app .jarmal-page .map-grid { background-color: #dce8f5 !important; }
