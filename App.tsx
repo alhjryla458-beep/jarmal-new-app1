@@ -1177,7 +1177,7 @@ function Topbar({
           <span className="hidden h-5 w-px bg-white/20 sm:block" />
           <div className="hidden sm:block">
             <span className="text-sm font-black">{title}</span>
-            <span className="mt-0.5 block text-[10px] font-medium text-white/35">منصة جَرْمَل</span>
+            <span data-jarmal-brand className="mt-0.5 block text-[10px] font-medium text-white/35">منصة جَرْمَل</span>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
