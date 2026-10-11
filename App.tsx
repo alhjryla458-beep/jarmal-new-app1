@@ -11,6 +11,7 @@ import { JarmalCompanion } from './components/companion/JarmalCompanion';
 import { JarmalAIChat } from './components/companion/JarmalAIChat';
 import { JarmalHomeDiscovery } from './components/home/JarmalHomeDiscovery';
 import { JarmalHomeContent } from './components/home/JarmalHomeContent';
+import { AppDesignRuntime } from './components/AppDesignRuntime';
 
 type Role = 'customer' | 'driver' | 'merchant';
 type Screen = 'welcome' | 'auth' | 'app';
@@ -4072,6 +4073,7 @@ class AppErrorBoundary extends Component<
 export default function App() {
   return (
     <AppErrorBoundary>
+      <AppDesignRuntime />
       <AppContent />
     </AppErrorBoundary>
   );
