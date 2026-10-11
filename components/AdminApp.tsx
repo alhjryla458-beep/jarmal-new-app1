@@ -11,7 +11,7 @@ const CURRENCY = 'ر.ي';
 type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'driver_withdrawals' | 'payment_settings' | 'driver_earning_settings' | 'merchant_stores' | 'drivers' | 'users' | 'orders' | 'design_studio';
 
 type AppDesign = { brandName: string; primaryColor: string; secondaryColor: string; accentColor: string; surfaceColor: string; backgroundColor: string; textColor: string; fontFamily: 'Tajawal' | 'Cairo' | 'system-ui'; borderRadius: string; compactMode: boolean };
-const DEFAULT_APP_DESIGN: AppDesign = { brandName: 'جَرْمَل', primaryColor: '#172b40', secondaryColor: '#122337', accentColor: '#dfff00', surfaceColor: '#ffffff', backgroundColor: '#f5f6f3', textColor: '#171a16', fontFamily: 'Tajawal', borderRadius: '16', compactMode: false };
+const DEFAULT_APP_DESIGN: AppDesign = { brandName: 'جَرْمَل', primaryColor: '#172b40', secondaryColor: '#122337', accentColor: '#dfff00', surfaceColor: '#ffffff', backgroundColor: '#172b40', textColor: '#171a1f', fontFamily: 'Tajawal', borderRadius: '16', compactMode: false };
 
 type ProfileRow = {
   id: string;
