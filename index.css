@@ -2246,3 +2246,69 @@ body, #root, #app, .jarmal-app {
   background-color: #ffffff !important;
   color: #171a1f !important;
 }
+
+
+/* JARMAL APP WORKSPACE FIX — keep every signed-in page canvas navy.
+   Individual cards, inputs, and dialogs retain their explicit light surfaces. */
+html, body, #root, #app {
+  min-height: 100%;
+  background-color: #172b40 !important;
+  background-image: none !important;
+}
+body { min-height: 100vh; }
+#root, #app, .jarmal-app {
+  min-height: 100vh;
+  background-color: #172b40 !important;
+  background-image: none !important;
+}
+.jarmal-app > .mx-auto,
+.jarmal-app > .mx-auto.flex,
+.jarmal-app .jarmal-page,
+.jarmal-app main.jarmal-page,
+.jarmal-app .jarmal-page > section {
+  background-color: #172b40 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+}
+.jarmal-app .jarmal-page h1,
+.jarmal-app .jarmal-page h2,
+.jarmal-app .jarmal-page h3,
+.jarmal-app .jarmal-page > div > p,
+.jarmal-app .jarmal-page > section > p {
+  color: #ffffff;
+}
+/* Restore intended white/grey cards above the page canvas. */
+.jarmal-app .jarmal-page .jarmal-card,
+.jarmal-app .jarmal-page .jarmal-product-card,
+.jarmal-app .jarmal-page .jarmal-empty-card,
+.jarmal-app .jarmal-page .jarmal-service-card,
+.jarmal-app .jarmal-page .jarmal-store-card,
+.jarmal-app .jarmal-page .jarmal-ad-card,
+.jarmal-app .jarmal-page .jarmal-home-search,
+.jarmal-app .jarmal-page .jarmal-quick-chip,
+.jarmal-app .jarmal-page .jarmal-category-rail button,
+.jarmal-app .jarmal-page .jarmal-balance-card,
+.jarmal-app .jarmal-page .grid > .rounded-2xl,
+.jarmal-app .jarmal-page .space-y-4 > .rounded-2xl,
+.jarmal-app .jarmal-page .space-y-3 > .rounded-2xl {
+  background-color: #ffffff !important;
+  color: #171a1f !important;
+  border-color: #d5dbe1 !important;
+}
+.jarmal-app .jarmal-page .jarmal-card *,
+.jarmal-app .jarmal-page .jarmal-product-card *,
+.jarmal-app .jarmal-page .jarmal-empty-card *,
+.jarmal-app .jarmal-page .jarmal-service-card *,
+.jarmal-app .jarmal-page .jarmal-store-card *,
+.jarmal-app .jarmal-page .jarmal-ad-card *,
+.jarmal-app .jarmal-page .jarmal-home-search *,
+.jarmal-app .jarmal-page .jarmal-quick-chip *,
+.jarmal-app .jarmal-page .jarmal-category-rail button * {
+  color: #171a1f;
+}
+.jarmal-app .jarmal-page input,
+.jarmal-app .jarmal-page textarea,
+.jarmal-app .jarmal-page select {
+  background-color: #ffffff !important;
+  color: #171a1f !important;
+}
