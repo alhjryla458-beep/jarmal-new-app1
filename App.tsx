@@ -837,23 +837,6 @@ function Auth({
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setInviteMode(true);
-                  setMode('signup');
-                  setStep(1);
-                  setError('');
-                  setOtpVerified(false);
-                  setOtpSent(false);
-                  update('otp', '');
-                  update('accessCode', '');
-                }}
-                className="mb-7 w-full rounded-xl border border-[#e3fe00]/30 py-3 text-sm font-bold text-[#e3fe00] hover:bg-[#e3fe00]/5"
-              >
-                لدي دعوة من متجر
-              </button>
-
           {mode === 'login' && (
             <form onSubmit={submitLogin} className="space-y-4">
               <div className="mb-3 text-center">
@@ -1480,6 +1463,33 @@ function StoreAuditLogView({ storeId }: { storeId: string }) {
 function SettingsView({ role, phone }: { role: 'customer' | 'driver' | 'merchant'; phone?: string | null }) {
   const roleLabel = role === 'customer' ? 'العميل' : role === 'driver' ? 'المندوب' : 'التاجر';
   const [notifications, setNotifications] = useState(true);
+  const [invitationCode, setInvitationCode] = useState('');
+  const [invitationBusy, setInvitationBusy] = useState(false);
+  const [invitationError, setInvitationError] = useState('');
+  const [invitationSuccess, setInvitationSuccess] = useState('');
+
+  const acceptStoreInvitation = async () => {
+    setInvitationError('');
+    setInvitationSuccess('');
+    const code = invitationCode.trim();
+    if (code.length < 6) {
+      setInvitationError('أدخل رمز الدعوة الذي وصلك من صاحب المتجر');
+      return;
+    }
+    setInvitationBusy(true);
+    try {
+      const { data, error } = await supabase.rpc('accept_store_member_invitation', { p_invitation_code: code });
+      if (error) throw error;
+      const result = data as { success?: boolean } | null;
+      if (!result?.success) throw new Error('تعذر قبول الدعوة. تأكد من صحة الرمز وصلاحيته.');
+      setInvitationSuccess('تم قبول الدعوة بنجاح. سجّل الخروج ثم ادخل مجددًا إذا لم تظهر مساحة المتجر.');
+      setInvitationCode('');
+    } catch (caught) {
+      setInvitationError(caught instanceof Error ? caught.message : 'تعذر قبول الدعوة الآن');
+    } finally {
+      setInvitationBusy(false);
+    }
+  };
   return (
     <section className="space-y-6">
       <div><p className="text-sm text-white/40">تخصيص تجربتك في جَرْمَل</p><h1 className="mt-1 text-3xl font-black">الإعدادات</h1></div>
@@ -1496,6 +1506,37 @@ function SettingsView({ role, phone }: { role: 'customer' | 'driver' | 'merchant
           <div className="flex items-center justify-between border-t border-[#e5e8e2] py-4"><div><p className="font-bold">اللغة</p><p className="mt-1 text-xs text-white/40">لغة واجهة جَرْمَل</p></div><span className="rounded-lg bg-[#f4f6f1] px-3 py-2 text-xs font-bold">العربية</span></div>
         </div>
       </div>
+      {role !== 'driver' && (
+        <div className="jarmal-card rounded-2xl border p-5">
+          <div className="flex items-start gap-3">
+            <Store className="mt-0.5 text-[#7e8f00]" size={20} />
+            <div className="min-w-0 flex-1">
+              <p className="font-black">لدي دعوة إلى متجر</p>
+              <p className="mt-1 text-sm text-white/40">أدخل رمز الدعوة الذي أرسله لك صاحب المتجر للانضمام إلى فريقه.</p>
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <input
+                  value={invitationCode}
+                  onChange={(event) => setInvitationCode(event.target.value)}
+                  placeholder="رمز دعوة المتجر"
+                  aria-label="رمز دعوة المتجر"
+                  autoComplete="off"
+                  className="min-w-0 flex-1 rounded-xl border px-3 py-3"
+                />
+                <button
+                  type="button"
+                  onClick={() => void acceptStoreInvitation()}
+                  disabled={invitationBusy || invitationCode.trim().length < 6}
+                  className="rounded-xl bg-[#e3fe00] px-5 py-3 font-black text-[#07111f] disabled:opacity-50"
+                >
+                  {invitationBusy ? 'جارٍ التحقق...' : 'قبول الدعوة'}
+                </button>
+              </div>
+              {invitationError && <p role="alert" className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-500">{invitationError}</p>}
+              {invitationSuccess && <p role="status" className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">{invitationSuccess}</p>}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="rounded-2xl border border-[#dfe4db] bg-white p-5"><div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 text-[#7e8f00]" size={20}/><div><p className="font-black">الخصوصية والأمان</p><p className="mt-1 text-sm text-[#70776f]">تسجيل الدخول يعتمد على رقم الهاتف ورمز تحقق SMS، ولا نعرض بيانات حساسة داخل الواجهة.</p></div></div></div>
     </section>
   );
