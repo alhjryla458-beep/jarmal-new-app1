@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeft, BarChart3, Check, ClipboardList, Landmark, Lock,
-  Package, ShieldCheck, Truck, UserRound, Users, WalletCards, X, Zap, Settings2, Save,
+  Package, ShieldCheck, Truck, UserRound, Users, WalletCards, X, Zap, Settings2, Save, Palette, Eye, RotateCcw,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
 const CURRENCY = 'ر.ي';
 
-type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'driver_withdrawals' | 'payment_settings' | 'driver_earning_settings' | 'merchant_stores' | 'drivers' | 'users' | 'orders';
+type AdminTab = 'stats' | 'wallets' | 'payment_receipts' | 'merchant_withdrawals' | 'driver_cash_settlements' | 'driver_withdrawals' | 'payment_settings' | 'driver_earning_settings' | 'merchant_stores' | 'drivers' | 'users' | 'orders' | 'design_studio';
+
+type AppDesign = { brandName: string; primaryColor: string; secondaryColor: string; accentColor: string; surfaceColor: string; backgroundColor: string; textColor: string; fontFamily: 'Tajawal' | 'Cairo' | 'system-ui'; borderRadius: string; compactMode: boolean };
+const DEFAULT_APP_DESIGN: AppDesign = { brandName: 'جَرْمَل', primaryColor: '#172b40', secondaryColor: '#122337', accentColor: '#dfff00', surfaceColor: '#ffffff', backgroundColor: '#f5f6f3', textColor: '#171a16', fontFamily: 'Tajawal', borderRadius: '16', compactMode: false };
 
 type ProfileRow = {
   id: string;
@@ -192,6 +195,9 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'customer' | 'merchant' | 'driver' | 'admin'>('all');
   const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [userSearch, setUserSearch] = useState('');
+  const [appDesign, setAppDesign] = useState<AppDesign>(DEFAULT_APP_DESIGN);
+  const [publishedDesign, setPublishedDesign] = useState<AppDesign>(DEFAULT_APP_DESIGN);
+  const [designPublishedAt, setDesignPublishedAt] = useState<string | null>(null);
 
   const loadStats = useCallback(async () => {
     const [ordersRes, txRes, profilesRes] = await Promise.all([
@@ -256,6 +262,30 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
     if (err) { setError('تعذر تحميل إيصالات الدفع'); return; }
     setPaymentReceipts((data || []) as PaymentReceiptRow[]);
   }, []);
+
+  const loadAppDesign = useCallback(async () => {
+    const { data, error: err } = await supabase.from('app_design_settings').select('draft, published, published_at').eq('id', 1).maybeSingle();
+    if (err) { setError('تعذر تحميل إعدادات التصميم'); return; }
+    if (data) {
+      setAppDesign({ ...DEFAULT_APP_DESIGN, ...((data.draft || {}) as Partial<AppDesign>) });
+      setPublishedDesign({ ...DEFAULT_APP_DESIGN, ...((data.published || {}) as Partial<AppDesign>) });
+      setDesignPublishedAt(data.published_at || null);
+    }
+  }, []);
+
+  const saveAppDesign = async (publish: boolean) => {
+    setActionLoading(publish ? 'design-publish' : 'design-save');
+    setError('');
+    try {
+      const payload: Record<string, unknown> = { draft: appDesign, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null };
+      if (publish) { payload.published = appDesign; payload.published_at = new Date().toISOString(); }
+      const { error: err } = await supabase.from('app_design_settings').update(payload).eq('id', 1);
+      if (err) throw err;
+      if (publish) { setPublishedDesign(appDesign); setDesignPublishedAt(new Date().toISOString()); }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'تعذر حفظ إعدادات التصميم');
+    } finally { setActionLoading(null); }
+  };
 
   const loadDriverEarningSettings = useCallback(async () => {
     const { data, error: err } = await supabase
@@ -382,14 +412,14 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
       setLoading(true);
       setError('');
       try {
-        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadDriverProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadDriverEarningSettings(), loadOrders(), loadStores()]);
+        await Promise.all([loadStats(), loadTransactions(), loadPaymentReceipts(), loadProfiles(), loadDriverProfiles(), loadMerchantWithdrawals(), loadDriverCashSettlements(), loadDriverWithdrawals(), loadPaymentMethods(), loadDriverEarningSettings(), loadOrders(), loadStores(), loadAppDesign()]);
       } catch {
         setError('حدث خطأ أثناء تحميل البيانات');
       } finally {
         setLoading(false);
       }
     })();
-  }, [loadStats, loadTransactions, loadPaymentReceipts, loadProfiles, loadDriverProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadDriverEarningSettings, loadOrders, loadStores]);
+  }, [loadStats, loadTransactions, loadPaymentReceipts, loadProfiles, loadDriverProfiles, loadMerchantWithdrawals, loadDriverCashSettlements, loadDriverWithdrawals, loadPaymentMethods, loadDriverEarningSettings, loadOrders, loadStores, loadAppDesign]);
 
   const handleTxAction = async (txId: string, action: 'confirm' | 'reject') => {
     setActionLoading(txId + action);
@@ -570,7 +600,7 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
     { title: 'نظرة عامة', items: [['stats', 'لوحة المعلومات', BarChart3], ['orders', 'متابعة الطلبات', ClipboardList]] },
     { title: 'التشغيل', items: [['merchant_stores', 'إدارة المتاجر', Landmark], ['drivers', 'إدارة المندوبين', Truck], ['users', 'إدارة الحسابات', Users]] },
     { title: 'المالية', items: [['wallets', 'عمليات المحافظ', WalletCards], ['payment_receipts', 'إيصالات الدفع', WalletCards], ['merchant_withdrawals', 'سحوبات التجار', WalletCards], ['driver_cash_settlements', 'تسويات المندوبين', Truck], ['driver_withdrawals', 'سحوبات المندوبين', WalletCards]] },
-    { title: 'الإعدادات', items: [['payment_settings', 'إعدادات الدفع', Settings2], ['driver_earning_settings', 'أجور المندوبين', Settings2]] },
+    { title: 'الإعدادات', items: [['design_studio', 'استوديو تصميم التطبيق', Palette], ['payment_settings', 'إعدادات الدفع', Settings2], ['driver_earning_settings', 'أجور المندوبين', Settings2]] },
   ];
 
   if (loading) {
@@ -660,6 +690,74 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
         <main className="min-w-0 flex-1 p-5 sm:p-8">
           {error && (
             <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
+          )}
+
+          {tab === 'design_studio' && (
+            <>
+              <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm text-white/45">JARMAL APP STUDIO</p>
+                  <h2 className="mt-1 text-3xl font-black">استوديو تصميم التطبيق</h2>
+                  <p className="mt-2 max-w-2xl text-sm text-white/45">تحكم بالألوان والهوية البصرية من مكان واحد. التغييرات تحفظ كمسودة أولًا، ولا تُنشر إلا بعد الضغط على نشر التصميم.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => setAppDesign({ ...publishedDesign })} className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/70"><RotateCcw size={16}/> استعادة المنشور</button>
+                  <button disabled={actionLoading !== null} onClick={() => saveAppDesign(false)} className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm font-bold disabled:opacity-50"><Save size={16}/> حفظ المسودة</button>
+                  <button disabled={actionLoading !== null} onClick={() => saveAppDesign(true)} className="flex items-center gap-2 rounded-xl bg-[#dfff00] px-4 py-3 text-sm font-black text-black disabled:opacity-50">{actionLoading === 'design-publish' ? 'جارٍ النشر…' : 'نشر التصميم'}</button>
+                </div>
+              </div>
+
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,.85fr)]">
+                <section className="space-y-5 rounded-2xl border border-white/10 bg-white/[.03] p-5">
+                  <h3 className="text-lg font-black">الهوية والألوان</h3>
+                  <label className="block text-sm font-bold text-white/70">اسم العلامة داخل التطبيق
+                    <input value={appDesign.brandName} maxLength={40} onChange={e => setAppDesign(p => ({...p, brandName:e.target.value}))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-white outline-none focus:border-[#dfff00]/50"/>
+                  </label>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {([
+                      ['primaryColor','اللون الأساسي'],['secondaryColor','اللون الثانوي'],['accentColor','لون التمييز'],['surfaceColor','لون البطاقات'],['backgroundColor','خلفية التطبيق'],['textColor','لون النص'],
+                    ] as [keyof Pick<AppDesign,'primaryColor'|'secondaryColor'|'accentColor'|'surfaceColor'|'backgroundColor'|'textColor'>,string][]).map(([key,label]) => (
+                      <label key={key} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/10 p-3 text-sm">
+                        <span className="font-bold text-white/70">{label}<span className="mt-1 block text-xs text-white/35">{appDesign[key]}</span></span>
+                        <input type="color" value={appDesign[key]} onChange={e => setAppDesign(p => ({...p,[key]:e.target.value}))} aria-label={label} className="h-10 w-12 cursor-pointer rounded-lg border-0 bg-transparent"/>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block text-sm font-bold text-white/70">الخط
+                      <select value={appDesign.fontFamily} onChange={e => setAppDesign(p => ({...p,fontFamily:e.target.value as AppDesign['fontFamily']}))} className="mt-2 w-full rounded-xl border border-white/10 bg-[#111] px-3 py-3 text-white"><option value="Tajawal">Tajawal</option><option value="Cairo">Cairo</option><option value="system-ui">خط النظام</option></select>
+                    </label>
+                    <label className="block text-sm font-bold text-white/70">استدارة البطاقات: {appDesign.borderRadius}px
+                      <input type="range" min="8" max="28" step="2" value={appDesign.borderRadius} onChange={e => setAppDesign(p => ({...p,borderRadius:e.target.value}))} className="mt-4 w-full accent-[#dfff00]"/>
+                    </label>
+                  </div>
+                  <label className="flex items-center justify-between gap-4 rounded-xl border border-white/10 p-4 text-sm">
+                    <span><b>الوضع المضغوط</b><span className="mt-1 block text-xs text-white/40">تقليل المسافات في الواجهات التي تدعم هذا الإعداد.</span></span>
+                    <input type="checkbox" checked={appDesign.compactMode} onChange={e => setAppDesign(p => ({...p,compactMode:e.target.checked}))} className="h-5 w-5 accent-[#dfff00]"/>
+                  </label>
+                  <p className="text-xs leading-6 text-white/35">تنبيه: إعدادات الهوية تحفظ وتُنشر في قاعدة البيانات الآن. ربط كل واجهات العميل والتاجر والمندوب بهذه القيم سيتم التحقق منه كخطوة مستقلة قبل اعتبار التغيير البصري شاملًا.</p>
+                </section>
+
+                <section className="rounded-2xl border border-white/10 bg-white/[.03] p-5">
+                  <div className="mb-4 flex items-center gap-2"><Eye size={18} className="text-[#dfff00]"/><h3 className="text-lg font-black">معاينة مباشرة</h3></div>
+                  <div dir="rtl" style={{background:appDesign.backgroundColor,color:appDesign.textColor,borderRadius:appDesign.borderRadius+'px',fontFamily:appDesign.fontFamily}} className="overflow-hidden border border-black/10 p-4">
+                    <div style={{background:appDesign.primaryColor,borderRadius:Math.max(8,Number(appDesign.borderRadius)-4)+'px'}} className="flex items-center justify-between p-4 text-white">
+                      <div><div className="text-xs opacity-70">أهلاً بك في</div><div className="text-xl font-black">{appDesign.brandName || 'جَرْمَل'}</div></div>
+                      <div style={{background:appDesign.accentColor,color:'#171a16'}} className="rounded-xl px-3 py-2 text-sm font-black">اطلب الآن</div>
+                    </div>
+                    <div style={{background:appDesign.surfaceColor,borderRadius:appDesign.borderRadius+'px'}} className="mt-4 border border-black/5 p-4 shadow-sm">
+                      <div className="text-xs opacity-60">اكتشف بالقرب منك</div><div className="mt-1 text-lg font-black">متاجرك المفضلة</div>
+                      <div className="mt-4 flex gap-2"><div style={{background:appDesign.secondaryColor}} className="rounded-xl px-3 py-2 text-xs font-bold text-white">بقالات</div><div style={{background:appDesign.secondaryColor}} className="rounded-xl px-3 py-2 text-xs font-bold text-white">مطاعم</div></div>
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-xl border border-white/10 p-4 text-sm">
+                    <div className="flex items-center justify-between gap-2"><span className="text-white/50">حالة النشر</span><span className="font-bold text-[#dfff00]">{designPublishedAt ? 'تم نشر تصميم' : 'لم يُنشر بعد'}</span></div>
+                    <p className="mt-2 text-xs text-white/35">{designPublishedAt ? new Date(designPublishedAt).toLocaleString('ar-YE') : 'لم يتم تسجيل تاريخ نشر'}</p>
+                    <p className="mt-3 text-xs leading-5 text-white/35">المعاينة تظهر التعديلات الحالية قبل الحفظ أو النشر.</p>
+                  </div>
+                </section>
+              </div>
+            </>
           )}
 
           {tab === 'stats' && stats && (
