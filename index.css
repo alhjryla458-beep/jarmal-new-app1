@@ -2383,3 +2383,31 @@ body { min-height: 100vh; }
   padding: 12px !important;
 }
 .jarmal-app[data-compact="true"] .jarmal-page .grid { gap: 10px !important; }
+
+
+/* App Studio contrast and canvas fixes: keep published text readable on the chosen surface. */
+.jarmal-app .jarmal-page,
+.jarmal-app main.jarmal-page,
+.jarmal-app .jarmal-page > section,
+.jarmal-app .jarmal-page > div {
+  background-color: var(--jarmal-bg, #172b40) !important;
+}
+.jarmal-app .jarmal-page h1,
+.jarmal-app .jarmal-page h2,
+.jarmal-app .jarmal-page h3,
+.jarmal-app .jarmal-page > div > p,
+.jarmal-app .jarmal-page > section > p {
+  color: var(--jarmal-ink, #f7faff) !important;
+}
+.jarmal-app .jarmal-page .jarmal-card *,
+.jarmal-app .jarmal-page .jarmal-product-card *,
+.jarmal-app .jarmal-page .jarmal-empty-card *,
+.jarmal-app .jarmal-page .jarmal-service-card *,
+.jarmal-app .jarmal-page .jarmal-store-card *,
+.jarmal-app .jarmal-page .jarmal-ad-card *,
+.jarmal-app .jarmal-page .jarmal-home-search *,
+.jarmal-app .jarmal-page .jarmal-quick-chip *,
+.jarmal-app .jarmal-page .jarmal-category-rail button *,
+.jarmal-app .jarmal-page .jarmal-balance-card * {
+  color: var(--jarmal-card-ink, #171a1f) !important;
+}
