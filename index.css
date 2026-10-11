@@ -2166,3 +2166,87 @@ body { min-height: 100vh; }
 @media (prefers-reduced-motion: reduce) {
   .jarmal-app button { transition: none !important; }
 }
+
+
+/* JARMAL FIX: REMOVE THE WHITE PAGE LAYER ABOVE NAVY CANVAS */
+/* Make the actual page/root surfaces navy; keep only content cards white/grey. */
+:root {
+  --jarmal-bg: #172b40;
+  --jarmal-surface: #ffffff;
+  --jarmal-ink: #171a1f;
+  --jarmal-muted: #66717d;
+  --jarmal-border: #d5dbe1;
+}
+html, body, #root, #app {
+  background-color: #172b40 !important;
+  background-image: none !important;
+}
+body, #root, #app, .jarmal-app {
+  min-height: 100vh;
+}
+.jarmal-app,
+.jarmal-app > .mx-auto,
+.jarmal-app > div,
+.jarmal-app > main,
+.jarmal-app .jarmal-page,
+.jarmal-app main.jarmal-page,
+.jarmal-app .jarmal-page > section:not(.jarmal-card),
+.jarmal-app .jarmal-page > div:not(.jarmal-card) {
+  background-color: transparent !important;
+  color: #ffffff !important;
+}
+.jarmal-app {
+  background: #172b40 !important;
+}
+.jarmal-app header,
+.jarmal-app aside,
+.jarmal-app nav.fixed,
+.jarmal-app .jarmal-topbar,
+.jarmal-app .jarmal-sidenav,
+.jarmal-app .jarmal-bottom-nav {
+  background: #122337 !important;
+  color: #ffffff !important;
+  border-color: #34485c !important;
+}
+.jarmal-app .jarmal-page h1,
+.jarmal-app .jarmal-page h2,
+.jarmal-app .jarmal-page h3,
+.jarmal-app .jarmal-page label {
+  color: #ffffff;
+}
+.jarmal-app .jarmal-page .jarmal-card,
+.jarmal-app .jarmal-page .jarmal-product-card,
+.jarmal-app .jarmal-page .jarmal-empty-card,
+.jarmal-app .jarmal-page .jarmal-service-card,
+.jarmal-app .jarmal-page .jarmal-store-card,
+.jarmal-app .jarmal-page .jarmal-ad-card,
+.jarmal-app .jarmal-page .jarmal-home-search,
+.jarmal-app .jarmal-page .jarmal-quick-chip,
+.jarmal-app .jarmal-page .jarmal-category-rail button,
+.jarmal-app .jarmal-page .jarmal-balance-card {
+  background-color: #ffffff !important;
+  color: #171a1f !important;
+  border-color: #d5dbe1 !important;
+}
+.jarmal-app .jarmal-page .jarmal-card h1,
+.jarmal-app .jarmal-page .jarmal-card h2,
+.jarmal-app .jarmal-page .jarmal-card h3,
+.jarmal-app .jarmal-page .jarmal-card p,
+.jarmal-app .jarmal-page .jarmal-card label,
+.jarmal-app .jarmal-page .jarmal-product-card *,
+.jarmal-app .jarmal-page .jarmal-empty-card *,
+.jarmal-app .jarmal-page .jarmal-service-card *,
+.jarmal-app .jarmal-page .jarmal-store-card *,
+.jarmal-app .jarmal-page .jarmal-ad-card *,
+.jarmal-app .jarmal-page .jarmal-home-search *,
+.jarmal-app .jarmal-page .jarmal-quick-chip *,
+.jarmal-app .jarmal-page .jarmal-category-rail button *,
+.jarmal-app .jarmal-page .jarmal-balance-card * {
+  color: #171a1f !important;
+}
+.jarmal-app .jarmal-page input,
+.jarmal-app .jarmal-page textarea,
+.jarmal-app .jarmal-page select {
+  background-color: #ffffff !important;
+  color: #171a1f !important;
+}
