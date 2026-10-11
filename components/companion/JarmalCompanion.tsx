@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { type CompanionContext, type CompanionEvent, decideCompanion, companionEventName } from './companionEngine';
 import { companionController, type CompanionMotionState } from './companionController';
@@ -18,6 +18,9 @@ export function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssi
     animation: 'idle', expression: 'idle', visible: true, x: 0, y: 0, scale: 1
   });
   const [message, setMessage] = useState<string | undefined>();
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const dragStart = useRef<{ pointerX: number; pointerY: number; x: number; y: number } | null>(null);
+  const didDrag = useRef(false);
 
   const reducedMotion = context.reducedMotion ?? (
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -66,7 +69,34 @@ export function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssi
 
   if (context.enabled === false || !motion.visible) return null;
 
+  useEffect(() => {
+    const move = (event: PointerEvent) => {
+      if (!dragStart.current) return;
+      const dx = event.clientX - dragStart.current.pointerX;
+      const dy = event.clientY - dragStart.current.pointerY;
+      if (Math.abs(dx) + Math.abs(dy) > 6) didDrag.current = true;
+      const maxX = 0;
+      const minX = -(window.innerWidth - 96);
+      const minY = -(window.innerHeight - 170);
+      const maxY = 82;
+      setDragOffset({
+        x: Math.max(minX, Math.min(maxX, dragStart.current.x + dx)),
+        y: Math.max(minY, Math.min(maxY, dragStart.current.y + dy)),
+      });
+    };
+    const stop = () => { dragStart.current = null; };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', stop);
+      window.removeEventListener('pointercancel', stop);
+    };
+  }, []);
+
   const handleOpen = () => {
+    if (didDrag.current) { didDrag.current = false; return; }
     if (!bridgeToAssistant) setOpen(true);
     setMessage(decideCompanion({ type: 'open_assistant' }, runtimeContext).message);
     companionController.wave(runtimeContext);
@@ -74,7 +104,18 @@ export function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssi
   };
 
   return (
-    <div className={compact ? 'jarmal-companion jc-compact' : 'jarmal-companion'} dir="rtl">
+    <div
+      className={(compact ? 'jarmal-companion jc-compact' : 'jarmal-companion') + (dragStart.current ? ' jc-dragging' : '')}
+      dir="rtl"
+      style={{ transform: `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)` }}
+      onPointerDown={(event) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.jc-runtime-character, .jc-character')) return;
+        if (event.button !== 0) return;
+        dragStart.current = { pointerX: event.clientX, pointerY: event.clientY, x: dragOffset.x, y: dragOffset.y };
+        didDrag.current = false;
+      }}
+    >
       {!compact && message && !open && <div className="jc-speech" role="status">{message}</div>}
       <CompanionCharacter context={runtimeContext} motion={motion} onClick={handleOpen} />
 
