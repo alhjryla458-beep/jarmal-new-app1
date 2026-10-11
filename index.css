@@ -1804,3 +1804,48 @@ body {
 .jarmal-app .jarmal-page button:not([class*="bg-[#e3fe00]"]):not([class*="bg-[#dfff00]"]) { color: inherit; }
 .jarmal-app .jarmal-assistant-launcher,
 .jarmal-app .jarmal-assistant-panel { color: #f7faff !important; }
+
+
+/* Final contrast corrections: navy text on light surfaces; white/lime on navy surfaces. */
+.jarmal-app .jarmal-page [class*="text-white"],
+.jarmal-app .jarmal-page [class*="text-white/"] {
+  color: #526a83 !important;
+}
+.jarmal-app .jarmal-page .jarmal-store-card,
+.jarmal-app .jarmal-page .jarmal-store-card [class*="text-white"],
+.jarmal-app .jarmal-page .jarmal-store-card [class*="text-white/"] {
+  color: #ffffff !important;
+}
+.jarmal-app .jarmal-page .jarmal-store-card [class*="text-[#e3fe00]"],
+.jarmal-app .jarmal-page .jarmal-store-card [class*="text-[#dfff00]"] {
+  color: #dfff00 !important;
+}
+.jarmal-app header [class*="text-[#e3fe00]"],
+.jarmal-app header [class*="text-[#dfff00]"],
+.jarmal-app aside [class*="text-[#e3fe00]"],
+.jarmal-app aside [class*="text-[#dfff00]"],
+.jarmal-app nav.fixed [class*="text-[#e3fe00]"],
+.jarmal-app nav.fixed [class*="text-[#dfff00]"] {
+  color: #dfff00 !important;
+}
+.jarmal-app .jarmal-page [class*="bg-white/"],
+.jarmal-app .jarmal-page [class*="bg-black/"] {
+  background-color: #f4f8fd !important;
+  color: #183653 !important;
+}
+.jarmal-app .jarmal-page [class*="bg-white/"] [class*="text-white"],
+.jarmal-app .jarmal-page [class*="bg-black/"] [class*="text-white"] {
+  color: #526a83 !important;
+}
+.jarmal-app .jarmal-page .jarmal-hero,
+.jarmal-app .jarmal-page .jarmal-hero * {
+  color: #183653 !important;
+}
+.jarmal-app .jarmal-page .jarmal-hero button {
+  background-color: #dfff00 !important;
+  color: #183653 !important;
+}
+.jarmal-app .jarmal-page button[class*="bg-[#e3fe00]"],
+.jarmal-app .jarmal-page button[class*="bg-[#dfff00]"] {
+  color: #183653 !important;
+}
