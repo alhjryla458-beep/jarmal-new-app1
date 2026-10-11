@@ -2186,12 +2186,8 @@ body, #root, #app, .jarmal-app {
 }
 .jarmal-app,
 .jarmal-app > .mx-auto,
-.jarmal-app > div,
-.jarmal-app > main,
 .jarmal-app .jarmal-page,
-.jarmal-app main.jarmal-page,
-.jarmal-app .jarmal-page > section:not(.jarmal-card),
-.jarmal-app .jarmal-page > div:not(.jarmal-card) {
+.jarmal-app main.jarmal-page {
   background-color: transparent !important;
   color: #ffffff !important;
 }
