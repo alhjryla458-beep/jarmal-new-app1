@@ -18,9 +18,24 @@ export function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssi
     animation: 'idle', expression: 'idle', visible: true, x: 0, y: 0, scale: 1
   });
   const [message, setMessage] = useState<string | undefined>();
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState(() => {
+    if (typeof window === 'undefined') return { x: 0, y: 0 };
+    try {
+      const saved = window.localStorage.getItem('jarmal-companion-position');
+      if (saved) {
+        const parsed = JSON.parse(saved) as { x?: number; y?: number };
+        if (Number.isFinite(parsed.x) && Number.isFinite(parsed.y)) return { x: parsed.x as number, y: parsed.y as number };
+      }
+    } catch { /* Ignore unavailable or invalid local position data. */ }
+    return { x: 0, y: 0 };
+  });
   const dragStart = useRef<{ pointerX: number; pointerY: number; x: number; y: number } | null>(null);
   const didDrag = useRef(false);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('jarmal-companion-position', JSON.stringify(dragOffset)); }
+    catch { /* Position persistence is optional on restricted browsers. */ }
+  }, [dragOffset]);
 
   const reducedMotion = context.reducedMotion ?? (
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -84,7 +99,10 @@ export function JarmalCompanion({ context, onOpen, compact = false, bridgeToAssi
         y: Math.max(minY, Math.min(maxY, dragStart.current.y + dy)),
       });
     };
-    const stop = () => { dragStart.current = null; };
+    const stop = () => {
+      dragStart.current = null;
+      if (didDrag.current) window.setTimeout(() => { didDrag.current = false; }, 120);
+    };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', stop);
     window.addEventListener('pointercancel', stop);
