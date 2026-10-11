@@ -26,7 +26,14 @@ export function AppDesignRuntime() {
       if (typeof design.fontFamily === 'string' && fonts[design.fontFamily]) root.style.setProperty('--jarmal-font', fonts[design.fontFamily]);
       root.dataset.compact = design.compactMode === true ? 'true' : 'false';
     };
-    const applyAll = () => document.querySelectorAll('.jarmal-app').forEach(applyTo);
+    const applyAll = () => {
+      document.querySelectorAll('.jarmal-app').forEach(applyTo);
+      if (typeof design?.brandName === 'string' && design.brandName.trim()) {
+        document.querySelectorAll<HTMLElement>('[data-jarmal-brand]').forEach((label) => {
+          if (label.textContent !== design?.brandName) label.textContent = design?.brandName || '';
+        });
+      }
+    };
     const load = async () => {
       const { data, error } = await supabase.from('app_design_public').select('published').eq('id', 1).maybeSingle();
       if (!active || error || !data?.published) return;
