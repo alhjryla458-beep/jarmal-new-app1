@@ -509,7 +509,7 @@ function Auth({
   };
 
   const resolveUiRole = async (userId: string, fallbackRole: Role): Promise<Role> => {
-    const { data: membership } = await supabase
+    const { data: membership, error: membershipError } = await supabase
       .from('store_members')
       .select('store_id')
       .eq('user_id', userId)
@@ -3386,13 +3386,14 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
   const [newPaymentOptions, setNewPaymentOptions] = useState<'cash_only' | 'electronic_only' | 'both'>('both');
   const [addError, setAddError] = useState('');
   const [memberContext, setMemberContext] = useState<StoreMemberContext | null>(null);
+  const [memberContextLoaded, setMemberContextLoaded] = useState(false);
   const [inventoryRows, setInventoryRows] = useState<InventoryRow[]>([]);
   const [inventoryMovements, setInventoryMovements] = useState<InventoryMovementRow[]>([]);
   const [inventoryQty, setInventoryQty] = useState('1');
   const [inventoryReason, setInventoryReason] = useState('');
   const [inventoryError, setInventoryError] = useState('');
 
-  const isOwner = !memberContext || memberContext.member_role === 'owner';
+  const isOwner = memberContextLoaded && (!memberContext || memberContext.member_role === 'owner');
   const canManageOrders = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'orders_employee';
   const canManageInventory = isOwner || memberContext?.member_role === 'manager' || memberContext?.member_role === 'warehouse_employee';
   const canManageProducts = isOwner || memberContext?.member_role === 'manager';
@@ -3417,6 +3418,7 @@ function MerchantApp({ onLogout, companionTarget }: { onLogout: () => void; comp
       ? (membership as StoreMemberContext)
       : null;
     setMemberContext(resolvedMemberContext);
+    if (!membershipError) setMemberContextLoaded(true);
 
     const storeBaseQuery = supabase
       .from('stores')
