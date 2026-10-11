@@ -281,7 +281,18 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
       if (publish) { payload.published = appDesign; payload.published_at = new Date().toISOString(); }
       const { error: err } = await supabase.from('app_design_settings').update(payload).eq('id', 1);
       if (err) throw err;
-      if (publish) { setPublishedDesign(appDesign); setDesignPublishedAt(new Date().toISOString()); }
+      if (publish) {
+        const publishedAt = String(payload.published_at);
+        const { error: publicErr } = await supabase.from('app_design_public').upsert({
+          id: 1,
+          published: appDesign,
+          published_at: publishedAt,
+          updated_at: new Date().toISOString(),
+        });
+        if (publicErr) throw publicErr;
+        setPublishedDesign(appDesign);
+        setDesignPublishedAt(publishedAt);
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'تعذر حفظ إعدادات التصميم');
     } finally { setActionLoading(null); }
