@@ -337,14 +337,14 @@ function Welcome({
   ];
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f5f6f3] px-5 py-7 text-[#171a16]">
+    <main className="min-h-screen overflow-hidden bg-[#172b40] px-5 py-7 text-white">
       <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-[#dfff00]/20 blur-[120px]" />
 
       <header className="relative mx-auto flex max-w-6xl items-center justify-between">
         <Logo />
 
-        <div className="flex items-center gap-2 text-xs text-[#6b7169]">
-          <ShieldCheck size={15} className="text-[#171a16]" />
+        <div className="flex items-center gap-2 text-xs text-[#c0cbd6]">
+          <ShieldCheck size={15} className="text-white" />
           توصيل موثوق داخل اليمن
         </div>
       </header>
@@ -353,13 +353,13 @@ function Welcome({
         <div className="max-w-3xl animate-slide-up">
           <Pill>أسرع من توقعك</Pill>
 
-          <h1 className="mt-6 text-5xl font-black leading-[1.12] tracking-[-.05em] sm:text-[#171a16] sm:text-7xl">
+          <h1 className="mt-6 text-5xl font-black leading-[1.12] tracking-[-.05em] text-white sm:text-7xl">
             طلبك عند بابك،
             <br />
-            <span className="text-[#171a16]">بسرعة جَرْمَل.</span>
+            <span className="text-white">بسرعة جَرْمَل.</span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg leading-8 text-[#6b7169]">
+          <p className="mt-6 max-w-xl text-lg leading-8 text-[#c0cbd6]">
             كل ما تحتاجه من متاجر حيك، في مكان واحد. اختر حسابك وابدأ رحلتك معنا.
           </p>
         </div>
@@ -369,7 +369,7 @@ function Welcome({
             <button
               key={role}
               onClick={() => onSelect(role)}
-              className="group rounded-2xl border border-[#e5e8e2] bg-white shadow-[0_10px_30px_rgba(23,26,22,.05)] p-5 text-right transition-all duration-300 hover:-translate-y-1 hover:border-[#dfff00] hover:bg-[#dfff00] hover:text-[#171a16] animate-slide-up"
+              className="group rounded-2xl border border-[#d5dbe1] bg-white p-5 text-right text-[#171a1f] shadow-[0_10px_30px_rgba(0,0,0,.12)] transition-all duration-300 hover:-translate-y-1 hover:border-[#dfff00] hover:bg-[#dfff00] hover:text-[#171a16] animate-slide-up"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="mb-10 flex items-start justify-between">
@@ -396,19 +396,19 @@ function Welcome({
           ))}
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center gap-6 text-xs text-[#6b7169]">
+        <div className="mt-12 flex flex-wrap items-center gap-6 text-xs text-[#c0cbd6]">
           <span className="flex items-center gap-2">
-            <Zap size={15} className="text-[#171a16]" />
+            <Zap size={15} className="text-[#dfff00]" />
             توصيل سريع
           </span>
 
           <span className="flex items-center gap-2">
-            <CheckCircle2 size={15} className="text-[#171a16]" />
+            <CheckCircle2 size={15} className="text-[#dfff00]" />
             متاجر موثوقة
           </span>
 
           <span className="flex items-center gap-2">
-            <Navigation size={15} className="text-[#171a16]" />
+            <Navigation size={15} className="text-[#dfff00]" />
             تحديد موقع التسليم
           </span>
 
