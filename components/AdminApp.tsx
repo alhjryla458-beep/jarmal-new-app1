@@ -175,6 +175,7 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
   const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'active' | 'pending' | 'accepted' | 'preparing' | 'ready_for_pickup' | 'picked_up' | 'on_the_way' | 'delivered' | 'cancelled'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [designSuccess, setDesignSuccess] = useState('');
   const [stats, setStats] = useState<Stats | null>(null);
   const [transactions, setTransactions] = useState<TxRow[]>([]);
   const [paymentReceipts, setPaymentReceipts] = useState<PaymentReceiptRow[]>([]);
@@ -276,11 +277,20 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
   const saveAppDesign = async (publish: boolean) => {
     setActionLoading(publish ? 'design-publish' : 'design-save');
     setError('');
+    setDesignSuccess('');
+    let draftSaved = false;
     try {
       const payload: Record<string, unknown> = { draft: appDesign, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null };
       if (publish) { payload.published = appDesign; payload.published_at = new Date().toISOString(); }
-      const { error: err } = await supabase.from('app_design_settings').update(payload).eq('id', 1);
+      const { data: savedRow, error: err } = await supabase
+        .from('app_design_settings')
+        .update(payload)
+        .eq('id', 1)
+        .select('id')
+        .maybeSingle();
       if (err) throw err;
+      if (!savedRow) throw new Error('لم يتم تحديث سجل إعدادات التصميم. تحقق من وجود السجل وصلاحيات المسؤول.');
+      draftSaved = true;
       if (publish) {
         const publishedAt = String(payload.published_at);
         const { error: publicErr } = await supabase.from('app_design_public').upsert({
@@ -292,9 +302,15 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
         if (publicErr) throw publicErr;
         setPublishedDesign(appDesign);
         setDesignPublishedAt(publishedAt);
+        setDesignSuccess('تم حفظ المسودة ونشر التصميم بنجاح.');
+      } else {
+        setDesignSuccess('تم حفظ المسودة. لم تتغير النسخة المنشورة.');
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'تعذر حفظ إعدادات التصميم');
+      const message = caught instanceof Error ? caught.message : 'تعذر حفظ إعدادات التصميم';
+      setError(publish && draftSaved
+        ? 'حُفظت المسودة في إعدادات الإدارة، لكن تعذر تحديث النسخة العامة المنشورة. لم نعتبر النشر مكتملًا. التفاصيل: ' + message
+        : message);
     } finally { setActionLoading(null); }
   };
 
@@ -700,7 +716,10 @@ export default function AdminApp({ onLogout }: { session: Session; onLogout: () 
 
         <main className="min-w-0 flex-1 p-5 sm:p-8">
           {error && (
-            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
+            <div role="alert" className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
+          )}
+          {tab === 'design_studio' && designSuccess && !error && (
+            <div role="status" className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{designSuccess}</div>
           )}
 
           {tab === 'design_studio' && (
